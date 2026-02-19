@@ -6,99 +6,146 @@
     
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#141414">
     
-    <title>Tier List Maker V21</title>
+    <title>Tier List Maker V22</title>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <style>
-        /* GLOBAL */
+        /* --- GLOBAL --- */
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { 
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
             background: #0a0a0a; color: #fff; margin: 0; padding: 0; 
             padding-bottom: 80px; overscroll-behavior: none;
+            
+            /* TỐI ƯU CHO PC: Giới hạn chiều rộng để không bị bè ra */
+            max-width: 600px; 
+            margin-left: auto; margin-right: auto; /* Căn giữa màn hình PC */
+            border-left: 1px solid #222; border-right: 1px solid #222; /* Viền nhẹ cho đẹp trên PC */
+            min-height: 100vh;
         }
         .hidden { display: none !important; }
 
-        /* MENU */
-        #menu-screen { padding: 40px 20px; max-width: 600px; margin: 0 auto; min-height: 100vh; }
-        .app-title { text-align: center; color: #4CAF50; font-size: 2.2rem; margin-bottom: 40px; font-weight: 900; letter-spacing: 2px; }
-        .btn-create { width: 100%; padding: 20px; background: #4CAF50; color: white; font-weight: bold; border: none; border-radius: 12px; margin-bottom: 20px; font-size: 1.2rem; box-shadow: 0 5px 15px rgba(76,175,80,0.3); }
-        .list-item { background: #1c1c1c; padding: 20px; margin-bottom: 12px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; border-left: 5px solid #4CAF50; }
-        .list-info h3 { margin: 0; font-size: 1.1rem; } .list-info p { margin: 5px 0 0; font-size: 0.8rem; color: #888; }
-        .btn-del-list { background: rgba(255,255,255,0.05); border: none; color: #f44336; padding: 12px 16px; border-radius: 8px; font-size: 1.2rem; }
+        /* --- MENU --- */
+        #menu-screen { padding: 40px 20px; }
+        .app-title { text-align: center; color: #4CAF50; font-size: 2.2rem; margin-bottom: 40px; font-weight: 900; letter-spacing: 1px; text-transform: uppercase; }
+        
+        .btn-create { 
+            width: 100%; padding: 20px; background: #4CAF50; color: white; 
+            font-weight: 800; border: none; border-radius: 12px; margin-bottom: 20px; 
+            font-size: 1.1rem; box-shadow: 0 5px 15px rgba(76,175,80,0.3); cursor: pointer;
+            transition: transform 0.1s;
+        }
+        .btn-create:active { transform: scale(0.98); }
+        
+        /* ITEM DANH SÁCH (SỬA LỖI CLICK) */
+        .list-item { 
+            background: #1c1c1c; padding: 15px 20px; margin-bottom: 12px; border-radius: 12px; 
+            display: flex; justify-content: space-between; align-items: center; 
+            border-left: 5px solid #4CAF50; cursor: pointer; /* Con trỏ tay khi di chuột vào */
+            transition: background 0.2s;
+        }
+        .list-item:hover { background: #252525; }
+        .list-info { flex: 1; } /* Chiếm hết chỗ để dễ bấm */
+        .list-info h3 { margin: 0; font-size: 1.2rem; font-weight: 700; } 
+        .list-info p { margin: 5px 0 0; font-size: 0.8rem; color: #888; }
+        
+        .btn-del-list { 
+            background: rgba(255,255,255,0.1); border: none; color: #f44336; 
+            width: 40px; height: 40px; border-radius: 50%; font-size: 1.2rem; 
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            margin-left: 10px;
+        }
+        .btn-del-list:hover { background: rgba(244, 67, 54, 0.2); }
 
-        /* EDITOR */
+        /* --- EDITOR --- */
         #editor-screen { min-height: 100vh; display: flex; flex-direction: column; }
+        
         .top-bar { 
             background: #141414; padding: 15px; display: flex; gap: 15px; align-items: center; 
             position: sticky; top: 0; z-index: 100; border-bottom: 1px solid #2a2a2a;
         }
-        .btn-back { background: transparent; color: #aaa; border: none; font-size: 1.8rem; padding: 0 10px; }
-        .list-name-input { flex: 1; background: transparent; border: none; color: white; font-size: 1.3rem; font-weight: bold; }
+        .btn-back { background: transparent; color: #aaa; border: none; font-size: 1.8rem; padding: 0 10px; cursor: pointer; }
+        .btn-back:hover { color: #fff; }
+        .list-name-input { 
+            flex: 1; background: transparent; border: none; color: white; 
+            font-size: 1.4rem; font-weight: 800; outline: none;
+        }
 
-        /* BOARD AREA */
+        /* --- BOARD AREA --- */
         #capture-area { background: #000; display: flex; flex-direction: column; }
+        
+        /* HEADER MỚI (FONT ĐẸP HƠN) */
         .board-header-style {
             text-align: center; font-size: 28px; font-weight: 900; padding: 25px 10px; 
-            background: #111; color: #fff; text-transform: uppercase; letter-spacing: 2px; 
-            font-family: "Impact", sans-serif; border-bottom: 3px solid #333;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5); width: 100%;
+            background: #111; color: #fff; text-transform: uppercase; letter-spacing: 1px; 
+            /* Thay font Impact bằng font hệ thống đậm */
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            border-bottom: 3px solid #333;
+            width: 100%;
         }
+        
         .btn-add-row { color: #666; border: none; cursor: pointer; transition: 0.2s; }
-        .btn-add-row:active { background: #222; color: #888; }
+        .btn-add-row:hover { background: #1f1f1f; color: #888; }
 
         .tier-row { display: flex; min-height: 85px; background: #000; margin-bottom: 1px; border-top: 1px solid #000; }
-        .tier-label { width: 90px; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: bold; color: #000; text-align: center; border-right: 2px solid #000; padding: 5px; word-break: break-word; }
+        .tier-label { 
+            width: 90px; display: flex; align-items: center; justify-content: center; 
+            font-size: 20px; font-weight: 800; color: #000; text-align: center; 
+            border-right: 2px solid #000; padding: 5px; word-break: break-word; 
+            cursor: pointer;
+        }
         .tier-content { flex: 1; display: flex; flex-wrap: wrap; align-items: flex-start; background: #1a1a1a; padding: 0; gap: 0; align-content: flex-start; }
 
         /* IMAGE */
         .img-item { width: auto; height: 100px; display: block; transition: 0.1s; cursor: pointer; }
         .img-item.selected { outline: 4px solid #4CAF50; outline-offset: -4px; z-index: 10; filter: brightness(1.2); }
 
-        /* DOCK (CĂN TRÁI) */
+        /* DOCK */
         .dock-container { background: #141414; border-top: 3px solid #333; padding: 15px 10px; min-height: 200px; margin-top: auto; }
         .dock-header { text-align: left; font-size: 0.9rem; color: #666; margin-bottom: 10px; font-weight: bold; padding-left: 5px; }
-        #dock { 
-            display: flex; flex-wrap: wrap; gap: 5px; 
-            justify-content: flex-start; /* Căn trái */
-            align-content: flex-start; padding-bottom: 80px; 
-        }
+        #dock { display: flex; flex-wrap: wrap; gap: 5px; justify-content: flex-start; align-content: flex-start; padding-bottom: 80px; }
         #dock .img-item { height: 75px !important; border-radius: 6px; border: 2px solid #333; }
 
         /* BOTTOM BAR */
         .bottom-toolbar {
             position: fixed; bottom: 0; left: 0; right: 0; background: #1c1c1c; 
             padding: 12px 20px; display: flex; gap: 15px; border-top: 1px solid #333; z-index: 200;
+            max-width: 600px; margin: 0 auto; /* Căn giữa thanh công cụ trên PC */
         }
-        .btn-bottom { flex: 1; padding: 14px; border: none; border-radius: 10px; font-size: 1.1rem; font-weight: bold; color: white; display: flex; align-items: center; justify-content: center; gap: 8px; }
-        .btn-save { background: #2196F3; } .btn-add { background: #4CAF50; }
+        .btn-bottom { flex: 1; padding: 14px; border: none; border-radius: 10px; font-size: 1.1rem; font-weight: bold; color: white; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; }
+        .btn-save { background: #2196F3; } .btn-save:hover { background: #1976D2; }
+        .btn-add { background: #4CAF50; } .btn-add:hover { background: #388E3C; }
 
         /* CONTROLS */
         #resize-control {
-            position: fixed; bottom: 80px; left: 0; right: 0; background: rgba(28,28,28,0.95); backdrop-filter: blur(10px);
+            position: fixed; bottom: 80px; left: 0; right: 0; background: rgba(28,28,28,0.98); 
             border-top: 1px solid #444; z-index: 250; padding: 10px 15px; display: flex; flex-direction: column;
+            max-width: 600px; margin: 0 auto;
         }
         .ctrl-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; width: 100%; gap: 10px; }
-        .btn-tool { background: #444; border: none; color: white; padding: 12px; border-radius: 8px; font-weight: bold; min-width: 50px; }
-        .resize-slider { flex: 1; height: 6px; border-radius: 3px; background: #555; outline: none; }
+        .btn-tool { background: #444; border: none; color: white; padding: 12px; border-radius: 8px; font-weight: bold; min-width: 50px; cursor: pointer; }
+        .btn-tool:hover { background: #555; }
+        .resize-slider { flex: 1; height: 6px; border-radius: 3px; background: #555; outline: none; cursor: pointer; }
 
         /* MODAL */
         #modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 300; display: none; align-items: center; justify-content: center; }
         .modal { background: #252525; padding: 25px; border-radius: 16px; width: 90%; max-width: 340px; max-height: 85vh; overflow-y: auto; }
-        .modal input[type="text"] { width: 100%; padding: 12px; margin: 5px 0 0; border-radius: 8px; border: 2px solid #444; background: #333; color: white; font-size: 1rem; }
+        .modal h2 { text-align: center; margin-top: 0; color: #eee; }
+        .modal label { display: block; margin-top: 15px; color: #aaa; font-weight: bold; font-size: 0.9rem; }
+        .modal input[type="text"] { width: 100%; padding: 12px; margin: 5px 0 0; border-radius: 8px; border: 2px solid #444; background: #333; color: white; font-size: 1rem; outline: none; }
+        .modal input[type="text"]:focus { border-color: #4CAF50; }
         
         .color-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin: 15px 0; justify-items: center; }
         .circle { width: 40px; height: 40px; border-radius: 50%; border: 3px solid #444; cursor: pointer; transition: transform 0.1s; }
+        .circle:hover { transform: scale(1.1); border-color: #fff; }
         .circle.selected { border-color: white; transform: scale(1.15); box-shadow: 0 0 10px white; }
         
-        /* Hex Input Row */
         .hex-input-row { display: flex; align-items: center; background: #333; padding: 5px 10px; border-radius: 8px; margin-top: 10px; border: 2px solid #444; }
         .hex-label { color: #aaa; font-family: monospace; margin-right: 10px; }
-        .hex-field { flex: 1; background: transparent; border: none; color: white; font-family: monospace; font-size: 1.1rem; text-transform: uppercase; }
+        .hex-field { flex: 1; background: transparent; border: none; color: white; font-family: monospace; font-size: 1.1rem; text-transform: uppercase; outline: none; }
 
-        .modal-btns button { width: 100%; padding: 14px; margin-top: 10px; border: none; border-radius: 10px; font-weight: bold; color: white; font-size: 1rem; }
+        .modal-btns button { width: 100%; padding: 14px; margin-top: 10px; border: none; border-radius: 10px; font-weight: bold; color: white; font-size: 1rem; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -172,8 +219,8 @@
             <div class="modal-btns">
                 <button style="background:#4CAF50" onclick="saveTierEdit()">Save</button>
                 <div style="display:flex; gap:10px; margin-top:10px">
-                    <button style="background:#2196F3; flex:1; margin:0" onclick="moveTier(-1)">⬆️</button>
-                    <button style="background:#2196F3; flex:1; margin:0" onclick="moveTier(1)">⬇️</button>
+                    <button style="background:#2196F3; flex:1; margin:0" onclick="moveTier(-1)">⬆️ Up</button>
+                    <button style="background:#2196F3; flex:1; margin:0" onclick="moveTier(1)">⬇️ Down</button>
                 </div>
                 <button style="background:#d32f2f" onclick="deleteTier()">Delete</button>
                 <button style="background:#444" onclick="closeModal()">Cancel</button>
@@ -182,7 +229,7 @@
     </div>
 
     <script>
-        const DB_NAME = 'TierMaker_V21_Final';
+        const DB_NAME = 'TierMaker_V22_Hybrid';
         const PRESET_COLORS = ['#FF7F7F','#FFBF7F','#FFDF7F','#FFFF7F','#BFFF7F','#7FFF7F','#7FFFFF','#7FBFFF','#7F7FFF','#FF7FBF','#D27FFF','#333333','#808080','#C0C0C0','#FFFFFF'];
         let db, currentListData, selectedImgObj = null, editingTierIndex = -1;
 
@@ -195,11 +242,19 @@
         function loadMenu() {
             db.transaction(['lists']).objectStore('lists').getAll().onsuccess = e => {
                 const list = e.target.result.sort((a,b) => new Date(b.updatedAt) - new Date(a.updatedAt));
-                document.getElementById('list-container').innerHTML = list.length ? list.map(l => `
-                    <div class="list-item">
-                        <div class="list-info" onclick="openL('${l.id}')"><h3>${l.name}</h3><p>${new Date(l.updatedAt).toLocaleDateString()}</p></div>
-                        <button class="btn-del-list" onclick="deleteList('${l.id}')">✖</button>
-                    </div>`).join('') : '<p style="text-align:center;color:#666;margin-top:20px">No lists yet.</p>';
+                const container = document.getElementById('list-container');
+                if (!list.length) {
+                    container.innerHTML = '<p style="text-align:center;color:#666;margin-top:20px">No lists yet.</p>';
+                    return;
+                }
+                container.innerHTML = list.map(l => `
+                    <div class="list-item" onclick="openL('${l.id}')">
+                        <div class="list-info">
+                            <h3>${l.name}</h3>
+                            <p>${new Date(l.updatedAt).toLocaleDateString()}</p>
+                        </div>
+                        <button class="btn-del-list" onclick="event.stopPropagation(); deleteList('${l.id}')">✖</button>
+                    </div>`).join('');
             };
         }
 
