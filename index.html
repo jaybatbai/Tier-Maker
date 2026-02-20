@@ -3,264 +3,403 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="theme-color" content="#141414">
+    <meta name="theme-color" content="#000000">
     
-    <title>Tier List Maker V22</title>
+    <title>Tier List Maker</title>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <style>
-        /* --- GLOBAL --- */
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        /* =========================================
+           1. THEME & CÀI ĐẶT CHUNG
+           ========================================= */
+        :root {
+            --bg-base: #000000; --bg-surface: #111111; --bg-elevated: #1a1a1a;
+            --border-color: #222222;
+            --primary: #2ea043; --primary-hover: #3fb950;
+            --accent: #007aff; --danger: #da3633; --warn: #d29922;
+            --text-main: #ffffff; --text-muted: #8b949e;
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
+
         body { 
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
-            background: #0a0a0a; color: #fff; margin: 0; padding: 0; 
-            padding-bottom: 80px; overscroll-behavior: none;
-            
-            /* TỐI ƯU CHO PC: Giới hạn chiều rộng để không bị bè ra */
-            max-width: 600px; 
-            margin-left: auto; margin-right: auto; /* Căn giữa màn hình PC */
-            border-left: 1px solid #222; border-right: 1px solid #222; /* Viền nhẹ cho đẹp trên PC */
-            min-height: 100vh;
+            background: var(--bg-base); color: var(--text-main); 
+            margin: 0; padding: 0; padding-bottom: 90px;
+            overscroll-behavior: none; line-height: 1.5;
         }
         .hidden { display: none !important; }
 
-        /* --- MENU --- */
-        #menu-screen { padding: 40px 20px; }
-        .app-title { text-align: center; color: #4CAF50; font-size: 2.2rem; margin-bottom: 40px; font-weight: 900; letter-spacing: 1px; text-transform: uppercase; }
-        
-        .btn-create { 
-            width: 100%; padding: 20px; background: #4CAF50; color: white; 
-            font-weight: 800; border: none; border-radius: 12px; margin-bottom: 20px; 
-            font-size: 1.1rem; box-shadow: 0 5px 15px rgba(76,175,80,0.3); cursor: pointer;
-            transition: transform 0.1s;
-        }
-        .btn-create:active { transform: scale(0.98); }
-        
-        /* ITEM DANH SÁCH (SỬA LỖI CLICK) */
-        .list-item { 
-            background: #1c1c1c; padding: 15px 20px; margin-bottom: 12px; border-radius: 12px; 
-            display: flex; justify-content: space-between; align-items: center; 
-            border-left: 5px solid #4CAF50; cursor: pointer; /* Con trỏ tay khi di chuột vào */
-            transition: background 0.2s;
-        }
-        .list-item:hover { background: #252525; }
-        .list-info { flex: 1; } /* Chiếm hết chỗ để dễ bấm */
-        .list-info h3 { margin: 0; font-size: 1.2rem; font-weight: 700; } 
-        .list-info p { margin: 5px 0 0; font-size: 0.8rem; color: #888; }
-        
-        .btn-del-list { 
-            background: rgba(255,255,255,0.1); border: none; color: #f44336; 
-            width: 40px; height: 40px; border-radius: 50%; font-size: 1.2rem; 
-            cursor: pointer; display: flex; align-items: center; justify-content: center;
-            margin-left: 10px;
-        }
-        .btn-del-list:hover { background: rgba(244, 67, 54, 0.2); }
-
-        /* --- EDITOR --- */
-        #editor-screen { min-height: 100vh; display: flex; flex-direction: column; }
-        
-        .top-bar { 
-            background: #141414; padding: 15px; display: flex; gap: 15px; align-items: center; 
-            position: sticky; top: 0; z-index: 100; border-bottom: 1px solid #2a2a2a;
-        }
-        .btn-back { background: transparent; color: #aaa; border: none; font-size: 1.8rem; padding: 0 10px; cursor: pointer; }
-        .btn-back:hover { color: #fff; }
-        .list-name-input { 
-            flex: 1; background: transparent; border: none; color: white; 
-            font-size: 1.4rem; font-weight: 800; outline: none;
+        #app-container {
+            width: 100%; max-width: 1000px; margin: 0 auto; 
+            background: var(--bg-base); min-height: 100vh;
+            border-left: 1px solid var(--border-color); border-right: 1px solid var(--border-color);
+            display: flex; flex-direction: column; position: relative;
         }
 
-        /* --- BOARD AREA --- */
-        #capture-area { background: #000; display: flex; flex-direction: column; }
-        
-        /* HEADER MỚI (FONT ĐẸP HƠN) */
-        .board-header-style {
-            text-align: center; font-size: 28px; font-weight: 900; padding: 25px 10px; 
-            background: #111; color: #fff; text-transform: uppercase; letter-spacing: 1px; 
-            /* Thay font Impact bằng font hệ thống đậm */
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            border-bottom: 3px solid #333;
-            width: 100%;
+        #drop-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(46, 160, 67, 0.9); z-index: 9999;
+            display: none; align-items: center; justify-content: center;
+            color: white; font-size: 1.5rem; font-weight: 600; border: 4px dashed rgba(255,255,255,0.5);
+            backdrop-filter: blur(5px);
         }
-        
-        .btn-add-row { color: #666; border: none; cursor: pointer; transition: 0.2s; }
-        .btn-add-row:hover { background: #1f1f1f; color: #888; }
 
-        .tier-row { display: flex; min-height: 85px; background: #000; margin-bottom: 1px; border-top: 1px solid #000; }
-        .tier-label { 
-            width: 90px; display: flex; align-items: center; justify-content: center; 
-            font-size: 20px; font-weight: 800; color: #000; text-align: center; 
-            border-right: 2px solid #000; padding: 5px; word-break: break-word; 
-            cursor: pointer;
+        /* =========================================
+           2. MENU SCREEN
+           ========================================= */
+        #menu-screen { padding: 60px 30px; flex: 1; display: flex; flex-direction: column; }
+        .app-title { text-align: center; color: var(--text-main); font-size: 2rem; margin: 0 0 40px 0; font-weight: 800; letter-spacing: 1px; }
+        
+        .menu-actions { display: flex; flex-direction: column; gap: 12px; max-width: 400px; margin: 0 auto 50px; width: 100%; }
+        .btn-create { width: 100%; padding: 16px; background: var(--text-main); color: var(--bg-base); font-weight: 700; border: none; border-radius: 8px; font-size: 1rem; cursor: pointer; transition: 0.2s; }
+        .btn-create:hover { background: #e0e0e0; transform: translateY(-1px); }
+        
+        .sub-actions { display: flex; gap: 12px; }
+        .btn-data { flex: 1; padding: 12px; background: transparent; color: var(--text-muted); border: 1px solid var(--border-color); border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s; font-size: 0.85rem; }
+        .btn-data:hover { color: var(--text-main); border-color: #555; background: var(--bg-surface); }
+
+        #list-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+        .list-item { background: var(--bg-surface); border-radius: 12px; overflow: hidden; border: 1px solid var(--border-color); cursor: pointer; transition: all 0.2s; display: flex; flex-direction: column; }
+        .list-item:hover { border-color: #555; transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.5); }
+        .list-thumb { width: 100%; height: 130px; object-fit: cover; border-bottom: 1px solid var(--border-color); background: #000; }
+        .list-placeholder { width: 100%; height: 130px; background: var(--bg-elevated); display: flex; align-items: center; justify-content: center; color: var(--text-muted); font-size: 0.85rem; font-weight: 500; border-bottom: 1px solid var(--border-color); }
+        .list-info-wrap { padding: 16px; display: flex; justify-content: space-between; align-items: center; }
+        .list-info { flex: 1; overflow: hidden; } 
+        .list-info h3 { margin: 0; font-size: 1rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text-main); } 
+        .list-info p { margin: 4px 0 0; font-size: 0.75rem; color: var(--text-muted); }
+        .btn-del-list { background: transparent; border: none; color: var(--text-muted); width: 32px; height: 32px; border-radius: 6px; font-size: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
+        .btn-del-list:hover { color: var(--danger); background: rgba(218, 54, 51, 0.1); }
+
+        /* =========================================
+           3. EDITOR SCREEN
+           ========================================= */
+        #editor-screen { display: flex; flex-direction: column; flex: 1; }
+        .top-bar { background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(10px); padding: 12px 20px; display: flex; gap: 15px; align-items: center; position: sticky; top: 0; z-index: 100; border-bottom: 1px solid var(--border-color); }
+        .btn-back { background: transparent; color: var(--text-muted); border: none; font-size: 0.95rem; padding: 8px 0; cursor: pointer; font-weight: 600; transition: 0.2s; display: flex; align-items: center; gap: 5px; }
+        .btn-back:hover { color: var(--text-main); }
+        .list-name-input { flex: 1; background: transparent; border: none; color: var(--text-main); font-size: 1.1rem; font-weight: 700; outline: none; padding: 5px; border-radius: 4px; transition: 0.2s; }
+        .list-name-input:focus, .list-name-input:hover { background: var(--bg-surface); }
+
+        /* BOARD */
+        #capture-area { background: #000; display: flex; flex-direction: column; padding-bottom: 20px; }
+        .board-header-style { text-align: center; font-size: 24px; font-weight: 800; padding: 25px 10px; background: #000; color: #fff; text-transform: uppercase; letter-spacing: 2px; }
+        
+        #tier-board { display: flex; flex-direction: column; gap: 2px; background: #000; } 
+        .tier-row { display: flex; min-height: 85px; background: #000; transition: transform 0.2s; }
+        .tier-row.dragging { opacity: 0.5; }
+        
+        .tier-label { width: 90px; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 800; color: #000; text-align: center; padding: 5px; word-break: break-word; cursor: pointer; transition: filter 0.2s; }
+        .tier-label:hover { filter: brightness(0.9); }
+        
+        .tier-content { flex: 1; display: flex; flex-wrap: wrap; align-items: flex-start; background: var(--bg-surface); padding: 2px; gap: 2px; align-content: flex-start; transition: background 0.2s; position: relative; }
+        .tier-content.drag-over { background: var(--bg-elevated); }
+        
+        .tier-content:empty::before, #dock:empty::before { content: "Kéo thả ảnh vào đây"; color: #444; font-weight: 500; font-size: 0.85rem; margin: auto; padding: 20px; }
+        .is-exporting .tier-content:empty::before, .is-exporting #dock:empty::before { display: none !important; content: none !important; }
+
+        /* MID ACTIONS (Làm lại gọn gàng vào giữa) */
+        .board-footer-actions { 
+            display: flex; justify-content: center; gap: 15px; 
+            padding: 20px; background: transparent; border-top: 1px solid var(--border-color); 
         }
-        .tier-content { flex: 1; display: flex; flex-wrap: wrap; align-items: flex-start; background: #1a1a1a; padding: 0; gap: 0; align-content: flex-start; }
+        .btn-text-action { 
+            background: var(--bg-surface); border: 1px solid var(--border-color); 
+            color: var(--text-muted); font-size: 0.8rem; font-weight: 600; 
+            padding: 8px 16px; border-radius: 20px; cursor: pointer; 
+            transition: 0.2s; text-transform: uppercase; letter-spacing: 0.5px; 
+        }
+        .btn-text-action:hover { color: var(--text-main); border-color: #555; }
+        .btn-text-action.danger:hover { color: var(--danger); border-color: var(--danger); background: rgba(218, 54, 51, 0.1); }
 
         /* IMAGE */
-        .img-item { width: auto; height: 100px; display: block; transition: 0.1s; cursor: pointer; }
-        .img-item.selected { outline: 4px solid #4CAF50; outline-offset: -4px; z-index: 10; filter: brightness(1.2); }
+        .img-item { 
+            height: 85px; width: auto; border-radius: 4px; display: block; 
+            cursor: pointer; transition: transform 0.1s ease, filter 0.1s; 
+        }
+        .img-item:hover { transform: scale(1.05); z-index: 5; position: relative; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+        .img-item.selected { outline: 3px solid var(--accent); outline-offset: -3px; z-index: 10; filter: brightness(1.1); }
 
         /* DOCK */
-        .dock-container { background: #141414; border-top: 3px solid #333; padding: 15px 10px; min-height: 200px; margin-top: auto; }
-        .dock-header { text-align: left; font-size: 0.9rem; color: #666; margin-bottom: 10px; font-weight: bold; padding-left: 5px; }
-        #dock { display: flex; flex-wrap: wrap; gap: 5px; justify-content: flex-start; align-content: flex-start; padding-bottom: 80px; }
-        #dock .img-item { height: 75px !important; border-radius: 6px; border: 2px solid #333; }
+        .dock-container { background: var(--bg-base); padding: 20px; flex: 1; transition: background 0.2s; }
+        .dock-container.drag-over { background: var(--bg-surface); }
+        .dock-header { text-align: left; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 15px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
+        #dock { display: flex; flex-wrap: wrap; gap: 4px; justify-content: flex-start; align-content: flex-start; padding-bottom: 80px; min-height: 100px; }
+        #dock .img-item { height: 75px !important; width: auto !important; border-radius: 4px; border: 1px solid var(--border-color); }
 
-        /* BOTTOM BAR */
-        .bottom-toolbar {
-            position: fixed; bottom: 0; left: 0; right: 0; background: #1c1c1c; 
-            padding: 12px 20px; display: flex; gap: 15px; border-top: 1px solid #333; z-index: 200;
-            max-width: 600px; margin: 0 auto; /* Căn giữa thanh công cụ trên PC */
-        }
-        .btn-bottom { flex: 1; padding: 14px; border: none; border-radius: 10px; font-size: 1.1rem; font-weight: bold; color: white; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; }
-        .btn-save { background: #2196F3; } .btn-save:hover { background: #1976D2; }
-        .btn-add { background: #4CAF50; } .btn-add:hover { background: #388E3C; }
+        /* BOTTOM TOOLBAR */
+        .bottom-toolbar { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 1000px; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(10px); padding: 12px 20px; display: flex; gap: 12px; border-top: 1px solid var(--border-color); z-index: 200; }
+        .btn-bottom { flex: 1; padding: 12px; border: none; border-radius: 8px; font-size: 0.95rem; font-weight: 600; color: white; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; transition: 0.2s; }
+        .btn-save { background: var(--bg-elevated); border: 1px solid var(--border-color); color: var(--text-main); } 
+        .btn-save:hover { background: #2a2a2a; border-color: #444; }
+        .btn-add { background: var(--text-main); color: var(--bg-base); } 
+        .btn-add:hover { background: #e0e0e0; }
 
-        /* CONTROLS */
-        #resize-control {
-            position: fixed; bottom: 80px; left: 0; right: 0; background: rgba(28,28,28,0.98); 
-            border-top: 1px solid #444; z-index: 250; padding: 10px 15px; display: flex; flex-direction: column;
-            max-width: 600px; margin: 0 auto;
+        /* =========================================
+           4. BẢNG ĐIỀU KHIỂN NỔI (FLOATING CONTROL PANEL)
+           ========================================= */
+        #resize-control { 
+            position: fixed; 
+            bottom: 80px; /* Nằm ngay trên thanh công cụ đáy */
+            left: 50%; 
+            transform: translateX(-50%); 
+            width: 90%; 
+            max-width: 400px; 
+            background: rgba(25, 25, 25, 0.95); 
+            backdrop-filter: blur(10px); 
+            border: 1px solid var(--border-color); 
+            border-radius: 16px; /* Bo tròn mạnh hơn */
+            z-index: 250; 
+            padding: 16px; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.8);
         }
-        .ctrl-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; width: 100%; gap: 10px; }
-        .btn-tool { background: #444; border: none; color: white; padding: 12px; border-radius: 8px; font-weight: bold; min-width: 50px; cursor: pointer; }
-        .btn-tool:hover { background: #555; }
-        .resize-slider { flex: 1; height: 6px; border-radius: 3px; background: #555; outline: none; cursor: pointer; }
+        
+        .size-slider-wrap { display: flex; align-items: center; gap: 12px; }
+        .size-label { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase;}
+        .resize-slider { flex: 1; height: 3px; border-radius: 2px; background: #444; outline: none; }
+        .size-val { font-size: 0.85rem; font-family: monospace; color: var(--text-main); width: 40px; text-align: right; }
+
+        .control-actions { display: flex; gap: 8px; }
+        .btn-pill { 
+            flex: 1; padding: 10px 0; border-radius: 8px; border: none; 
+            font-weight: 600; font-size: 0.85rem; cursor: pointer; transition: 0.2s; 
+            display: flex; align-items: center; justify-content: center; gap: 5px;
+        }
+        .btn-pill-dock { background: rgba(0, 122, 255, 0.15); color: var(--accent); }
+        .btn-pill-dock:hover { background: var(--accent); color: white; }
+        .btn-pill-del { background: rgba(218, 54, 51, 0.15); color: var(--danger); }
+        .btn-pill-del:hover { background: var(--danger); color: white; }
+        .btn-pill-all { background: var(--bg-surface); color: var(--text-main); border: 1px solid var(--border-color); }
+        .btn-pill-all:hover { background: #333; }
+
+        .btn-pill-close { 
+            background: transparent; color: var(--text-muted); width: 100%; 
+            padding: 8px; border: none; font-size: 0.85rem; font-weight: 600; cursor: pointer;
+        }
+        .btn-pill-close:hover { color: var(--text-main); }
 
         /* MODAL */
-        #modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 300; display: none; align-items: center; justify-content: center; }
-        .modal { background: #252525; padding: 25px; border-radius: 16px; width: 90%; max-width: 340px; max-height: 85vh; overflow-y: auto; }
-        .modal h2 { text-align: center; margin-top: 0; color: #eee; }
-        .modal label { display: block; margin-top: 15px; color: #aaa; font-weight: bold; font-size: 0.9rem; }
-        .modal input[type="text"] { width: 100%; padding: 12px; margin: 5px 0 0; border-radius: 8px; border: 2px solid #444; background: #333; color: white; font-size: 1rem; outline: none; }
-        .modal input[type="text"]:focus { border-color: #4CAF50; }
-        
-        .color-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin: 15px 0; justify-items: center; }
-        .circle { width: 40px; height: 40px; border-radius: 50%; border: 3px solid #444; cursor: pointer; transition: transform 0.1s; }
-        .circle:hover { transform: scale(1.1); border-color: #fff; }
-        .circle.selected { border-color: white; transform: scale(1.15); box-shadow: 0 0 10px white; }
-        
-        .hex-input-row { display: flex; align-items: center; background: #333; padding: 5px 10px; border-radius: 8px; margin-top: 10px; border: 2px solid #444; }
-        .hex-label { color: #aaa; font-family: monospace; margin-right: 10px; }
-        .hex-field { flex: 1; background: transparent; border: none; color: white; font-family: monospace; font-size: 1.1rem; text-transform: uppercase; outline: none; }
-
-        .modal-btns button { width: 100%; padding: 14px; margin-top: 10px; border: none; border-radius: 10px; font-weight: bold; color: white; font-size: 1rem; cursor: pointer; }
+        #modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 300; display: none; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
+        .modal { background: var(--bg-surface); padding: 24px; border-radius: 12px; width: 90%; max-width: 360px; border: 1px solid var(--border-color); box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
+        .modal h2 { margin: 0 0 20px 0; color: var(--text-main); font-weight: 700; font-size: 1.2rem; }
+        .modal label { display: block; margin-top: 16px; color: var(--text-muted); font-weight: 600; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px; }
+        .modal input[type="text"] { width: 100%; padding: 12px; margin: 8px 0 0; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-base); color: white; font-size: 1rem; outline: none; font-weight: 500; transition: 0.2s; }
+        .modal input[type="text"]:focus { border-color: var(--accent); }
+        .color-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin: 12px 0; justify-items: center; }
+        .circle { width: 36px; height: 36px; border-radius: 50%; border: 2px solid var(--border-color); cursor: pointer; transition: 0.15s; }
+        .circle:hover { transform: scale(1.1); border-color: #888; }
+        .circle.selected { border-color: white; transform: scale(1.15); box-shadow: 0 0 10px rgba(255,255,255,0.3); }
+        .hex-input-row { display: flex; align-items: center; background: var(--bg-base); padding: 4px 12px; border-radius: 6px; margin-top: 12px; border: 1px solid var(--border-color); }
+        .hex-label { color: var(--text-muted); font-weight: 600; margin-right: 10px; font-size: 0.85rem; }
+        .hex-field { flex: 1; background: transparent; border: none; color: white; font-family: monospace; font-size: 1rem; text-transform: uppercase; outline: none; }
+        .modal-btns { display: flex; flex-direction: column; gap: 8px; margin-top: 24px; }
+        .modal-btns button { width: 100%; padding: 12px; border: none; border-radius: 6px; font-weight: 600; font-size: 0.95rem; cursor: pointer; transition: 0.2s; }
+        .btn-primary { background: var(--text-main); color: var(--bg-base); } .btn-primary:hover { background: #e0e0e0; }
+        .btn-secondary { background: var(--bg-elevated); color: var(--text-main); border: 1px solid var(--border-color); } .btn-secondary:hover { background: #2a2a2a; }
+        .btn-danger { background: rgba(218, 54, 51, 0.1); color: var(--danger); } .btn-danger:hover { background: var(--danger); color: white; }
     </style>
 </head>
 <body>
 
-    <div id="menu-screen">
-        <h1 class="app-title">TIER LIST MAKER</h1>
-        <button class="btn-create" onclick="createNewList()">+ NEW TEMPLATE</button>
-        <div id="list-container">Loading...</div>
-    </div>
+    <div id="drop-overlay">Drop images to add</div>
 
-    <div id="editor-screen" class="hidden">
-        <div class="top-bar">
-            <button class="btn-back" onclick="backToMenu()">⬅</button>
-            <input type="text" id="list-name" class="list-name-input" onchange="updateListName()">
+    <div id="app-container">
+        <div id="menu-screen">
+            <h1 class="app-title">TIER MAKER</h1>
+            
+            <div class="menu-actions">
+                <button class="btn-create" onclick="createNewList()">Create New Template</button>
+                <div class="sub-actions">
+                    <button class="btn-data" onclick="exportData()">Export Backup</button>
+                    <button class="btn-data" onclick="document.getElementById('importFile').click()">Import Backup</button>
+                    <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
+                </div>
+            </div>
+
+            <div id="list-container">Loading...</div>
         </div>
 
-        <div id="capture-area">
-            <div id="tier-header" class="board-header-style">MY TIER LIST</div>
-            <div id="tier-board"></div>
-        </div>
-        
-        <button class="board-header-style btn-add-row" onclick="addNewTier()">+ ADD ROW</button>
+        <div id="editor-screen" class="hidden">
+            <div class="top-bar">
+                <button class="btn-back" onclick="backToMenu()">‹ Back</button>
+                <input type="text" id="list-name" class="list-name-input" placeholder="Enter title..." onchange="updateListName()">
+            </div>
 
-        <div class="dock-container">
-            <div class="dock-header">IMAGE LIBRARY</div>
-            <div id="dock" onclick="moveToDock()"></div>
-        </div>
-        
-        <div class="bottom-toolbar">
-            <button class="btn-bottom btn-save" onclick="saveImage()">📷 SAVE</button>
-            <button class="btn-bottom btn-add" onclick="document.getElementById('imgInput').click()">➕ PHOTOS</button>
-        </div>
-        <input type="file" id="imgInput" multiple accept="image/*" onchange="handleFiles(event)" style="display:none">
-    </div>
+            <div id="capture-area">
+                <div id="tier-header" class="board-header-style">Tier List</div>
+                <div id="tier-board"></div>
+            </div>
+            
+            <div class="board-footer-actions">
+                <button class="btn-text-action" onclick="addNewTier()">+ Add Row</button>
+                <button class="btn-text-action danger" onclick="resetBoard()">Reset Board</button>
+            </div>
 
-    <div id="resize-control" class="hidden">
-        <div class="ctrl-row">
-            <button class="btn-tool" onclick="adjustSize(-5)">➖</button>
-            <input type="range" id="size-slider" class="resize-slider" min="50" max="300" value="100" oninput="resizeSelectedImg(this.value)">
-            <button class="btn-tool" onclick="adjustSize(5)">➕</button>
-            <span id="size-val" style="width:60px; text-align:center; font-weight:bold;">H:100</span>
+            <div id="dock-container-box" class="dock-container">
+                <div class="dock-header">Library</div>
+                <div id="dock" onclick="moveToDock()"></div>
+            </div>
+            
+            <div class="bottom-toolbar">
+                <button class="btn-bottom btn-save" onclick="saveImage()">Download Image</button>
+                <button class="btn-bottom btn-add" onclick="document.getElementById('imgInput').click()">Add Photos</button>
+            </div>
+            <input type="file" id="imgInput" multiple accept="image/*" onchange="handleFiles(event)" style="display:none">
         </div>
-        <div class="ctrl-row">
-            <button class="btn-tool" style="background:#d32f2f; flex:1" onclick="deleteSelected()">🗑️ DELETE</button>
-            <button class="btn-tool" style="background:#2196F3; flex:2" onclick="applyToAll()">⚡ SET ALL</button>
-            <button class="btn-tool" style="background:#555; flex:1" onclick="deselectImg()">OK</button>
+
+        <div id="resize-control" class="hidden">
+            <div class="size-slider-wrap">
+                <span class="size-label">Size</span>
+                <input type="range" id="size-slider" class="resize-slider" min="40" max="200" value="85" oninput="resizeSelectedImg(this.value)">
+                <span id="size-val" class="size-val">85px</span>
+            </div>
+            
+            <div class="control-actions">
+                <button class="btn-pill btn-pill-dock" onclick="moveToDock()">⬇ Kho ảnh</button>
+                <button class="btn-pill btn-pill-all" onclick="applyToAll()">⚡ Tất cả</button>
+                <button class="btn-pill btn-pill-del" onclick="deleteSelected()">🗑 Xóa hẳn</button>
+            </div>
+            
+            <button class="btn-pill-close" onclick="deselectImg()">Đóng / Hủy</button>
         </div>
     </div>
 
     <div id="modal-overlay">
         <div class="modal">
-            <h2 style="text-align:center; margin-top:0; color:#4CAF50">Edit Tier</h2>
-            <label>Name</label> <input type="text" id="edit-name">
-            
-            <label style="margin-top:15px">Background Color</label>
+            <h2>Edit Row</h2>
+            <label>Label</label> <input type="text" id="edit-name">
+            <label>Background</label>
             <div class="color-grid" id="bg-preset-grid"></div>
-            
             <div class="hex-input-row">
-                <span class="hex-label">HEX:</span>
-                <input type="text" id="edit-bg-hex" class="hex-field" placeholder="#FFFFFF" oninput="syncFromHex()">
+                <span class="hex-label">HEX</span>
+                <input type="text" id="edit-bg-hex" class="hex-field" oninput="syncFromHex()">
             </div>
             <input type="hidden" id="edit-color">
-
-            <label style="margin-top:15px">Text Color</label>
-            <div class="color-grid" style="grid-template-columns:1fr 1fr; margin:10px 0 0 0;">
-                <div class="circle" style="width:100%; border-radius:8px; background:#000; text-align:center; line-height:40px; color:#fff; font-weight:bold;" onclick="setTextCol('#000000')">Black</div>
-                <div class="circle" style="width:100%; border-radius:8px; background:#fff; text-align:center; line-height:40px; color:#000; font-weight:bold;" onclick="setTextCol('#FFFFFF')">White</div>
+            <label>Text Color</label>
+            <div class="color-grid" style="grid-template-columns:1fr 1fr; margin-top:8px;">
+                <div class="circle" style="width:100%; border-radius:6px; background:#000; text-align:center; line-height:36px; color:#fff; font-weight:600; font-size:0.9rem;" onclick="setTextCol('#000000')">Black</div>
+                <div class="circle" style="width:100%; border-radius:6px; background:#fff; text-align:center; line-height:36px; color:#000; font-weight:600; font-size:0.9rem;" onclick="setTextCol('#FFFFFF')">White</div>
             </div>
             <input type="hidden" id="edit-text">
-
+            
             <div class="modal-btns">
-                <button style="background:#4CAF50" onclick="saveTierEdit()">Save</button>
-                <div style="display:flex; gap:10px; margin-top:10px">
-                    <button style="background:#2196F3; flex:1; margin:0" onclick="moveTier(-1)">⬆️ Up</button>
-                    <button style="background:#2196F3; flex:1; margin:0" onclick="moveTier(1)">⬇️ Down</button>
+                <button class="btn-primary" onclick="saveTierEdit()">Save Changes</button>
+                <div style="display:flex; gap:8px;">
+                    <button class="btn-secondary" style="flex:1;" onclick="moveTier(-1)">Move Up</button>
+                    <button class="btn-secondary" style="flex:1;" onclick="moveTier(1)">Move Down</button>
                 </div>
-                <button style="background:#d32f2f" onclick="deleteTier()">Delete</button>
-                <button style="background:#444" onclick="closeModal()">Cancel</button>
+                <button class="btn-secondary" style="border-color: var(--warn); color: var(--warn)" onclick="clearRowImages()">Clear Images in Row</button>
+                <button class="btn-danger" onclick="deleteTier()">Delete Entire Row</button>
+                <button class="btn-secondary" style="border:none; background:transparent" onclick="closeModal()">Cancel</button>
             </div>
         </div>
     </div>
 
     <script>
-        const DB_NAME = 'TierMaker_V22_Hybrid';
+        const DB_NAME = 'TierMaker_V26_Pro'; 
         const PRESET_COLORS = ['#FF7F7F','#FFBF7F','#FFDF7F','#FFFF7F','#BFFF7F','#7FFF7F','#7FFFFF','#7FBFFF','#7F7FFF','#FF7FBF','#D27FFF','#333333','#808080','#C0C0C0','#FFFFFF'];
+        
         let db, currentListData, selectedImgObj = null, editingTierIndex = -1;
+        let draggedItem = null, draggedRowIdx = null;
 
         window.onload = () => {
             const req = indexedDB.open(DB_NAME, 1);
             req.onupgradeneeded = e => e.target.result.createObjectStore('lists', {keyPath:'id'});
-            req.onsuccess = e => { db=e.target.result; loadMenu(); };
+            req.onsuccess = e => { db=e.target.result; loadMenu(); initDockDrop(); initGlobalFileDrop(); };
         };
+
+        function initGlobalFileDrop() {
+            const overlay = document.getElementById('drop-overlay');
+            window.addEventListener('dragover', e => {
+                if (draggedItem) return; 
+                if(e.dataTransfer.types.includes("Files") && !document.getElementById('editor-screen').classList.contains('hidden')) {
+                    e.preventDefault(); overlay.style.display = 'flex';
+                }
+            });
+            window.addEventListener('dragleave', e => { if(e.target === overlay) overlay.style.display = 'none'; });
+            window.addEventListener('drop', e => {
+                overlay.style.display = 'none';
+                if (draggedItem) return;
+                if(e.dataTransfer.files && e.dataTransfer.files.length > 0 && !document.getElementById('editor-screen').classList.contains('hidden')) {
+                    e.preventDefault(); handleFiles({target: {files: e.dataTransfer.files}});
+                }
+            });
+        }
+
+        function exportData() {
+            db.transaction(['lists']).objectStore('lists').getAll().onsuccess = e => {
+                const data = e.target.result;
+                if(data.length === 0) return alert("No data to export.");
+                const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data));
+                const a = document.createElement('a'); a.href = dataStr; a.download = "TierMaker_Backup.json";
+                document.body.appendChild(a); a.click(); a.remove();
+            };
+        }
+
+        function importData(e) {
+            const file = e.target.files[0]; if(!file) return;
+            const reader = new FileReader();
+            reader.onload = ev => {
+                try {
+                    const dataArr = JSON.parse(ev.target.result);
+                    if(!Array.isArray(dataArr)) throw new Error("Invalid file");
+                    if(!confirm(`Import ${dataArr.length} templates? Existing IDs will be overwritten.`)) return;
+                    const tx = db.transaction(['lists'], 'readwrite');
+                    dataArr.forEach(item => tx.objectStore('lists').put(item));
+                    tx.oncomplete = () => { loadMenu(); };
+                } catch(err) { alert("Invalid backup file."); }
+            };
+            reader.readAsText(file); e.target.value = '';
+        }
 
         function loadMenu() {
             db.transaction(['lists']).objectStore('lists').getAll().onsuccess = e => {
                 const list = e.target.result.sort((a,b) => new Date(b.updatedAt) - new Date(a.updatedAt));
                 const container = document.getElementById('list-container');
-                if (!list.length) {
-                    container.innerHTML = '<p style="text-align:center;color:#666;margin-top:20px">No lists yet.</p>';
-                    return;
-                }
-                container.innerHTML = list.map(l => `
-                    <div class="list-item" onclick="openL('${l.id}')">
-                        <div class="list-info">
-                            <h3>${l.name}</h3>
-                            <p>${new Date(l.updatedAt).toLocaleDateString()}</p>
+                if (!list.length) { container.innerHTML = '<p style="text-align:center;color:var(--text-muted);grid-column:1/-1;margin-top:20px;">No templates found.</p>'; return; }
+                container.innerHTML = list.map(l => {
+                    const thumbHTML = l.thumbnail ? `<img src="${l.thumbnail}" class="list-thumb">` : `<div class="list-placeholder">No Preview</div>`;
+                    return `
+                    <div class="list-item" onclick="openList('${l.id}')">
+                        ${thumbHTML}
+                        <div class="list-info-wrap">
+                            <div class="list-info">
+                                <h3>${l.name}</h3><p>${new Date(l.updatedAt).toLocaleDateString()}</p>
+                            </div>
+                            <button class="btn-del-list" onclick="event.stopPropagation(); deleteList('${l.id}')">✕</button>
                         </div>
-                        <button class="btn-del-list" onclick="event.stopPropagation(); deleteList('${l.id}')">✖</button>
-                    </div>`).join('');
+                    </div>`
+                }).join('');
             };
         }
 
+        async function backToMenu() {
+            deselectImg();
+            const captureArea = document.getElementById('capture-area');
+            captureArea.classList.add('is-exporting');
+            try {
+                const canvas = await html2canvas(captureArea, { scale: 0.3, backgroundColor: '#000', useCORS: true });
+                currentListData.thumbnail = canvas.toDataURL('image/jpeg', 0.5); 
+            } catch (err) {}
+            captureArea.classList.remove('is-exporting');
+            
+            saveList(currentListData, () => {
+                document.getElementById('editor-screen').classList.add('hidden');
+                document.getElementById('menu-screen').classList.remove('hidden');
+                loadMenu(); 
+            });
+        }
+
         function createNewList() {
-            const name = prompt("Enter Name:", "New Tier List"); if(!name) return;
-            const newList = { id: 'list_' + Date.now(), name: name, updatedAt: new Date().toISOString(), tiers: [{name:'S', color:'#FF7F7F', text:'#000', items:[]}, {name:'A', color:'#FFBF7F', text:'#000', items:[]}, {name:'B', color:'#FFDF7F', text:'#000', items:[]}], dock:[] };
+            const name = prompt("Template Name:", "New Tier List"); if(!name) return;
+            const newList = { id: 'list_' + Date.now(), name: name, updatedAt: new Date().toISOString(), tiers: [{name:'S', color:'#FF7F7F', text:'#000', items:[]}, {name:'A', color:'#FFBF7F', text:'#000', items:[]}, {name:'B', color:'#FFDF7F', text:'#000', items:[]}, {name:'C', color:'#FFFF7F', text:'#000', items:[]}], dock:[], thumbnail: null };
             saveList(newList, () => openList(newList.id)); 
         }
 
@@ -271,20 +410,54 @@
                 document.getElementById('editor-screen').classList.remove('hidden');
                 document.getElementById('list-name').value = currentListData.name;
                 document.getElementById('tier-header').innerText = currentListData.name;
-                renderBoard();
+                renderBoard(); window.scrollTo(0,0);
             };
         }
 
-        function backToMenu() {
-            deselectImg(); document.getElementById('editor-screen').classList.add('hidden'); document.getElementById('menu-screen').classList.remove('hidden'); loadMenu();
+        function resetBoard() {
+            if(!confirm("Move all images back to Library?")) return;
+            currentListData.tiers.forEach(t => { currentListData.dock.push(...t.items); t.items = []; });
+            saveAndRefresh();
+        }
+
+        function initDockDrop() {
+            const dockContainer = document.getElementById('dock-container-box');
+            dockContainer.ondragover = e => { if(draggedItem) { e.preventDefault(); dockContainer.classList.add('drag-over'); } };
+            dockContainer.ondragleave = e => { dockContainer.classList.remove('drag-over'); };
+            dockContainer.ondrop = e => {
+                e.preventDefault(); dockContainer.classList.remove('drag-over');
+                if (draggedItem && draggedItem.type !== 'dock') {
+                    removeItem(draggedItem); currentListData.dock.push(draggedItem.data); saveAndRefresh();
+                }
+            };
         }
 
         function renderBoard() {
             const board = document.getElementById('tier-board'); board.innerHTML = '';
             currentListData.tiers.forEach((t, i) => {
                 const row = document.createElement('div'); row.className = 'tier-row';
+                row.draggable = true;
+                row.ondragstart = e => { if(e.target.tagName !== 'IMG') { draggedRowIdx = i; row.classList.add('dragging'); e.dataTransfer.effectAllowed = "move"; } else { e.preventDefault(); } };
+                row.ondragend = e => { row.classList.remove('dragging'); draggedRowIdx = null; };
+                row.ondragover = e => { if(draggedRowIdx !== null) e.preventDefault(); };
+                row.ondrop = e => {
+                    if (draggedRowIdx !== null && draggedRowIdx !== i) {
+                        e.preventDefault(); e.stopPropagation();
+                        const tmp = currentListData.tiers.splice(draggedRowIdx, 1)[0];
+                        currentListData.tiers.splice(i, 0, tmp); saveAndRefresh();
+                    }
+                };
+
                 const label = document.createElement('div'); label.className = 'tier-label'; label.style.background = t.color; label.style.color = t.text||'#000'; label.innerText = t.name; label.onclick = () => openEditModal(i);
-                const content = document.createElement('div'); content.className = 'tier-content'; content.onclick = e => { if(e.target === content) moveToTier(i); };
+                const content = document.createElement('div'); content.className = 'tier-content'; 
+                content.onclick = e => { if(e.target === content) moveToTier(i); };
+                content.ondragover = e => { if(draggedItem) { e.preventDefault(); content.classList.add('drag-over'); } };
+                content.ondragleave = e => { content.classList.remove('drag-over'); };
+                content.ondrop = e => {
+                    e.preventDefault(); content.classList.remove('drag-over');
+                    if (draggedItem && e.target === content) { removeItem(draggedItem); currentListData.tiers[i].items.push(draggedItem.data); saveAndRefresh(); }
+                };
+
                 t.items.forEach((item, idx) => content.appendChild(createImg(item, 'tier', i, idx)));
                 row.appendChild(label); row.appendChild(content); board.appendChild(row);
             });
@@ -294,92 +467,72 @@
 
         function createImg(data, type, r, i) {
             const img = document.createElement('img');
-            const src = typeof data === 'object' ? data.src : data; const h = (typeof data === 'object' && data.h) ? data.h : 100;
-            img.src = src; img.className = 'img-item'; if(type === 'tier') img.style.height = h + 'px';
+            const src = typeof data === 'object' ? data.src : data; 
+            const h = (typeof data === 'object' && data.h) ? data.h : 85;
+            img.src = src; img.className = 'img-item'; 
+            if(type === 'tier') img.style.height = h + 'px';
+            
             img.onclick = e => { e.stopPropagation(); clickImg(img, data, type, r, i); };
+            img.draggable = true;
+            img.ondragstart = e => { draggedItem = { data, type, r, i }; e.dataTransfer.effectAllowed = "move"; e.stopPropagation(); setTimeout(() => img.style.opacity = '0.4', 0); };
+            img.ondragend = e => { img.style.opacity = '1'; draggedItem = null; };
+            img.ondragover = e => { if(draggedItem) e.preventDefault(); };
+            img.ondragenter = e => { if(draggedItem) img.style.filter = 'brightness(1.5)'; };
+            img.ondragleave = e => { img.style.filter = ''; };
+            img.ondrop = e => {
+                if (draggedItem) {
+                    e.preventDefault(); e.stopPropagation(); img.style.filter = '';
+                    const dropTarget = { data, type, r, i };
+                    if (draggedItem.type === dropTarget.type && draggedItem.r === dropTarget.r && draggedItem.i === dropTarget.i) return;
+                    swapItems(draggedItem, dropTarget);
+                }
+            };
             return img;
         }
 
-        function clickImg(dom, data, type, r, i) {
-            if(!selectedImgObj) {
-                selectedImgObj = { dom, data, type, r, i }; dom.classList.add('selected');
-                document.getElementById('resize-control').classList.remove('hidden'); document.getElementById('resize-control').classList.add('show');
-                const h = (typeof data === 'object' && data.h) ? data.h : 100; document.getElementById('size-slider').value = h; document.getElementById('size-val').innerText = 'H:'+h;
-            } else if(selectedImgObj.dom === dom) { deselectImg(); } else { swapItems(selectedImgObj, { data, type, r, i }); }
-        }
-
-        function swapItems(a, b) {
-            const itemA = getItem(a); const itemB = getItem(b); setItem(a, itemB); setItem(b, itemA);
-            saveList(currentListData, () => { renderBoard(); deselectImg(); });
-        }
+        function clickImg(dom, data, type, r, i) { if(!selectedImgObj) { selectedImgObj = { dom, data, type, r, i }; dom.classList.add('selected'); document.getElementById('resize-control').classList.remove('hidden'); const h = (typeof data === 'object' && data.h) ? data.h : 85; document.getElementById('size-slider').value = h; document.getElementById('size-val').innerText = h+'px'; } else if(selectedImgObj.dom === dom) { deselectImg(); } else { swapItems(selectedImgObj, { data, type, r, i }); } }
+        function swapItems(a, b) { const itemA = getItem(a); const itemB = getItem(b); setItem(a, itemB); setItem(b, itemA); saveList(currentListData, () => { renderBoard(); deselectImg(); draggedItem = null; }); }
         function getItem(o) { return o.type==='tier' ? currentListData.tiers[o.r].items[o.i] : currentListData.dock[o.i]; }
         function setItem(o, val) { if(o.type==='tier') currentListData.tiers[o.r].items[o.i]=val; else currentListData.dock[o.i]=val; }
-
-        function deselectImg() {
-            if(selectedImgObj) selectedImgObj.dom.classList.remove('selected');
-            selectedImgObj = null; document.getElementById('resize-control').classList.add('hidden'); document.getElementById('resize-control').classList.remove('show');
-        }
-
-        function resizeSelectedImg(h) {
-            if(!selectedImgObj) return; h = parseInt(h); selectedImgObj.dom.style.height = h+'px'; document.getElementById('size-val').innerText = 'H:'+h;
-            const src = typeof selectedImgObj.data === 'object' ? selectedImgObj.data.src : selectedImgObj.data;
-            const newItem = { src, h }; setItem(selectedImgObj, newItem); selectedImgObj.data = newItem;
-        }
-        function adjustSize(d) {
-            if(!selectedImgObj) return; let v = parseInt(document.getElementById('size-slider').value) + d; if(v<50)v=50; if(v>300)v=300;
-            document.getElementById('size-slider').value = v; resizeSelectedImg(v);
-        }
-        function applyToAll() {
-            if(!selectedImgObj) return; const h = (typeof selectedImgObj.data === 'object' && selectedImgObj.data.h) ? selectedImgObj.data.h : 100;
-            if(!confirm('Set ALL images to Height '+h+'?')) return;
-            const fix = i => ({ src: (typeof i==='object'?i.src:i), h });
-            currentListData.tiers.forEach(t => t.items = t.items.map(fix)); currentListData.dock = currentListData.dock.map(fix);
-            saveList(currentListData, () => { renderBoard(); deselectImg(); });
-        }
-
+        function deselectImg() { if(selectedImgObj) selectedImgObj.dom.classList.remove('selected'); selectedImgObj = null; document.getElementById('resize-control').classList.add('hidden'); }
+        function resizeSelectedImg(h) { if(!selectedImgObj) return; h = parseInt(h); selectedImgObj.dom.style.height = h+'px'; selectedImgObj.dom.style.width = 'auto'; document.getElementById('size-val').innerText = h+'px'; const src = typeof selectedImgObj.data === 'object' ? selectedImgObj.data.src : selectedImgObj.data; const newItem = { src, h }; setItem(selectedImgObj, newItem); selectedImgObj.data = newItem; }
+        function adjustSize(d) { if(!selectedImgObj) return; let v = parseInt(document.getElementById('size-slider').value) + d; if(v<40)v=40; if(v>200)v=200; document.getElementById('size-slider').value = v; resizeSelectedImg(v); }
+        function applyToAll() { if(!selectedImgObj) return; const h = (typeof selectedImgObj.data === 'object' && selectedImgObj.data.h) ? selectedImgObj.data.h : 85; if(!confirm('Apply size '+h+'px to all images?')) return; const fix = i => ({ src: (typeof i==='object'?i.src:i), h }); currentListData.tiers.forEach(t => t.items = t.items.map(fix)); currentListData.dock = currentListData.dock.map(fix); saveList(currentListData, () => { renderBoard(); deselectImg(); }); }
+        function moveToDock() { if(!selectedImgObj) return; if(selectedImgObj.type === 'dock') { deselectImg(); return; } removeItem(selectedImgObj); currentListData.dock.push(selectedImgObj.data); saveAndRefresh(); }
         function moveToTier(r) { if(!selectedImgObj) return; removeItem(selectedImgObj); currentListData.tiers[r].items.push(selectedImgObj.data); saveAndRefresh(); }
-        function moveToDock() { if(!selectedImgObj) return; removeItem(selectedImgObj); currentListData.dock.push(selectedImgObj.data); saveAndRefresh(); }
         function deleteSelected() { if(!selectedImgObj) return; removeItem(selectedImgObj); saveAndRefresh(); }
         function removeItem(o) { if(o.type==='tier') currentListData.tiers[o.r].items.splice(o.i, 1); else currentListData.dock.splice(o.i, 1); }
-        function saveAndRefresh() { saveList(currentListData, () => { renderBoard(); deselectImg(); }); }
+        function saveAndRefresh() { saveList(currentListData, () => { renderBoard(); deselectImg(); draggedItem = null; draggedRowIdx = null; }); }
 
-        function openEditModal(i) {
-            editingTierIndex = i; const t = currentListData.tiers[i]; document.getElementById('edit-name').value = t.name; document.getElementById('edit-text').value = t.text || '#000';
-            document.getElementById('bg-preset-grid').innerHTML = PRESETS.map(c => `<div class="circle" style="background:${c}" onclick="pickColor('${c}', this)"></div>`).join('');
-            pickColor(t.color, null); document.getElementById('modal-overlay').style.display = 'flex';
-        }
+        function openEditModal(i) { editingTierIndex = i; const t = currentListData.tiers[i]; document.getElementById('edit-name').value = t.name; document.getElementById('edit-text').value = t.text || '#000'; renderPresets(); const currentColor = t.color; document.getElementById('edit-bg-hex').value = currentColor; const circles = document.querySelectorAll('#bg-preset-grid .circle'); PRESET_COLORS.forEach((c, idx) => { if(c.toLowerCase() === currentColor.toLowerCase()) { if(circles[idx]) circles[idx].classList.add('selected'); } }); document.getElementById('modal-overlay').style.display = 'flex'; }
         function closeModal() { document.getElementById('modal-overlay').style.display = 'none'; }
-
-        function pickColor(c, el) {
-            document.getElementById('edit-color').value = c; document.getElementById('edit-bg-hex').value = c;
-            if(el) { document.querySelectorAll('.circle').forEach(x => x.classList.remove('selected')); el.classList.add('selected'); }
-        }
-        function syncFromHex() {
-            document.querySelectorAll('.circle').forEach(x => x.classList.remove('selected'));
-            document.getElementById('edit-color').value = document.getElementById('edit-bg-hex').value;
-        }
+        function renderPresets() { const grid = document.getElementById('bg-preset-grid'); grid.innerHTML = ''; PRESET_COLORS.forEach(color => { const div = document.createElement('div'); div.className = 'circle'; div.style.backgroundColor = color; div.onclick = () => selectBgColor(color, div); grid.appendChild(div); }); }
+        function selectBgColor(color, el) { document.querySelectorAll('#bg-preset-grid .circle').forEach(c => c.classList.remove('selected')); if(el) el.classList.add('selected'); document.getElementById('edit-bg-hex').value = color; }
+        function syncFromHex() { document.querySelectorAll('.circle').forEach(x => x.classList.remove('selected')); document.getElementById('edit-color').value = document.getElementById('edit-bg-hex').value; }
         function setTextCol(c) { document.getElementById('edit-text').value = c; }
         function saveTierEdit() { const t = currentListData.tiers[editingTierIndex]; t.name = document.getElementById('edit-name').value; t.color = document.getElementById('edit-bg-hex').value; t.text = document.getElementById('edit-text').value; closeModal(); saveList(currentListData, renderBoard); }
-        function addNewTier() { currentListData.tiers.push({name:'NEW',color:'#ccc',text:'#000',items:[]}); saveList(currentListData, renderBoard); }
-        function deleteTier() { if(confirm('Delete Row?')) { currentListData.dock.push(...currentListData.tiers[editingTierIndex].items); currentListData.tiers.splice(editingTierIndex,1); closeModal(); saveList(currentListData, renderBoard); } }
+        function addNewTier() { currentListData.tiers.push({name:'NEW',color:'#333333',text:'#fff',items:[]}); saveList(currentListData, renderBoard); }
+        function deleteTier() { if(confirm('Delete this row completely?')) { currentListData.dock.push(...currentListData.tiers[editingTierIndex].items); currentListData.tiers.splice(editingTierIndex,1); closeModal(); saveList(currentListData, renderBoard); } }
+        function clearRowImages() { if(currentListData.tiers[editingTierIndex].items.length === 0) { closeModal(); return; } if(!confirm('Move all images in this row back to Library?')) return; currentListData.dock.push(...currentListData.tiers[editingTierIndex].items); currentListData.tiers[editingTierIndex].items = []; closeModal(); saveList(currentListData, renderBoard); }
         function moveTier(d) { const n = editingTierIndex+d; if(n>=0 && n<currentListData.tiers.length) { [currentListData.tiers[editingTierIndex], currentListData.tiers[n]] = [currentListData.tiers[n], currentListData.tiers[editingTierIndex]]; editingTierIndex = n; saveList(currentListData, renderBoard); } }
 
         function handleFiles(e) {
             if(!e.target.files.length)return; let l=0;
             Array.from(e.target.files).forEach(f=>{
+                if(!f.type.startsWith('image/')) { l++; return; }
                 const r=new FileReader(); r.onload=ev=>{
                     const i=new Image(); i.src=ev.target.result; i.onload=()=>{
                         const c=document.createElement('canvas'), x=c.getContext('2d'), M=600; let w=i.width, h=i.height; if(w>M){h*=(M/w);w=M;} c.width=w; c.height=h; x.drawImage(i,0,0,w,h);
-                        currentListData.dock.push({src:c.toDataURL('image/jpeg',0.9), h:100}); l++; if(l===e.target.files.length) saveList(currentListData, renderBoard);
+                        currentListData.dock.push({src:c.toDataURL('image/jpeg',0.8), h:85}); l++; if(l===e.target.files.length) saveList(currentListData, renderBoard);
                     }
                 }; r.readAsDataURL(f);
             });
         }
 
-        function saveList(data, cb) { data.updatedAt = new Date().toISOString(); const tx = db.transaction(['lists'], 'readwrite'); tx.objectStore('lists').put(data); tx.oncomplete = () => { loadMenu(); if(cb) cb(); }; }
-        function deleteList(id) { if(confirm('Delete?')) { const tx = db.transaction(['lists'],'readwrite'); tx.objectStore('lists').delete(id); tx.oncomplete = loadMenu; } }
+        function saveList(data, cb) { data.updatedAt = new Date().toISOString(); const tx = db.transaction(['lists'], 'readwrite'); tx.objectStore('lists').put(data); tx.oncomplete = () => { if(cb) cb(); }; }
+        function deleteList(id) { if(confirm('Delete template?')) { const tx = db.transaction(['lists'],'readwrite'); tx.objectStore('lists').delete(id); tx.oncomplete = loadMenu; } }
         function updateListName() { currentListData.name = document.getElementById('list-name').value; document.getElementById('tier-header').innerText = currentListData.name; saveList(currentListData); }
-        function saveImage() { deselectImg(); window.scrollTo(0,0); html2canvas(document.getElementById('capture-area'),{scale:2, backgroundColor:'#000'}).then(c=>{ const a=document.createElement('a'); a.download=currentListData.name+'.png'; a.href=c.toDataURL(); a.click(); }); }
+        function saveImage() { deselectImg(); window.scrollTo(0,0); const captureArea = document.getElementById('capture-area'); captureArea.classList.add('is-exporting'); html2canvas(captureArea, {scale: 2, backgroundColor: '#000', useCORS: true}).then(c => { captureArea.classList.remove('is-exporting'); const a = document.createElement('a'); a.download = currentListData.name + '.png'; a.href = c.toDataURL(); a.click(); }); }
     </script>
 </body>
 </html>
