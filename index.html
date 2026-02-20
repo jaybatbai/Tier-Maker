@@ -15,17 +15,17 @@
            ========================================= */
         :root {
             --bg-base: #000000; --bg-surface: #111111; --bg-elevated: #1a1a1a;
-            --border-color: #222222;
+            --border-color: #2a2a2a;
             --primary: #2ea043; --primary-hover: #3fb950;
             --accent: #007aff; --danger: #da3633; --warn: #d29922;
             --text-main: #ffffff; --text-muted: #8b949e;
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-        
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #555; }
 
         body { 
             background: var(--bg-base); color: var(--text-main); 
@@ -87,13 +87,19 @@
 
         /* BOARD */
         #capture-area { background: #000; display: flex; flex-direction: column; padding-bottom: 20px; }
-        .board-header-style { text-align: center; font-size: 24px; font-weight: 800; padding: 25px 10px; background: #000; color: #fff; text-transform: uppercase; letter-spacing: 2px; }
+        
+        .board-header-style { 
+            text-align: center; font-size: 24px; font-weight: 800; padding: 25px 10px; 
+            background: #000; color: #fff; text-transform: uppercase; letter-spacing: 2px; 
+            cursor: pointer; transition: filter 0.2s; 
+        }
+        .board-header-style:hover { filter: brightness(0.8); }
         
         #tier-board { display: flex; flex-direction: column; gap: 2px; background: #000; } 
         .tier-row { display: flex; min-height: 85px; background: #000; transition: transform 0.2s; }
         .tier-row.dragging { opacity: 0.5; }
         
-        .tier-label { width: 90px; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 800; color: #000; text-align: center; padding: 5px; word-break: break-word; cursor: pointer; transition: filter 0.2s; }
+        .tier-label { width: 100px; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 800; color: #000; text-align: center; padding: 5px; word-break: break-word; cursor: pointer; transition: filter 0.2s; }
         .tier-label:hover { filter: brightness(0.9); }
         
         .tier-content { flex: 1; display: flex; flex-wrap: wrap; align-items: flex-start; background: var(--bg-surface); padding: 2px; gap: 2px; align-content: flex-start; transition: background 0.2s; position: relative; }
@@ -102,24 +108,16 @@
         .tier-content:empty::before, #dock:empty::before { content: "Kéo thả ảnh vào đây"; color: #444; font-weight: 500; font-size: 0.85rem; margin: auto; padding: 20px; }
         .is-exporting .tier-content:empty::before, .is-exporting #dock:empty::before { display: none !important; content: none !important; }
 
-        /* MID ACTIONS (Làm lại gọn gàng vào giữa) */
-        .board-footer-actions { 
-            display: flex; justify-content: center; gap: 15px; 
-            padding: 20px; background: transparent; border-top: 1px solid var(--border-color); 
-        }
-        .btn-text-action { 
-            background: var(--bg-surface); border: 1px solid var(--border-color); 
-            color: var(--text-muted); font-size: 0.8rem; font-weight: 600; 
-            padding: 8px 16px; border-radius: 20px; cursor: pointer; 
-            transition: 0.2s; text-transform: uppercase; letter-spacing: 0.5px; 
-        }
+        /* MID ACTIONS */
+        .board-footer-actions { display: flex; justify-content: center; gap: 10px; padding: 15px 20px; background: #000; border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); flex-wrap: wrap;}
+        .btn-text-action { background: var(--bg-surface); border: 1px solid var(--border-color); color: var(--text-muted); font-size: 0.75rem; font-weight: 600; padding: 8px 16px; border-radius: 20px; cursor: pointer; transition: 0.2s; text-transform: uppercase; letter-spacing: 0.5px; }
         .btn-text-action:hover { color: var(--text-main); border-color: #555; }
         .btn-text-action.danger:hover { color: var(--danger); border-color: var(--danger); background: rgba(218, 54, 51, 0.1); }
 
         /* IMAGE */
         .img-item { 
             height: 85px; width: auto; border-radius: 4px; display: block; 
-            cursor: pointer; transition: transform 0.1s ease, filter 0.1s; 
+            cursor: pointer; transition: transform 0.1s ease, filter 0.1s, box-shadow 0.1s; 
         }
         .img-item:hover { transform: scale(1.05); z-index: 5; position: relative; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
         .img-item.selected { outline: 3px solid var(--accent); outline-offset: -3px; z-index: 10; filter: brightness(1.1); }
@@ -127,7 +125,11 @@
         /* DOCK */
         .dock-container { background: var(--bg-base); padding: 20px; flex: 1; transition: background 0.2s; }
         .dock-container.drag-over { background: var(--bg-surface); }
-        .dock-header { text-align: left; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 15px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
+        .dock-header-wrap { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .dock-header { font-size: 0.8rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
+        .btn-clear-dock { background: transparent; border: none; color: var(--danger); font-size: 0.75rem; font-weight: bold; cursor: pointer; text-transform: uppercase; padding: 5px 10px; border-radius: 4px; transition: 0.2s; }
+        .btn-clear-dock:hover { background: rgba(218, 54, 51, 0.1); }
+
         #dock { display: flex; flex-wrap: wrap; gap: 4px; justify-content: flex-start; align-content: flex-start; padding-bottom: 80px; min-height: 100px; }
         #dock .img-item { height: 75px !important; width: auto !important; border-radius: 4px; border: 1px solid var(--border-color); }
 
@@ -139,54 +141,28 @@
         .btn-add { background: var(--text-main); color: var(--bg-base); } 
         .btn-add:hover { background: #e0e0e0; }
 
-        /* =========================================
-           4. BẢNG ĐIỀU KHIỂN NỔI (FLOATING CONTROL PANEL)
-           ========================================= */
+        /* CONTROL PANEL */
         #resize-control { 
-            position: fixed; 
-            bottom: 80px; /* Nằm ngay trên thanh công cụ đáy */
-            left: 50%; 
-            transform: translateX(-50%); 
-            width: 90%; 
-            max-width: 400px; 
-            background: rgba(25, 25, 25, 0.95); 
-            backdrop-filter: blur(10px); 
-            border: 1px solid var(--border-color); 
-            border-radius: 16px; /* Bo tròn mạnh hơn */
-            z-index: 250; 
-            padding: 16px; 
-            display: flex; 
-            flex-direction: column; 
-            gap: 12px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+            position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); 
+            width: 90%; max-width: 400px; background: rgba(25, 25, 25, 0.95); 
+            backdrop-filter: blur(10px); border: 1px solid var(--border-color); 
+            border-radius: 16px; z-index: 250; padding: 16px; display: flex; 
+            flex-direction: column; gap: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.8);
         }
-        
         .size-slider-wrap { display: flex; align-items: center; gap: 12px; }
         .size-label { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase;}
         .resize-slider { flex: 1; height: 3px; border-radius: 2px; background: #444; outline: none; }
         .size-val { font-size: 0.85rem; font-family: monospace; color: var(--text-main); width: 40px; text-align: right; }
-
         .control-actions { display: flex; gap: 8px; }
-        .btn-pill { 
-            flex: 1; padding: 10px 0; border-radius: 8px; border: none; 
-            font-weight: 600; font-size: 0.85rem; cursor: pointer; transition: 0.2s; 
-            display: flex; align-items: center; justify-content: center; gap: 5px;
-        }
-        .btn-pill-dock { background: rgba(0, 122, 255, 0.15); color: var(--accent); }
-        .btn-pill-dock:hover { background: var(--accent); color: white; }
-        .btn-pill-del { background: rgba(218, 54, 51, 0.15); color: var(--danger); }
-        .btn-pill-del:hover { background: var(--danger); color: white; }
-        .btn-pill-all { background: var(--bg-surface); color: var(--text-main); border: 1px solid var(--border-color); }
-        .btn-pill-all:hover { background: #333; }
-
-        .btn-pill-close { 
-            background: transparent; color: var(--text-muted); width: 100%; 
-            padding: 8px; border: none; font-size: 0.85rem; font-weight: 600; cursor: pointer;
-        }
+        .btn-pill { flex: 1; padding: 10px 0; border-radius: 8px; border: none; font-weight: 600; font-size: 0.85rem; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 5px; }
+        .btn-pill-dock { background: rgba(0, 122, 255, 0.15); color: var(--accent); } .btn-pill-dock:hover { background: var(--accent); color: white; }
+        .btn-pill-del { background: rgba(218, 54, 51, 0.15); color: var(--danger); } .btn-pill-del:hover { background: var(--danger); color: white; }
+        .btn-pill-all { background: var(--bg-surface); color: var(--text-main); border: 1px solid var(--border-color); } .btn-pill-all:hover { background: #333; }
+        .btn-pill-close { background: transparent; color: var(--text-muted); width: 100%; padding: 8px; border: none; font-size: 0.85rem; font-weight: 600; cursor: pointer; }
         .btn-pill-close:hover { color: var(--text-main); }
 
-        /* MODAL */
-        #modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 300; display: none; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
+        /* MODALS */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 300; display: none; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
         .modal { background: var(--bg-surface); padding: 24px; border-radius: 12px; width: 90%; max-width: 360px; border: 1px solid var(--border-color); box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
         .modal h2 { margin: 0 0 20px 0; color: var(--text-main); font-weight: 700; font-size: 1.2rem; }
         .modal label { display: block; margin-top: 16px; color: var(--text-muted); font-weight: 600; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px; }
@@ -233,17 +209,21 @@
             </div>
 
             <div id="capture-area">
-                <div id="tier-header" class="board-header-style">Tier List</div>
+                <div id="tier-header" class="board-header-style" onclick="openHeaderModal()">Tier List</div>
                 <div id="tier-board"></div>
             </div>
             
             <div class="board-footer-actions">
                 <button class="btn-text-action" onclick="addNewTier()">+ Add Row</button>
+                <button class="btn-text-action" onclick="toggleHeader()">👁️ Toggle Header</button>
                 <button class="btn-text-action danger" onclick="resetBoard()">Reset Board</button>
             </div>
 
             <div id="dock-container-box" class="dock-container">
-                <div class="dock-header">Library</div>
+                <div class="dock-header-wrap">
+                    <div class="dock-header">Library</div>
+                    <button class="btn-clear-dock" onclick="clearLibrary()">🗑 Clear Library</button>
+                </div>
                 <div id="dock" onclick="moveToDock()"></div>
             </div>
             
@@ -260,18 +240,16 @@
                 <input type="range" id="size-slider" class="resize-slider" min="40" max="200" value="85" oninput="resizeSelectedImg(this.value)">
                 <span id="size-val" class="size-val">85px</span>
             </div>
-            
             <div class="control-actions">
-                <button class="btn-pill btn-pill-dock" onclick="moveToDock()">⬇ Kho ảnh</button>
-                <button class="btn-pill btn-pill-all" onclick="applyToAll()">⚡ Tất cả</button>
-                <button class="btn-pill btn-pill-del" onclick="deleteSelected()">🗑 Xóa hẳn</button>
+                <button class="btn-pill btn-pill-dock" onclick="moveToDock()">⬇ To Library</button>
+                <button class="btn-pill btn-pill-all" onclick="applyToAll()">⚡ Apply All</button>
+                <button class="btn-pill btn-pill-del" onclick="deleteSelected()">🗑 Delete</button>
             </div>
-            
-            <button class="btn-pill-close" onclick="deselectImg()">Đóng / Hủy</button>
+            <button class="btn-pill-close" onclick="deselectImg()">Close</button>
         </div>
     </div>
 
-    <div id="modal-overlay">
+    <div id="modal-overlay" class="modal-overlay">
         <div class="modal">
             <h2>Edit Row</h2>
             <label>Label</label> <input type="text" id="edit-name">
@@ -284,8 +262,8 @@
             <input type="hidden" id="edit-color">
             <label>Text Color</label>
             <div class="color-grid" style="grid-template-columns:1fr 1fr; margin-top:8px;">
-                <div class="circle" style="width:100%; border-radius:6px; background:#000; text-align:center; line-height:36px; color:#fff; font-weight:600; font-size:0.9rem;" onclick="setTextCol('#000000')">Black</div>
-                <div class="circle" style="width:100%; border-radius:6px; background:#fff; text-align:center; line-height:36px; color:#000; font-weight:600; font-size:0.9rem;" onclick="setTextCol('#FFFFFF')">White</div>
+                <div class="circle" style="width:100%; border-radius:6px; background:#000; text-align:center; line-height:36px; color:#fff; font-weight:600; font-size:0.9rem;" onclick="setTextCol('#000000', 'edit-text')">Black</div>
+                <div class="circle" style="width:100%; border-radius:6px; background:#fff; text-align:center; line-height:36px; color:#000; font-weight:600; font-size:0.9rem;" onclick="setTextCol('#FFFFFF', 'edit-text')">White</div>
             </div>
             <input type="hidden" id="edit-text">
             
@@ -297,7 +275,32 @@
                 </div>
                 <button class="btn-secondary" style="border-color: var(--warn); color: var(--warn)" onclick="clearRowImages()">Clear Images in Row</button>
                 <button class="btn-danger" onclick="deleteTier()">Delete Entire Row</button>
-                <button class="btn-secondary" style="border:none; background:transparent" onclick="closeModal()">Cancel</button>
+                <button class="btn-secondary" style="border:none; background:transparent" onclick="closeModal('modal-overlay')">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="header-modal-overlay" class="modal-overlay">
+        <div class="modal">
+            <h2>Edit Header</h2>
+            <label>Title Name</label> <input type="text" id="header-edit-name" oninput="document.getElementById('list-name').value = this.value; updateListName();">
+            <label>Background</label>
+            <div class="color-grid" id="header-bg-preset-grid"></div>
+            <div class="hex-input-row">
+                <span class="hex-label">HEX</span>
+                <input type="text" id="header-edit-bg-hex" class="hex-field" oninput="syncHeaderHex()">
+            </div>
+            <input type="hidden" id="header-edit-color">
+            <label>Text Color</label>
+            <div class="color-grid" style="grid-template-columns:1fr 1fr; margin-top:8px;">
+                <div class="circle" style="width:100%; border-radius:6px; background:#000; text-align:center; line-height:36px; color:#fff; font-weight:600; font-size:0.9rem;" onclick="setTextCol('#000000', 'header-edit-text')">Black</div>
+                <div class="circle" style="width:100%; border-radius:6px; background:#fff; text-align:center; line-height:36px; color:#000; font-weight:600; font-size:0.9rem;" onclick="setTextCol('#FFFFFF', 'header-edit-text')">White</div>
+            </div>
+            <input type="hidden" id="header-edit-text">
+            
+            <div class="modal-btns">
+                <button class="btn-primary" onclick="saveHeaderEdit()">Save Changes</button>
+                <button class="btn-secondary" style="border:none; background:transparent" onclick="closeModal('header-modal-overlay')">Cancel</button>
             </div>
         </div>
     </div>
@@ -315,6 +318,7 @@
             req.onsuccess = e => { db=e.target.result; loadMenu(); initDockDrop(); initGlobalFileDrop(); };
         };
 
+        // --- GLOBAL FILE DROP ---
         function initGlobalFileDrop() {
             const overlay = document.getElementById('drop-overlay');
             window.addEventListener('dragover', e => {
@@ -353,12 +357,13 @@
                     if(!confirm(`Import ${dataArr.length} templates? Existing IDs will be overwritten.`)) return;
                     const tx = db.transaction(['lists'], 'readwrite');
                     dataArr.forEach(item => tx.objectStore('lists').put(item));
-                    tx.oncomplete = () => { loadMenu(); };
+                    tx.oncomplete = () => loadMenu();
                 } catch(err) { alert("Invalid backup file."); }
             };
             reader.readAsText(file); e.target.value = '';
         }
 
+        // --- MENU ---
         function loadMenu() {
             db.transaction(['lists']).objectStore('lists').getAll().onsuccess = e => {
                 const list = e.target.result.sort((a,b) => new Date(b.updatedAt) - new Date(a.updatedAt));
@@ -370,9 +375,7 @@
                     <div class="list-item" onclick="openList('${l.id}')">
                         ${thumbHTML}
                         <div class="list-info-wrap">
-                            <div class="list-info">
-                                <h3>${l.name}</h3><p>${new Date(l.updatedAt).toLocaleDateString()}</p>
-                            </div>
+                            <div class="list-info"><h3>${l.name}</h3><p>${new Date(l.updatedAt).toLocaleDateString()}</p></div>
                             <button class="btn-del-list" onclick="event.stopPropagation(); deleteList('${l.id}')">✕</button>
                         </div>
                     </div>`
@@ -389,7 +392,6 @@
                 currentListData.thumbnail = canvas.toDataURL('image/jpeg', 0.5); 
             } catch (err) {}
             captureArea.classList.remove('is-exporting');
-            
             saveList(currentListData, () => {
                 document.getElementById('editor-screen').classList.add('hidden');
                 document.getElementById('menu-screen').classList.remove('hidden');
@@ -399,24 +401,42 @@
 
         function createNewList() {
             const name = prompt("Template Name:", "New Tier List"); if(!name) return;
-            const newList = { id: 'list_' + Date.now(), name: name, updatedAt: new Date().toISOString(), tiers: [{name:'S', color:'#FF7F7F', text:'#000', items:[]}, {name:'A', color:'#FFBF7F', text:'#000', items:[]}, {name:'B', color:'#FFDF7F', text:'#000', items:[]}, {name:'C', color:'#FFFF7F', text:'#000', items:[]}], dock:[], thumbnail: null };
+            const newList = { 
+                id: 'list_' + Date.now(), name: name, updatedAt: new Date().toISOString(), 
+                header: { bg: '#000000', text: '#ffffff', visible: true },
+                tiers: [{name:'S', color:'#FF7F7F', text:'#000', items:[]}, {name:'A', color:'#FFBF7F', text:'#000', items:[]}, {name:'B', color:'#FFDF7F', text:'#000', items:[]}, {name:'C', color:'#FFFF7F', text:'#000', items:[]}], 
+                dock:[], thumbnail: null 
+            };
             saveList(newList, () => openList(newList.id)); 
         }
 
         function openList(id) {
             db.transaction(['lists']).objectStore('lists').get(id).onsuccess = e => {
                 currentListData = e.target.result;
+                if(!currentListData.header) currentListData.header = { bg: '#000000', text: '#ffffff', visible: true }; 
                 document.getElementById('menu-screen').classList.add('hidden');
                 document.getElementById('editor-screen').classList.remove('hidden');
                 document.getElementById('list-name').value = currentListData.name;
-                document.getElementById('tier-header').innerText = currentListData.name;
                 renderBoard(); window.scrollTo(0,0);
             };
         }
 
+        // --- BOARD ACTIONS ---
         function resetBoard() {
             if(!confirm("Move all images back to Library?")) return;
             currentListData.tiers.forEach(t => { currentListData.dock.push(...t.items); t.items = []; });
+            saveAndRefresh();
+        }
+
+        function clearLibrary() {
+            if(currentListData.dock.length === 0) return;
+            if(!confirm("Xóa vĩnh viễn toàn bộ ảnh đang có trong Kho? (Không thể hoàn tác)")) return;
+            currentListData.dock = [];
+            saveAndRefresh();
+        }
+
+        function toggleHeader() {
+            currentListData.header.visible = !currentListData.header.visible;
             saveAndRefresh();
         }
 
@@ -427,13 +447,24 @@
             dockContainer.ondrop = e => {
                 e.preventDefault(); dockContainer.classList.remove('drag-over');
                 if (draggedItem && draggedItem.type !== 'dock') {
-                    removeItem(draggedItem); currentListData.dock.push(draggedItem.data); saveAndRefresh();
+                    insertItem(draggedItem, {type: 'dock', r: null, i: currentListData.dock.length}, false);
                 }
             };
         }
 
         function renderBoard() {
             const board = document.getElementById('tier-board'); board.innerHTML = '';
+            
+            const headerEl = document.getElementById('tier-header');
+            headerEl.innerText = currentListData.name || "TIER LIST";
+            if (currentListData.header.visible) {
+                headerEl.style.display = 'block';
+                headerEl.style.background = currentListData.header.bg;
+                headerEl.style.color = currentListData.header.text;
+            } else {
+                headerEl.style.display = 'none';
+            }
+
             currentListData.tiers.forEach((t, i) => {
                 const row = document.createElement('div'); row.className = 'tier-row';
                 row.draggable = true;
@@ -449,13 +480,16 @@
                 };
 
                 const label = document.createElement('div'); label.className = 'tier-label'; label.style.background = t.color; label.style.color = t.text||'#000'; label.innerText = t.name; label.onclick = () => openEditModal(i);
+                
                 const content = document.createElement('div'); content.className = 'tier-content'; 
                 content.onclick = e => { if(e.target === content) moveToTier(i); };
                 content.ondragover = e => { if(draggedItem) { e.preventDefault(); content.classList.add('drag-over'); } };
                 content.ondragleave = e => { content.classList.remove('drag-over'); };
                 content.ondrop = e => {
                     e.preventDefault(); content.classList.remove('drag-over');
-                    if (draggedItem && e.target === content) { removeItem(draggedItem); currentListData.tiers[i].items.push(draggedItem.data); saveAndRefresh(); }
+                    if (draggedItem && e.target === content) { 
+                        insertItem(draggedItem, {type: 'tier', r: i, i: currentListData.tiers[i].items.length}, false); 
+                    }
                 };
 
                 t.items.forEach((item, idx) => content.appendChild(createImg(item, 'tier', i, idx)));
@@ -463,6 +497,24 @@
             });
             const dock = document.getElementById('dock'); dock.innerHTML = '';
             currentListData.dock.forEach((item, idx) => dock.appendChild(createImg(item, 'dock', null, idx)));
+        }
+
+        // --- CHÈN ẢNH VÀO GIỮA ---
+        function insertItem(src, tgt, after) {
+            if (src.type === tgt.type && src.r === tgt.r && src.i === tgt.i) return;
+            let itemData = src.data;
+            
+            if (src.type === 'tier') currentListData.tiers[src.r].items.splice(src.i, 1);
+            else currentListData.dock.splice(src.i, 1);
+
+            let targetIdx = tgt.i;
+            if (src.type === tgt.type && src.r === tgt.r && src.i < tgt.i) { targetIdx--; }
+            if (after) targetIdx++;
+
+            if (tgt.type === 'tier') currentListData.tiers[tgt.r].items.splice(targetIdx, 0, itemData);
+            else currentListData.dock.splice(targetIdx, 0, itemData);
+
+            saveAndRefresh();
         }
 
         function createImg(data, type, r, i) {
@@ -473,18 +525,30 @@
             if(type === 'tier') img.style.height = h + 'px';
             
             img.onclick = e => { e.stopPropagation(); clickImg(img, data, type, r, i); };
+            
             img.draggable = true;
             img.ondragstart = e => { draggedItem = { data, type, r, i }; e.dataTransfer.effectAllowed = "move"; e.stopPropagation(); setTimeout(() => img.style.opacity = '0.4', 0); };
             img.ondragend = e => { img.style.opacity = '1'; draggedItem = null; };
-            img.ondragover = e => { if(draggedItem) e.preventDefault(); };
-            img.ondragenter = e => { if(draggedItem) img.style.filter = 'brightness(1.5)'; };
-            img.ondragleave = e => { img.style.filter = ''; };
+            img.ondragover = e => { 
+                if(draggedItem) {
+                    e.preventDefault(); 
+                    const rect = img.getBoundingClientRect();
+                    if(e.clientX - rect.left < rect.width / 2) {
+                        img.style.boxShadow = '-4px 0 0 var(--primary)';
+                    } else {
+                        img.style.boxShadow = '4px 0 0 var(--primary)';
+                    }
+                }
+            };
+            img.ondragleave = e => { img.style.boxShadow = ''; };
             img.ondrop = e => {
                 if (draggedItem) {
-                    e.preventDefault(); e.stopPropagation(); img.style.filter = '';
+                    e.preventDefault(); e.stopPropagation(); 
+                    img.style.boxShadow = '';
+                    const rect = img.getBoundingClientRect();
+                    const insertAfter = (e.clientX - rect.left) > (rect.width / 2);
                     const dropTarget = { data, type, r, i };
-                    if (draggedItem.type === dropTarget.type && draggedItem.r === dropTarget.r && draggedItem.i === dropTarget.i) return;
-                    swapItems(draggedItem, dropTarget);
+                    insertItem(draggedItem, dropTarget, insertAfter);
                 }
             };
             return img;
@@ -495,6 +559,7 @@
         function getItem(o) { return o.type==='tier' ? currentListData.tiers[o.r].items[o.i] : currentListData.dock[o.i]; }
         function setItem(o, val) { if(o.type==='tier') currentListData.tiers[o.r].items[o.i]=val; else currentListData.dock[o.i]=val; }
         function deselectImg() { if(selectedImgObj) selectedImgObj.dom.classList.remove('selected'); selectedImgObj = null; document.getElementById('resize-control').classList.add('hidden'); }
+        
         function resizeSelectedImg(h) { if(!selectedImgObj) return; h = parseInt(h); selectedImgObj.dom.style.height = h+'px'; selectedImgObj.dom.style.width = 'auto'; document.getElementById('size-val').innerText = h+'px'; const src = typeof selectedImgObj.data === 'object' ? selectedImgObj.data.src : selectedImgObj.data; const newItem = { src, h }; setItem(selectedImgObj, newItem); selectedImgObj.data = newItem; }
         function adjustSize(d) { if(!selectedImgObj) return; let v = parseInt(document.getElementById('size-slider').value) + d; if(v<40)v=40; if(v>200)v=200; document.getElementById('size-slider').value = v; resizeSelectedImg(v); }
         function applyToAll() { if(!selectedImgObj) return; const h = (typeof selectedImgObj.data === 'object' && selectedImgObj.data.h) ? selectedImgObj.data.h : 85; if(!confirm('Apply size '+h+'px to all images?')) return; const fix = i => ({ src: (typeof i==='object'?i.src:i), h }); currentListData.tiers.forEach(t => t.items = t.items.map(fix)); currentListData.dock = currentListData.dock.map(fix); saveList(currentListData, () => { renderBoard(); deselectImg(); }); }
@@ -504,17 +569,37 @@
         function removeItem(o) { if(o.type==='tier') currentListData.tiers[o.r].items.splice(o.i, 1); else currentListData.dock.splice(o.i, 1); }
         function saveAndRefresh() { saveList(currentListData, () => { renderBoard(); deselectImg(); draggedItem = null; draggedRowIdx = null; }); }
 
-        function openEditModal(i) { editingTierIndex = i; const t = currentListData.tiers[i]; document.getElementById('edit-name').value = t.name; document.getElementById('edit-text').value = t.text || '#000'; renderPresets(); const currentColor = t.color; document.getElementById('edit-bg-hex').value = currentColor; const circles = document.querySelectorAll('#bg-preset-grid .circle'); PRESET_COLORS.forEach((c, idx) => { if(c.toLowerCase() === currentColor.toLowerCase()) { if(circles[idx]) circles[idx].classList.add('selected'); } }); document.getElementById('modal-overlay').style.display = 'flex'; }
-        function closeModal() { document.getElementById('modal-overlay').style.display = 'none'; }
-        function renderPresets() { const grid = document.getElementById('bg-preset-grid'); grid.innerHTML = ''; PRESET_COLORS.forEach(color => { const div = document.createElement('div'); div.className = 'circle'; div.style.backgroundColor = color; div.onclick = () => selectBgColor(color, div); grid.appendChild(div); }); }
-        function selectBgColor(color, el) { document.querySelectorAll('#bg-preset-grid .circle').forEach(c => c.classList.remove('selected')); if(el) el.classList.add('selected'); document.getElementById('edit-bg-hex').value = color; }
-        function syncFromHex() { document.querySelectorAll('.circle').forEach(x => x.classList.remove('selected')); document.getElementById('edit-color').value = document.getElementById('edit-bg-hex').value; }
-        function setTextCol(c) { document.getElementById('edit-text').value = c; }
-        function saveTierEdit() { const t = currentListData.tiers[editingTierIndex]; t.name = document.getElementById('edit-name').value; t.color = document.getElementById('edit-bg-hex').value; t.text = document.getElementById('edit-text').value; closeModal(); saveList(currentListData, renderBoard); }
+        // --- ROW MODAL ---
+        function openEditModal(i) { editingTierIndex = i; const t = currentListData.tiers[i]; document.getElementById('edit-name').value = t.name; document.getElementById('edit-text').value = t.text || '#000'; renderPresets('bg-preset-grid', 'edit-bg-hex'); const currentColor = t.color; document.getElementById('edit-bg-hex').value = currentColor; const circles = document.querySelectorAll('#bg-preset-grid .circle'); PRESET_COLORS.forEach((c, idx) => { if(c.toLowerCase() === currentColor.toLowerCase()) { if(circles[idx]) circles[idx].classList.add('selected'); } }); document.getElementById('modal-overlay').style.display = 'flex'; }
+        
+        function renderPresets(containerId, hexInputId) { const grid = document.getElementById(containerId); grid.innerHTML = ''; PRESET_COLORS.forEach(color => { const div = document.createElement('div'); div.className = 'circle'; div.style.backgroundColor = color; div.onclick = () => { document.querySelectorAll(`#${containerId} .circle`).forEach(c => c.classList.remove('selected')); div.classList.add('selected'); document.getElementById(hexInputId).value = color; }; grid.appendChild(div); }); }
+        function syncFromHex() { document.querySelectorAll('#bg-preset-grid .circle').forEach(x => x.classList.remove('selected')); document.getElementById('edit-color').value = document.getElementById('edit-bg-hex').value; }
+        function setTextCol(c, inputId) { document.getElementById(inputId).value = c; }
+        
+        function saveTierEdit() { const t = currentListData.tiers[editingTierIndex]; t.name = document.getElementById('edit-name').value; t.color = document.getElementById('edit-bg-hex').value; t.text = document.getElementById('edit-text').value; closeModal('modal-overlay'); saveList(currentListData, renderBoard); }
         function addNewTier() { currentListData.tiers.push({name:'NEW',color:'#333333',text:'#fff',items:[]}); saveList(currentListData, renderBoard); }
-        function deleteTier() { if(confirm('Delete this row completely?')) { currentListData.dock.push(...currentListData.tiers[editingTierIndex].items); currentListData.tiers.splice(editingTierIndex,1); closeModal(); saveList(currentListData, renderBoard); } }
-        function clearRowImages() { if(currentListData.tiers[editingTierIndex].items.length === 0) { closeModal(); return; } if(!confirm('Move all images in this row back to Library?')) return; currentListData.dock.push(...currentListData.tiers[editingTierIndex].items); currentListData.tiers[editingTierIndex].items = []; closeModal(); saveList(currentListData, renderBoard); }
+        function deleteTier() { if(confirm('Delete this row completely?')) { currentListData.dock.push(...currentListData.tiers[editingTierIndex].items); currentListData.tiers.splice(editingTierIndex,1); closeModal('modal-overlay'); saveList(currentListData, renderBoard); } }
+        function clearRowImages() { if(currentListData.tiers[editingTierIndex].items.length === 0) { closeModal('modal-overlay'); return; } if(!confirm('Move all images in this row back to Library?')) return; currentListData.dock.push(...currentListData.tiers[editingTierIndex].items); currentListData.tiers[editingTierIndex].items = []; closeModal('modal-overlay'); saveList(currentListData, renderBoard); }
         function moveTier(d) { const n = editingTierIndex+d; if(n>=0 && n<currentListData.tiers.length) { [currentListData.tiers[editingTierIndex], currentListData.tiers[n]] = [currentListData.tiers[n], currentListData.tiers[editingTierIndex]]; editingTierIndex = n; saveList(currentListData, renderBoard); } }
+
+        // --- HEADER MODAL ---
+        function openHeaderModal() {
+            document.getElementById('header-edit-name').value = currentListData.name;
+            document.getElementById('header-edit-text').value = currentListData.header.text;
+            renderPresets('header-bg-preset-grid', 'header-edit-bg-hex');
+            document.getElementById('header-edit-bg-hex').value = currentListData.header.bg;
+            document.getElementById('header-modal-overlay').style.display = 'flex';
+        }
+        function syncHeaderHex() { document.querySelectorAll('#header-bg-preset-grid .circle').forEach(x => x.classList.remove('selected')); }
+        function saveHeaderEdit() {
+            currentListData.name = document.getElementById('header-edit-name').value;
+            currentListData.header.bg = document.getElementById('header-edit-bg-hex').value;
+            currentListData.header.text = document.getElementById('header-edit-text').value;
+            closeModal('header-modal-overlay');
+            saveList(currentListData, () => { updateListName(); renderBoard(); });
+        }
+
+        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
         function handleFiles(e) {
             if(!e.target.files.length)return; let l=0;
@@ -532,7 +617,16 @@
         function saveList(data, cb) { data.updatedAt = new Date().toISOString(); const tx = db.transaction(['lists'], 'readwrite'); tx.objectStore('lists').put(data); tx.oncomplete = () => { if(cb) cb(); }; }
         function deleteList(id) { if(confirm('Delete template?')) { const tx = db.transaction(['lists'],'readwrite'); tx.objectStore('lists').delete(id); tx.oncomplete = loadMenu; } }
         function updateListName() { currentListData.name = document.getElementById('list-name').value; document.getElementById('tier-header').innerText = currentListData.name; saveList(currentListData); }
-        function saveImage() { deselectImg(); window.scrollTo(0,0); const captureArea = document.getElementById('capture-area'); captureArea.classList.add('is-exporting'); html2canvas(captureArea, {scale: 2, backgroundColor: '#000', useCORS: true}).then(c => { captureArea.classList.remove('is-exporting'); const a = document.createElement('a'); a.download = currentListData.name + '.png'; a.href = c.toDataURL(); a.click(); }); }
+        
+        function saveImage() { 
+            deselectImg(); window.scrollTo(0,0); 
+            const captureArea = document.getElementById('capture-area');
+            captureArea.classList.add('is-exporting'); 
+            html2canvas(captureArea, {scale: 2, backgroundColor: '#000', useCORS: true}).then(c => { 
+                captureArea.classList.remove('is-exporting');
+                const a = document.createElement('a'); a.download = currentListData.name + '.png'; a.href = c.toDataURL(); a.click(); 
+            }); 
+        }
     </script>
 </body>
 </html>
