@@ -5,181 +5,209 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="theme-color" content="#000000">
+    <meta name="theme-color" content="#09090b">
     
-    <title>Tier List Maker</title>
+    <title>Tier List Maker Pro</title>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <style>
         /* =========================================
-           1. THEME & CÀI ĐẶT CHUNG
+           1. PREMIUM THEME & VARIABLES
            ========================================= */
         :root {
-            --bg-base: #000000; --bg-surface: #111111; --bg-elevated: #1a1a1a;
-            --border-color: #2a2a2a;
-            --primary: #2ea043; --primary-hover: #3fb950;
-            --accent: #007aff; --danger: #da3633; --warn: #d29922;
-            --text-main: #ffffff; --text-muted: #8b949e;
+            --bg-base: #09090b; 
+            --bg-surface: #18181b; 
+            --bg-elevated: #27272a;
+            --border-color: #27272a;
+            --border-hover: #3f3f46;
+            
+            --primary: #10b981; 
+            --primary-hover: #059669;
+            --accent: #3b82f6; 
+            --danger: #ef4444; 
+            --danger-bg: rgba(239, 68, 68, 0.1);
+            
+            --text-main: #f4f4f5;
+            --text-muted: #a1a1aa;
+            
+            --radius-lg: 16px;
+            --radius-md: 12px;
+            --radius-sm: 8px;
+            --radius-pill: 9999px;
+            --shadow-float: 0 20px 40px -10px rgba(0,0,0,0.7);
         }
 
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif; }
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
         ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: var(--bg-elevated); border-radius: 10px; }
         ::-webkit-scrollbar-thumb:hover { background: #555; }
 
         body { 
             background: var(--bg-base); color: var(--text-main); 
-            margin: 0; padding: 0; padding-bottom: 90px;
+            margin: 0; padding: 0; padding-bottom: 100px;
             overscroll-behavior: none; line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
         }
         .hidden { display: none !important; }
 
         #app-container {
-            width: 100%; max-width: 1000px; margin: 0 auto; 
+            width: 100%; max-width: 960px; margin: 0 auto; 
             background: var(--bg-base); min-height: 100vh;
             border-left: 1px solid var(--border-color); border-right: 1px solid var(--border-color);
             display: flex; flex-direction: column; position: relative;
         }
 
         #drop-overlay {
-            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(46, 160, 67, 0.9); z-index: 9999;
+            position: fixed; inset: 0; background: rgba(16, 185, 129, 0.85); z-index: 9999;
             display: none; align-items: center; justify-content: center;
-            color: white; font-size: 1.5rem; font-weight: 600; border: 4px dashed rgba(255,255,255,0.5);
-            backdrop-filter: blur(5px);
+            color: white; font-size: 1.5rem; font-weight: 600; letter-spacing: -0.5px;
+            backdrop-filter: blur(8px); border: 8px solid rgba(255,255,255,0.2);
         }
 
         /* =========================================
            2. MENU SCREEN
            ========================================= */
-        #menu-screen { padding: 60px 30px; flex: 1; display: flex; flex-direction: column; }
-        .app-title { text-align: center; color: var(--text-main); font-size: 2rem; margin: 0 0 40px 0; font-weight: 800; letter-spacing: 1px; }
+        #menu-screen { padding: 60px 30px; flex: 1; display: flex; flex-direction: column; align-items: center; }
+        .app-title { color: var(--text-main); font-size: 2.5rem; margin: 0 0 40px 0; font-weight: 800; letter-spacing: -1px; text-transform: uppercase; }
+        .app-title span { color: var(--primary); }
         
-        .menu-actions { display: flex; flex-direction: column; gap: 12px; max-width: 400px; margin: 0 auto 50px; width: 100%; }
-        .btn-create { width: 100%; padding: 16px; background: var(--text-main); color: var(--bg-base); font-weight: 700; border: none; border-radius: 8px; font-size: 1rem; cursor: pointer; transition: 0.2s; }
-        .btn-create:hover { background: #e0e0e0; transform: translateY(-1px); }
+        .menu-actions { display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 380px; margin-bottom: 50px; }
+        .btn-create { width: 100%; padding: 16px; background: var(--primary); color: #fff; font-weight: 600; border: none; border-radius: var(--radius-md); font-size: 1.05rem; cursor: pointer; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+        .btn-create:hover { background: var(--primary-hover); transform: translateY(-2px); box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3); }
         
-        .sub-actions { display: flex; gap: 12px; }
-        .btn-data { flex: 1; padding: 12px; background: transparent; color: var(--text-muted); border: 1px solid var(--border-color); border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s; font-size: 0.85rem; }
-        .btn-data:hover { color: var(--text-main); border-color: #555; background: var(--bg-surface); }
+        .btn-data { width: 100%; padding: 14px; background: var(--bg-surface); color: var(--text-main); border: 1px solid var(--border-color); border-radius: var(--radius-md); font-weight: 500; cursor: pointer; transition: 0.2s; font-size: 0.95rem; }
+        .btn-data:hover { border-color: var(--text-muted); background: var(--bg-elevated); }
 
-        #list-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
-        .list-item { background: var(--bg-surface); border-radius: 12px; overflow: hidden; border: 1px solid var(--border-color); cursor: pointer; transition: all 0.2s; display: flex; flex-direction: column; }
-        .list-item:hover { border-color: #555; transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.5); }
-        .list-thumb { width: 100%; height: 130px; object-fit: cover; border-bottom: 1px solid var(--border-color); background: #000; }
-        .list-placeholder { width: 100%; height: 130px; background: var(--bg-elevated); display: flex; align-items: center; justify-content: center; color: var(--text-muted); font-size: 0.85rem; font-weight: 500; border-bottom: 1px solid var(--border-color); }
-        .list-info-wrap { padding: 16px; display: flex; justify-content: space-between; align-items: center; }
+        #list-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; width: 100%; }
+        .list-item { background: var(--bg-surface); border-radius: var(--radius-lg); overflow: hidden; border: 1px solid var(--border-color); cursor: pointer; transition: all 0.2s ease; display: flex; flex-direction: column; }
+        .list-item:hover { border-color: var(--border-hover); transform: translateY(-4px); box-shadow: 0 12px 24px rgba(0,0,0,0.5); }
+        .list-thumb { width: 100%; height: 140px; object-fit: cover; border-bottom: 1px solid var(--border-color); background: #000; }
+        .list-placeholder { width: 100%; height: 140px; background: var(--bg-base); display: flex; align-items: center; justify-content: center; color: var(--text-muted); font-size: 0.85rem; font-weight: 500; border-bottom: 1px solid var(--border-color); }
+        .list-info-wrap { padding: 18px; display: flex; justify-content: space-between; align-items: center; }
         .list-info { flex: 1; overflow: hidden; } 
-        .list-info h3 { margin: 0; font-size: 1rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text-main); } 
-        .list-info p { margin: 4px 0 0; font-size: 0.75rem; color: var(--text-muted); }
-        .btn-del-list { background: transparent; border: none; color: var(--text-muted); width: 32px; height: 32px; border-radius: 6px; font-size: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
-        .btn-del-list:hover { color: var(--danger); background: rgba(218, 54, 51, 0.1); }
+        .list-info h3 { margin: 0; font-size: 1.05rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text-main); letter-spacing: -0.3px; } 
+        .list-info p { margin: 4px 0 0; font-size: 0.8rem; color: var(--text-muted); }
+        .btn-del-list { background: transparent; border: none; color: var(--text-muted); width: 32px; height: 32px; border-radius: var(--radius-sm); font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; line-height: 1; }
+        .btn-del-list:hover { color: var(--danger); background: var(--danger-bg); }
 
         /* =========================================
            3. EDITOR SCREEN
            ========================================= */
         #editor-screen { display: flex; flex-direction: column; flex: 1; }
-        .top-bar { background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(10px); padding: 12px 20px; display: flex; gap: 15px; align-items: center; position: sticky; top: 0; z-index: 100; border-bottom: 1px solid var(--border-color); }
-        .btn-back { background: transparent; color: var(--text-muted); border: none; font-size: 0.95rem; padding: 8px 0; cursor: pointer; font-weight: 600; transition: 0.2s; display: flex; align-items: center; gap: 5px; }
-        .btn-back:hover { color: var(--text-main); }
-        .list-name-input { flex: 1; background: transparent; border: none; color: var(--text-main); font-size: 1.1rem; font-weight: 700; outline: none; padding: 5px; border-radius: 4px; transition: 0.2s; }
+        .top-bar { background: rgba(9, 9, 11, 0.8); backdrop-filter: blur(12px); padding: 14px 24px; display: flex; gap: 16px; align-items: center; position: sticky; top: 0; z-index: 100; border-bottom: 1px solid var(--border-color); }
+        .btn-back { background: var(--bg-surface); color: var(--text-main); border: 1px solid var(--border-color); border-radius: var(--radius-pill); font-size: 0.9rem; padding: 6px 14px; cursor: pointer; font-weight: 500; transition: 0.2s; }
+        .btn-back:hover { background: var(--bg-elevated); }
+        .list-name-input { flex: 1; background: transparent; border: none; color: var(--text-main); font-size: 1.15rem; font-weight: 600; outline: none; padding: 6px 12px; border-radius: var(--radius-sm); transition: 0.2s; letter-spacing: -0.3px; }
         .list-name-input:focus, .list-name-input:hover { background: var(--bg-surface); }
 
-        /* BOARD */
-        #capture-area { background: #000; display: flex; flex-direction: column; padding-bottom: 20px; }
+        /* BOARD AREA */
+        .capture-wrapper { padding: 20px; background: var(--bg-base); } 
+        #capture-area { background: #000; display: flex; flex-direction: column; border-radius: var(--radius-md); overflow: hidden; border: 1px solid var(--border-color); }
+        .board-header-style { text-align: center; font-size: 1.75rem; font-weight: 800; padding: 25px 15px; background: #000; color: #fff; text-transform: uppercase; letter-spacing: 2px; cursor: pointer; transition: background 0.2s; border-bottom: 1px solid var(--border-color); }
+        .board-header-style:hover { background: #111; }
         
-        .board-header-style { 
-            text-align: center; font-size: 24px; font-weight: 800; padding: 25px 10px; 
-            background: #000; color: #fff; text-transform: uppercase; letter-spacing: 2px; 
-            cursor: pointer; transition: filter 0.2s; 
-        }
-        .board-header-style:hover { filter: brightness(0.8); }
+        #tier-board { display: flex; flex-direction: column; gap: 2px; background: var(--border-color); } 
+        .tier-row { display: flex; min-height: 90px; background: var(--bg-base); transition: transform 0.2s; }
+        .tier-row.dragging { opacity: 0.4; }
+        .tier-label { width: 100px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; font-weight: 800; color: #000; text-align: center; padding: 8px; word-break: break-word; cursor: pointer; transition: filter 0.2s; border-right: 1px solid rgba(0,0,0,0.2); letter-spacing: -0.5px; }
+        .tier-label:hover { filter: brightness(0.85); }
+        .tier-content { flex: 1; display: flex; flex-wrap: wrap; align-items: flex-start; background: #0a0a0c; padding: 2px; gap: 2px; align-content: flex-start; transition: background 0.2s; position: relative; }
+        .tier-content.drag-over { background: var(--bg-surface); }
         
-        #tier-board { display: flex; flex-direction: column; gap: 2px; background: #000; } 
-        .tier-row { display: flex; min-height: 85px; background: #000; transition: transform 0.2s; }
-        .tier-row.dragging { opacity: 0.5; }
-        
-        .tier-label { width: 100px; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 800; color: #000; text-align: center; padding: 5px; word-break: break-word; cursor: pointer; transition: filter 0.2s; }
-        .tier-label:hover { filter: brightness(0.9); }
-        
-        .tier-content { flex: 1; display: flex; flex-wrap: wrap; align-items: flex-start; background: var(--bg-surface); padding: 2px; gap: 2px; align-content: flex-start; transition: background 0.2s; position: relative; }
-        .tier-content.drag-over { background: var(--bg-elevated); }
-        
-        .tier-content:empty::before, #dock:empty::before { content: "Kéo thả ảnh vào đây"; color: #444; font-weight: 500; font-size: 0.85rem; margin: auto; padding: 20px; }
+        .tier-content:empty::before, #dock:empty::before { content: "Kéo thả ảnh..."; color: var(--text-muted); font-weight: 500; font-size: 0.85rem; margin: auto; padding: 20px; border: 1px dashed var(--border-color); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; height: calc(100% - 10px); width: calc(100% - 10px); }
         .is-exporting .tier-content:empty::before, .is-exporting #dock:empty::before { display: none !important; content: none !important; }
 
-        /* MID ACTIONS */
-        .board-footer-actions { display: flex; justify-content: center; gap: 10px; padding: 15px 20px; background: #000; border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); flex-wrap: wrap;}
-        .btn-text-action { background: var(--bg-surface); border: 1px solid var(--border-color); color: var(--text-muted); font-size: 0.75rem; font-weight: 600; padding: 8px 16px; border-radius: 20px; cursor: pointer; transition: 0.2s; text-transform: uppercase; letter-spacing: 0.5px; }
-        .btn-text-action:hover { color: var(--text-main); border-color: #555; }
-        .btn-text-action.danger:hover { color: var(--danger); border-color: var(--danger); background: rgba(218, 54, 51, 0.1); }
+        .board-footer-actions { display: flex; justify-content: center; gap: 12px; padding: 15px 24px; background: var(--bg-base); flex-wrap: wrap;}
+        .btn-text-action { background: var(--bg-surface); border: 1px solid var(--border-color); color: var(--text-main); font-size: 0.8rem; font-weight: 500; padding: 8px 18px; border-radius: var(--radius-pill); cursor: pointer; transition: 0.2s; letter-spacing: 0.3px; }
+        .btn-text-action:hover { background: var(--bg-elevated); border-color: var(--text-muted); }
+        .btn-text-action.danger { color: var(--danger); }
+        .btn-text-action.danger:hover { border-color: var(--danger); background: var(--danger-bg); }
 
         /* IMAGE */
-        .img-item { 
-            height: 85px; width: auto; border-radius: 4px; display: block; 
-            cursor: pointer; transition: transform 0.1s ease, filter 0.1s, box-shadow 0.1s; 
-        }
-        .img-item:hover { transform: scale(1.05); z-index: 5; position: relative; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
-        .img-item.selected { outline: 3px solid var(--accent); outline-offset: -3px; z-index: 10; filter: brightness(1.1); }
+        .img-item { height: 86px; width: auto; border-radius: 4px; display: block; cursor: pointer; transition: transform 0.15s ease, filter 0.15s, box-shadow 0.15s; }
+        .img-item:hover { transform: scale(1.04); z-index: 5; position: relative; box-shadow: 0 8px 16px rgba(0,0,0,0.6); }
+        .img-item.selected { outline: 3px solid var(--accent); outline-offset: -3px; z-index: 10; filter: brightness(1.1); transform: scale(1.04); }
 
         /* DOCK */
-        .dock-container { background: var(--bg-base); padding: 20px; flex: 1; transition: background 0.2s; }
+        .dock-container { background: var(--bg-base); padding: 24px; flex: 1; transition: background 0.2s; border-top: 1px solid var(--border-color); }
         .dock-container.drag-over { background: var(--bg-surface); }
-        .dock-header-wrap { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        .dock-header { font-size: 0.8rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
-        .btn-clear-dock { background: transparent; border: none; color: var(--danger); font-size: 0.75rem; font-weight: bold; cursor: pointer; text-transform: uppercase; padding: 5px 10px; border-radius: 4px; transition: 0.2s; }
-        .btn-clear-dock:hover { background: rgba(218, 54, 51, 0.1); }
+        .dock-header-wrap { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .dock-header { font-size: 0.85rem; color: var(--text-muted); font-weight: 600; letter-spacing: 0.5px; }
+        .btn-clear-dock { background: transparent; border: none; color: var(--text-muted); font-size: 0.8rem; font-weight: 500; cursor: pointer; padding: 6px 12px; border-radius: var(--radius-pill); transition: 0.2s; }
+        .btn-clear-dock:hover { color: var(--danger); background: var(--danger-bg); }
 
-        #dock { display: flex; flex-wrap: wrap; gap: 4px; justify-content: flex-start; align-content: flex-start; padding-bottom: 80px; min-height: 100px; }
-        #dock .img-item { height: 75px !important; width: auto !important; border-radius: 4px; border: 1px solid var(--border-color); }
+        #dock { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-start; align-content: flex-start; padding-bottom: 80px; min-height: 100px; }
+        #dock .img-item { height: 75px !important; width: auto !important; border-radius: 6px; border: 1px solid var(--border-color); }
 
         /* BOTTOM TOOLBAR */
-        .bottom-toolbar { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 1000px; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(10px); padding: 12px 20px; display: flex; gap: 12px; border-top: 1px solid var(--border-color); z-index: 200; }
-        .btn-bottom { flex: 1; padding: 12px; border: none; border-radius: 8px; font-size: 0.95rem; font-weight: 600; color: white; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; transition: 0.2s; }
-        .btn-save { background: var(--bg-elevated); border: 1px solid var(--border-color); color: var(--text-main); } 
-        .btn-save:hover { background: #2a2a2a; border-color: #444; }
+        .bottom-toolbar { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 960px; background: rgba(9, 9, 11, 0.85); backdrop-filter: blur(16px); padding: 16px 24px; display: flex; gap: 16px; border-top: 1px solid var(--border-color); z-index: 200; }
+        .btn-bottom { flex: 1; padding: 14px; border: none; border-radius: var(--radius-md); font-size: 0.95rem; font-weight: 600; color: white; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; transition: 0.2s; letter-spacing: -0.3px;}
+        .btn-save { background: var(--bg-surface); border: 1px solid var(--border-color); color: var(--text-main); } 
+        .btn-save:hover { background: var(--bg-elevated); border-color: var(--text-muted); }
         .btn-add { background: var(--text-main); color: var(--bg-base); } 
-        .btn-add:hover { background: #e0e0e0; }
+        .btn-add:hover { background: #d4d4d8; }
 
-        /* CONTROL PANEL */
+        /* =========================================
+           4. BẢNG ĐIỀU KHIỂN NỔI (ĐÃ CẢI TIẾN)
+           ========================================= */
         #resize-control { 
-            position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); 
-            width: 90%; max-width: 400px; background: rgba(25, 25, 25, 0.95); 
-            backdrop-filter: blur(10px); border: 1px solid var(--border-color); 
-            border-radius: 16px; z-index: 250; padding: 16px; display: flex; 
-            flex-direction: column; gap: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+            position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); 
+            width: 90%; max-width: 420px; background: rgba(24, 24, 27, 0.95); 
+            backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); 
+            border-radius: var(--radius-lg); z-index: 250; padding: 20px; 
+            display: flex; flex-direction: column; gap: 16px; 
+            box-shadow: var(--shadow-float);
         }
-        .size-slider-wrap { display: flex; align-items: center; gap: 12px; }
-        .size-label { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase;}
-        .resize-slider { flex: 1; height: 3px; border-radius: 2px; background: #444; outline: none; }
-        .size-val { font-size: 0.85rem; font-family: monospace; color: var(--text-main); width: 40px; text-align: right; }
-        .control-actions { display: flex; gap: 8px; }
-        .btn-pill { flex: 1; padding: 10px 0; border-radius: 8px; border: none; font-weight: 600; font-size: 0.85rem; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 5px; }
-        .btn-pill-dock { background: rgba(0, 122, 255, 0.15); color: var(--accent); } .btn-pill-dock:hover { background: var(--accent); color: white; }
-        .btn-pill-del { background: rgba(218, 54, 51, 0.15); color: var(--danger); } .btn-pill-del:hover { background: var(--danger); color: white; }
-        .btn-pill-all { background: var(--bg-surface); color: var(--text-main); border: 1px solid var(--border-color); } .btn-pill-all:hover { background: #333; }
-        .btn-pill-close { background: transparent; color: var(--text-muted); width: 100%; padding: 8px; border: none; font-size: 0.85rem; font-weight: 600; cursor: pointer; }
+        
+        .size-slider-wrap { display: flex; align-items: center; gap: 10px; }
+        .size-label { font-size: 0.8rem; color: var(--text-muted); font-weight: 500;}
+        
+        /* Nút Tinh chỉnh Size (+/-) */
+        .btn-size-adjust {
+            background: var(--bg-surface); border: 1px solid var(--border-color);
+            color: var(--text-main); width: 30px; height: 30px; border-radius: 6px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.2rem; font-weight: 400; cursor: pointer; transition: 0.2s;
+            line-height: 1; padding-bottom: 2px;
+        }
+        .btn-size-adjust:hover { background: var(--bg-elevated); }
+        .btn-size-adjust:active { transform: scale(0.9); }
+
+        .resize-slider { flex: 1; height: 4px; border-radius: 2px; background: var(--border-color); outline: none; -webkit-appearance: none; appearance: none;}
+        .resize-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 16px; height: 16px; border-radius: 50%; background: var(--text-main); cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.5); }
+        .size-val { font-size: 0.85rem; font-family: monospace; color: var(--text-main); width: 45px; text-align: right; }
+        
+        .control-actions { display: flex; gap: 10px; }
+        .btn-pill { flex: 1; padding: 12px 0; border-radius: var(--radius-md); border: none; font-weight: 500; font-size: 0.85rem; cursor: pointer; transition: 0.2s; }
+        .btn-pill-dock { background: var(--bg-surface); color: var(--text-main); border: 1px solid var(--border-color); } .btn-pill-dock:hover { background: var(--bg-elevated); }
+        .btn-pill-del { background: var(--danger-bg); color: var(--danger); } .btn-pill-del:hover { background: var(--danger); color: white; }
+        .btn-pill-all { background: var(--bg-surface); color: var(--text-main); border: 1px solid var(--border-color); } .btn-pill-all:hover { background: var(--bg-elevated); }
+        .btn-pill-close { background: transparent; color: var(--text-muted); width: 100%; padding: 8px; border: none; font-size: 0.9rem; font-weight: 500; cursor: pointer; margin-top: -5px;}
         .btn-pill-close:hover { color: var(--text-main); }
 
-        /* MODALS */
-        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 300; display: none; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
-        .modal { background: var(--bg-surface); padding: 24px; border-radius: 12px; width: 90%; max-width: 360px; border: 1px solid var(--border-color); box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
-        .modal h2 { margin: 0 0 20px 0; color: var(--text-main); font-weight: 700; font-size: 1.2rem; }
-        .modal label { display: block; margin-top: 16px; color: var(--text-muted); font-weight: 600; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px; }
-        .modal input[type="text"] { width: 100%; padding: 12px; margin: 8px 0 0; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-base); color: white; font-size: 1rem; outline: none; font-weight: 500; transition: 0.2s; }
-        .modal input[type="text"]:focus { border-color: var(--accent); }
-        .color-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin: 12px 0; justify-items: center; }
-        .circle { width: 36px; height: 36px; border-radius: 50%; border: 2px solid var(--border-color); cursor: pointer; transition: 0.15s; }
-        .circle:hover { transform: scale(1.1); border-color: #888; }
-        .circle.selected { border-color: white; transform: scale(1.15); box-shadow: 0 0 10px rgba(255,255,255,0.3); }
-        .hex-input-row { display: flex; align-items: center; background: var(--bg-base); padding: 4px 12px; border-radius: 6px; margin-top: 12px; border: 1px solid var(--border-color); }
-        .hex-label { color: var(--text-muted); font-weight: 600; margin-right: 10px; font-size: 0.85rem; }
-        .hex-field { flex: 1; background: transparent; border: none; color: white; font-family: monospace; font-size: 1rem; text-transform: uppercase; outline: none; }
-        .modal-btns { display: flex; flex-direction: column; gap: 8px; margin-top: 24px; }
-        .modal-btns button { width: 100%; padding: 12px; border: none; border-radius: 6px; font-weight: 600; font-size: 0.95rem; cursor: pointer; transition: 0.2s; }
-        .btn-primary { background: var(--text-main); color: var(--bg-base); } .btn-primary:hover { background: #e0e0e0; }
-        .btn-secondary { background: var(--bg-elevated); color: var(--text-main); border: 1px solid var(--border-color); } .btn-secondary:hover { background: #2a2a2a; }
-        .btn-danger { background: rgba(218, 54, 51, 0.1); color: var(--danger); } .btn-danger:hover { background: var(--danger); color: white; }
+        /* =========================================
+           5. MODALS (ĐÃ SỬA ĐẸP & CHUẨN)
+           ========================================= */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 300; display: none; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
+        .modal { background: var(--bg-surface); padding: 28px; border-radius: var(--radius-lg); width: 90%; max-width: 400px; border: 1px solid var(--border-color); box-shadow: var(--shadow-float); }
+        .modal h2 { margin: 0 0 20px 0; color: var(--text-main); font-weight: 700; font-size: 1.3rem; letter-spacing: -0.5px;}
+        .modal label { display: block; margin-top: 16px; color: var(--text-muted); font-weight: 500; font-size: 0.85rem; margin-bottom: 6px;}
+        .modal input[type="text"], .modal textarea { width: 100%; padding: 14px; border-radius: var(--radius-md); border: 1px solid var(--border-color); background: var(--bg-base); color: white; font-size: 1rem; outline: none; font-weight: 500; transition: 0.2s; }
+        .modal input[type="text"]:focus, .modal textarea:focus { border-color: var(--text-muted); }
+        
+        .color-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin: 12px 0; }
+        .circle { width: 38px; height: 38px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; transition: 0.2s; box-shadow: inset 0 0 0 1px rgba(0,0,0,0.2); justify-self: center;}
+        .circle:hover { transform: scale(1.1); }
+        .circle.selected { border-color: var(--text-main); transform: scale(1.1); box-shadow: 0 0 15px rgba(255,255,255,0.2); }
+        .hex-input-row { display: flex; align-items: center; background: var(--bg-base); padding: 6px 14px; border-radius: var(--radius-md); margin-top: 16px; border: 1px solid var(--border-color); }
+        .hex-label { color: var(--text-muted); font-weight: 500; margin-right: 12px; font-size: 0.85rem; }
+        .hex-field { flex: 1; background: transparent; border: none; color: var(--text-main); font-family: monospace; font-size: 1.05rem; text-transform: uppercase; outline: none; }
+        
+        .modal-btns { display: flex; flex-direction: column; gap: 10px; margin-top: 28px; }
+        .modal-btns button { width: 100%; padding: 14px; border: none; border-radius: var(--radius-md); font-weight: 600; font-size: 0.95rem; cursor: pointer; transition: 0.2s; }
+        .btn-primary { background: var(--text-main); color: var(--bg-base); } .btn-primary:hover { background: #e4e4e7; }
+        .btn-secondary { background: var(--bg-elevated); color: var(--text-main); border: 1px solid var(--border-color); } .btn-secondary:hover { background: var(--border-hover); }
+        .btn-danger { background: var(--danger-bg); color: var(--danger); } .btn-danger:hover { background: var(--danger); color: white; }
     </style>
 </head>
 <body>
@@ -188,15 +216,11 @@
 
     <div id="app-container">
         <div id="menu-screen">
-            <h1 class="app-title">TIER MAKER</h1>
+            <h1 class="app-title">Tier<span>Maker</span></h1>
             
             <div class="menu-actions">
                 <button class="btn-create" onclick="createNewList()">Create New Template</button>
-                <div class="sub-actions">
-                    <button class="btn-data" onclick="exportData()">Export Backup</button>
-                    <button class="btn-data" onclick="document.getElementById('importFile').click()">Import Backup</button>
-                    <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
-                </div>
+                <button class="btn-data" onclick="openBackupMenu()">Data & Backup</button>
             </div>
 
             <div id="list-container">Loading...</div>
@@ -208,21 +232,23 @@
                 <input type="text" id="list-name" class="list-name-input" placeholder="Enter title..." onchange="updateListName()">
             </div>
 
-            <div id="capture-area">
-                <div id="tier-header" class="board-header-style" onclick="openHeaderModal()">Tier List</div>
-                <div id="tier-board"></div>
+            <div class="capture-wrapper">
+                <div id="capture-area">
+                    <div id="tier-header" class="board-header-style" onclick="openHeaderModal()">Tier List</div>
+                    <div id="tier-board"></div>
+                </div>
             </div>
             
             <div class="board-footer-actions">
-                <button class="btn-text-action" onclick="addNewTier()">+ Add Row</button>
-                <button class="btn-text-action" onclick="toggleHeader()">👁️ Toggle Header</button>
+                <button class="btn-text-action" onclick="addNewTier()">Add Row</button>
+                <button class="btn-text-action" onclick="toggleHeader()">Toggle Header</button>
                 <button class="btn-text-action danger" onclick="resetBoard()">Reset Board</button>
             </div>
 
             <div id="dock-container-box" class="dock-container">
                 <div class="dock-header-wrap">
                     <div class="dock-header">Library</div>
-                    <button class="btn-clear-dock" onclick="clearLibrary()">🗑 Clear Library</button>
+                    <button class="btn-clear-dock" onclick="clearLibrary()">Clear Library</button>
                 </div>
                 <div id="dock" onclick="moveToDock()"></div>
             </div>
@@ -237,15 +263,48 @@
         <div id="resize-control" class="hidden">
             <div class="size-slider-wrap">
                 <span class="size-label">Size</span>
+                <button class="btn-size-adjust" onclick="adjustSize(-5)">-</button>
                 <input type="range" id="size-slider" class="resize-slider" min="40" max="200" value="85" oninput="resizeSelectedImg(this.value)">
+                <button class="btn-size-adjust" onclick="adjustSize(5)">+</button>
                 <span id="size-val" class="size-val">85px</span>
             </div>
             <div class="control-actions">
-                <button class="btn-pill btn-pill-dock" onclick="moveToDock()">⬇ To Library</button>
-                <button class="btn-pill btn-pill-all" onclick="applyToAll()">⚡ Apply All</button>
-                <button class="btn-pill btn-pill-del" onclick="deleteSelected()">🗑 Delete</button>
+                <button class="btn-pill btn-pill-dock" onclick="moveToDock()">↓ Library</button>
+                <button class="btn-pill btn-pill-all" onclick="applyToAll()">✦ Apply All</button>
+                <button class="btn-pill btn-pill-del" onclick="deleteSelected()">✕ Delete</button>
             </div>
-            <button class="btn-pill-close" onclick="deselectImg()">Close</button>
+            <button class="btn-pill-close" onclick="deselectImg()">Done</button>
+        </div>
+    </div>
+
+    <div id="backup-modal-overlay" class="modal-overlay">
+        <div class="modal">
+            <h2>Data Management</h2>
+            <p style="font-size:0.85rem; color:var(--text-muted); margin-top:-10px; margin-bottom:24px;">Backup or sync your tier lists.</p>
+            
+            <div style="display:flex; flex-direction:column; gap:12px;">
+                <button class="btn-primary" onclick="copyData()">Copy Data Code</button>
+                <button class="btn-secondary" onclick="openPasteModal()">Paste Data Code</button>
+                
+                <hr style="border-color:var(--border-color); width:100%; margin: 8px 0;">
+                
+                <button class="btn-secondary" onclick="exportData()">Export JSON File</button>
+                <button class="btn-secondary" onclick="document.getElementById('importFile').click()">Import JSON File</button>
+                <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
+            </div>
+            <button class="btn-secondary" style="margin-top:24px; width:100%; border:none; background:transparent;" onclick="closeModal('backup-modal-overlay')">Close</button>
+        </div>
+    </div>
+
+    <div id="paste-modal-overlay" class="modal-overlay">
+        <div class="modal">
+            <h2>Paste Backup Code</h2>
+            <p style="font-size:0.85rem; color:var(--text-muted); margin-top:-10px; margin-bottom:16px;">Paste the code you copied earlier.</p>
+            <textarea id="paste-data-input" rows="6" placeholder="Paste data here..."></textarea>
+            <div class="modal-btns">
+                <button class="btn-primary" onclick="processPasteData()">Restore Data</button>
+                <button class="btn-secondary" style="border:none; background:transparent" onclick="closeModal('paste-modal-overlay')">Cancel</button>
+            </div>
         </div>
     </div>
 
@@ -253,7 +312,7 @@
         <div class="modal">
             <h2>Edit Row</h2>
             <label>Label</label> <input type="text" id="edit-name">
-            <label>Background</label>
+            <label>Background Color</label>
             <div class="color-grid" id="bg-preset-grid"></div>
             <div class="hex-input-row">
                 <span class="hex-label">HEX</span>
@@ -262,18 +321,18 @@
             <input type="hidden" id="edit-color">
             <label>Text Color</label>
             <div class="color-grid" style="grid-template-columns:1fr 1fr; margin-top:8px;">
-                <div class="circle" style="width:100%; border-radius:6px; background:#000; text-align:center; line-height:36px; color:#fff; font-weight:600; font-size:0.9rem;" onclick="setTextCol('#000000', 'edit-text')">Black</div>
-                <div class="circle" style="width:100%; border-radius:6px; background:#fff; text-align:center; line-height:36px; color:#000; font-weight:600; font-size:0.9rem;" onclick="setTextCol('#FFFFFF', 'edit-text')">White</div>
+                <div class="circle" style="width:100%; border-radius:8px; background:#000; text-align:center; line-height:38px; color:#fff; font-weight:600; font-size:0.9rem;" onclick="setTextCol('#000000', 'edit-text')">Black</div>
+                <div class="circle" style="width:100%; border-radius:8px; background:#fff; text-align:center; line-height:38px; color:#000; font-weight:600; font-size:0.9rem;" onclick="setTextCol('#FFFFFF', 'edit-text')">White</div>
             </div>
             <input type="hidden" id="edit-text">
             
             <div class="modal-btns">
                 <button class="btn-primary" onclick="saveTierEdit()">Save Changes</button>
-                <div style="display:flex; gap:8px;">
+                <div style="display:flex; gap:10px;">
                     <button class="btn-secondary" style="flex:1;" onclick="moveTier(-1)">Move Up</button>
                     <button class="btn-secondary" style="flex:1;" onclick="moveTier(1)">Move Down</button>
                 </div>
-                <button class="btn-secondary" style="border-color: var(--warn); color: var(--warn)" onclick="clearRowImages()">Clear Images in Row</button>
+                <button class="btn-secondary" style="color: var(--warn)" onclick="clearRowImages()">Clear Images</button>
                 <button class="btn-danger" onclick="deleteTier()">Delete Entire Row</button>
                 <button class="btn-secondary" style="border:none; background:transparent" onclick="closeModal('modal-overlay')">Cancel</button>
             </div>
@@ -284,7 +343,7 @@
         <div class="modal">
             <h2>Edit Header</h2>
             <label>Title Name</label> <input type="text" id="header-edit-name" oninput="document.getElementById('list-name').value = this.value; updateListName();">
-            <label>Background</label>
+            <label>Background Color</label>
             <div class="color-grid" id="header-bg-preset-grid"></div>
             <div class="hex-input-row">
                 <span class="hex-label">HEX</span>
@@ -293,8 +352,8 @@
             <input type="hidden" id="header-edit-color">
             <label>Text Color</label>
             <div class="color-grid" style="grid-template-columns:1fr 1fr; margin-top:8px;">
-                <div class="circle" style="width:100%; border-radius:6px; background:#000; text-align:center; line-height:36px; color:#fff; font-weight:600; font-size:0.9rem;" onclick="setTextCol('#000000', 'header-edit-text')">Black</div>
-                <div class="circle" style="width:100%; border-radius:6px; background:#fff; text-align:center; line-height:36px; color:#000; font-weight:600; font-size:0.9rem;" onclick="setTextCol('#FFFFFF', 'header-edit-text')">White</div>
+                <div class="circle" style="width:100%; border-radius:8px; background:#000; text-align:center; line-height:38px; color:#fff; font-weight:600; font-size:0.9rem;" onclick="setTextCol('#000000', 'header-edit-text')">Black</div>
+                <div class="circle" style="width:100%; border-radius:8px; background:#fff; text-align:center; line-height:38px; color:#000; font-weight:600; font-size:0.9rem;" onclick="setTextCol('#FFFFFF', 'header-edit-text')">White</div>
             </div>
             <input type="hidden" id="header-edit-text">
             
@@ -307,7 +366,7 @@
 
     <script>
         const DB_NAME = 'TierMaker_V26_Pro'; 
-        const PRESET_COLORS = ['#FF7F7F','#FFBF7F','#FFDF7F','#FFFF7F','#BFFF7F','#7FFF7F','#7FFFFF','#7FBFFF','#7F7FFF','#FF7FBF','#D27FFF','#333333','#808080','#C0C0C0','#FFFFFF'];
+        const PRESET_COLORS = ['#FF7F7F','#FFBF7F','#FFDF7F','#FFFF7F','#BFFF7F','#7FFF7F','#7FFFFF','#7FBFFF','#7F7FFF','#FF7FBF','#D27FFF','#18181b','#808080','#e4e4e7','#FFFFFF'];
         
         let db, currentListData, selectedImgObj = null, editingTierIndex = -1;
         let draggedItem = null, draggedRowIdx = null;
@@ -337,28 +396,49 @@
             });
         }
 
+        // --- DATA BACKUP ---
+        function openBackupMenu() { document.getElementById('backup-modal-overlay').style.display = 'flex'; }
+        function copyData() {
+            db.transaction(['lists']).objectStore('lists').getAll().onsuccess = e => {
+                const data = e.target.result;
+                if(data.length === 0) return alert("Không có dữ liệu.");
+                navigator.clipboard.writeText(JSON.stringify(data)).then(() => {
+                    closeModal('backup-modal-overlay');
+                    alert("✅ Đã copy mã dữ liệu!");
+                }).catch(() => alert("❌ Lỗi copy."));
+            };
+        }
+        function openPasteModal() { closeModal('backup-modal-overlay'); document.getElementById('paste-data-input').value = ''; document.getElementById('paste-modal-overlay').style.display = 'flex'; }
+        function processPasteData() {
+            const str = document.getElementById('paste-data-input').value;
+            if(!str) return alert("Vui lòng dán mã.");
+            try {
+                const dataArr = JSON.parse(str);
+                if(!Array.isArray(dataArr)) throw new Error();
+                if(!confirm("Ghi đè dữ liệu cũ?")) return;
+                const tx = db.transaction(['lists'], 'readwrite');
+                dataArr.forEach(item => tx.objectStore('lists').put(item));
+                tx.oncomplete = () => { closeModal('paste-modal-overlay'); loadMenu(); };
+            } catch(e) { alert("❌ Mã không hợp lệ."); }
+        }
         function exportData() {
             db.transaction(['lists']).objectStore('lists').getAll().onsuccess = e => {
                 const data = e.target.result;
-                if(data.length === 0) return alert("No data to export.");
-                const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data));
-                const a = document.createElement('a'); a.href = dataStr; a.download = "TierMaker_Backup.json";
-                document.body.appendChild(a); a.click(); a.remove();
+                if(data.length === 0) return;
+                const a = document.createElement('a'); a.href = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data)); a.download = "TierMaker.json"; document.body.appendChild(a); a.click(); a.remove();
             };
         }
-
         function importData(e) {
             const file = e.target.files[0]; if(!file) return;
             const reader = new FileReader();
             reader.onload = ev => {
                 try {
                     const dataArr = JSON.parse(ev.target.result);
-                    if(!Array.isArray(dataArr)) throw new Error("Invalid file");
-                    if(!confirm(`Import ${dataArr.length} templates? Existing IDs will be overwritten.`)) return;
+                    if(!confirm("Ghi đè dữ liệu cũ?")) return;
                     const tx = db.transaction(['lists'], 'readwrite');
                     dataArr.forEach(item => tx.objectStore('lists').put(item));
-                    tx.oncomplete = () => loadMenu();
-                } catch(err) { alert("Invalid backup file."); }
+                    tx.oncomplete = () => { loadMenu(); closeModal('backup-modal-overlay'); };
+                } catch(err) { alert("File lỗi."); }
             };
             reader.readAsText(file); e.target.value = '';
         }
@@ -423,22 +503,18 @@
 
         // --- BOARD ACTIONS ---
         function resetBoard() {
-            if(!confirm("Move all images back to Library?")) return;
+            if(!confirm("Reset toàn bộ bảng?")) return;
             currentListData.tiers.forEach(t => { currentListData.dock.push(...t.items); t.items = []; });
             saveAndRefresh();
         }
 
         function clearLibrary() {
             if(currentListData.dock.length === 0) return;
-            if(!confirm("Xóa vĩnh viễn toàn bộ ảnh đang có trong Kho? (Không thể hoàn tác)")) return;
-            currentListData.dock = [];
-            saveAndRefresh();
+            if(!confirm("Xóa sạch kho ảnh?")) return;
+            currentListData.dock = []; saveAndRefresh();
         }
 
-        function toggleHeader() {
-            currentListData.header.visible = !currentListData.header.visible;
-            saveAndRefresh();
-        }
+        function toggleHeader() { currentListData.header.visible = !currentListData.header.visible; saveAndRefresh(); }
 
         function initDockDrop() {
             const dockContainer = document.getElementById('dock-container-box');
@@ -446,9 +522,7 @@
             dockContainer.ondragleave = e => { dockContainer.classList.remove('drag-over'); };
             dockContainer.ondrop = e => {
                 e.preventDefault(); dockContainer.classList.remove('drag-over');
-                if (draggedItem && draggedItem.type !== 'dock') {
-                    insertItem(draggedItem, {type: 'dock', r: null, i: currentListData.dock.length}, false);
-                }
+                if (draggedItem && draggedItem.type !== 'dock') insertItem(draggedItem, {type: 'dock', r: null, i: currentListData.dock.length}, false);
             };
         }
 
@@ -458,12 +532,8 @@
             const headerEl = document.getElementById('tier-header');
             headerEl.innerText = currentListData.name || "TIER LIST";
             if (currentListData.header.visible) {
-                headerEl.style.display = 'block';
-                headerEl.style.background = currentListData.header.bg;
-                headerEl.style.color = currentListData.header.text;
-            } else {
-                headerEl.style.display = 'none';
-            }
+                headerEl.style.display = 'block'; headerEl.style.background = currentListData.header.bg; headerEl.style.color = currentListData.header.text;
+            } else headerEl.style.display = 'none';
 
             currentListData.tiers.forEach((t, i) => {
                 const row = document.createElement('div'); row.className = 'tier-row';
@@ -480,16 +550,13 @@
                 };
 
                 const label = document.createElement('div'); label.className = 'tier-label'; label.style.background = t.color; label.style.color = t.text||'#000'; label.innerText = t.name; label.onclick = () => openEditModal(i);
-                
                 const content = document.createElement('div'); content.className = 'tier-content'; 
                 content.onclick = e => { if(e.target === content) moveToTier(i); };
                 content.ondragover = e => { if(draggedItem) { e.preventDefault(); content.classList.add('drag-over'); } };
                 content.ondragleave = e => { content.classList.remove('drag-over'); };
                 content.ondrop = e => {
                     e.preventDefault(); content.classList.remove('drag-over');
-                    if (draggedItem && e.target === content) { 
-                        insertItem(draggedItem, {type: 'tier', r: i, i: currentListData.tiers[i].items.length}, false); 
-                    }
+                    if (draggedItem && e.target === content) insertItem(draggedItem, {type: 'tier', r: i, i: currentListData.tiers[i].items.length}, false); 
                 };
 
                 t.items.forEach((item, idx) => content.appendChild(createImg(item, 'tier', i, idx)));
@@ -499,21 +566,16 @@
             currentListData.dock.forEach((item, idx) => dock.appendChild(createImg(item, 'dock', null, idx)));
         }
 
-        // --- CHÈN ẢNH VÀO GIỮA ---
         function insertItem(src, tgt, after) {
             if (src.type === tgt.type && src.r === tgt.r && src.i === tgt.i) return;
             let itemData = src.data;
-            
             if (src.type === 'tier') currentListData.tiers[src.r].items.splice(src.i, 1);
             else currentListData.dock.splice(src.i, 1);
-
             let targetIdx = tgt.i;
-            if (src.type === tgt.type && src.r === tgt.r && src.i < tgt.i) { targetIdx--; }
+            if (src.type === tgt.type && src.r === tgt.r && src.i < tgt.i) targetIdx--;
             if (after) targetIdx++;
-
             if (tgt.type === 'tier') currentListData.tiers[tgt.r].items.splice(targetIdx, 0, itemData);
             else currentListData.dock.splice(targetIdx, 0, itemData);
-
             saveAndRefresh();
         }
 
@@ -525,30 +587,23 @@
             if(type === 'tier') img.style.height = h + 'px';
             
             img.onclick = e => { e.stopPropagation(); clickImg(img, data, type, r, i); };
-            
             img.draggable = true;
             img.ondragstart = e => { draggedItem = { data, type, r, i }; e.dataTransfer.effectAllowed = "move"; e.stopPropagation(); setTimeout(() => img.style.opacity = '0.4', 0); };
             img.ondragend = e => { img.style.opacity = '1'; draggedItem = null; };
             img.ondragover = e => { 
                 if(draggedItem) {
-                    e.preventDefault(); 
-                    const rect = img.getBoundingClientRect();
-                    if(e.clientX - rect.left < rect.width / 2) {
-                        img.style.boxShadow = '-4px 0 0 var(--primary)';
-                    } else {
-                        img.style.boxShadow = '4px 0 0 var(--primary)';
-                    }
+                    e.preventDefault(); const rect = img.getBoundingClientRect();
+                    if(e.clientX - rect.left < rect.width / 2) img.style.boxShadow = '-4px 0 0 var(--primary)';
+                    else img.style.boxShadow = '4px 0 0 var(--primary)';
                 }
             };
             img.ondragleave = e => { img.style.boxShadow = ''; };
             img.ondrop = e => {
                 if (draggedItem) {
-                    e.preventDefault(); e.stopPropagation(); 
-                    img.style.boxShadow = '';
+                    e.preventDefault(); e.stopPropagation(); img.style.boxShadow = '';
                     const rect = img.getBoundingClientRect();
                     const insertAfter = (e.clientX - rect.left) > (rect.width / 2);
-                    const dropTarget = { data, type, r, i };
-                    insertItem(draggedItem, dropTarget, insertAfter);
+                    insertItem(draggedItem, { data, type, r, i }, insertAfter);
                 }
             };
             return img;
@@ -569,36 +624,20 @@
         function removeItem(o) { if(o.type==='tier') currentListData.tiers[o.r].items.splice(o.i, 1); else currentListData.dock.splice(o.i, 1); }
         function saveAndRefresh() { saveList(currentListData, () => { renderBoard(); deselectImg(); draggedItem = null; draggedRowIdx = null; }); }
 
-        // --- ROW MODAL ---
+        // --- MODALS ---
         function openEditModal(i) { editingTierIndex = i; const t = currentListData.tiers[i]; document.getElementById('edit-name').value = t.name; document.getElementById('edit-text').value = t.text || '#000'; renderPresets('bg-preset-grid', 'edit-bg-hex'); const currentColor = t.color; document.getElementById('edit-bg-hex').value = currentColor; const circles = document.querySelectorAll('#bg-preset-grid .circle'); PRESET_COLORS.forEach((c, idx) => { if(c.toLowerCase() === currentColor.toLowerCase()) { if(circles[idx]) circles[idx].classList.add('selected'); } }); document.getElementById('modal-overlay').style.display = 'flex'; }
-        
         function renderPresets(containerId, hexInputId) { const grid = document.getElementById(containerId); grid.innerHTML = ''; PRESET_COLORS.forEach(color => { const div = document.createElement('div'); div.className = 'circle'; div.style.backgroundColor = color; div.onclick = () => { document.querySelectorAll(`#${containerId} .circle`).forEach(c => c.classList.remove('selected')); div.classList.add('selected'); document.getElementById(hexInputId).value = color; }; grid.appendChild(div); }); }
         function syncFromHex() { document.querySelectorAll('#bg-preset-grid .circle').forEach(x => x.classList.remove('selected')); document.getElementById('edit-color').value = document.getElementById('edit-bg-hex').value; }
         function setTextCol(c, inputId) { document.getElementById(inputId).value = c; }
-        
         function saveTierEdit() { const t = currentListData.tiers[editingTierIndex]; t.name = document.getElementById('edit-name').value; t.color = document.getElementById('edit-bg-hex').value; t.text = document.getElementById('edit-text').value; closeModal('modal-overlay'); saveList(currentListData, renderBoard); }
-        function addNewTier() { currentListData.tiers.push({name:'NEW',color:'#333333',text:'#fff',items:[]}); saveList(currentListData, renderBoard); }
-        function deleteTier() { if(confirm('Delete this row completely?')) { currentListData.dock.push(...currentListData.tiers[editingTierIndex].items); currentListData.tiers.splice(editingTierIndex,1); closeModal('modal-overlay'); saveList(currentListData, renderBoard); } }
-        function clearRowImages() { if(currentListData.tiers[editingTierIndex].items.length === 0) { closeModal('modal-overlay'); return; } if(!confirm('Move all images in this row back to Library?')) return; currentListData.dock.push(...currentListData.tiers[editingTierIndex].items); currentListData.tiers[editingTierIndex].items = []; closeModal('modal-overlay'); saveList(currentListData, renderBoard); }
+        function addNewTier() { currentListData.tiers.push({name:'NEW',color:'#18181b',text:'#fff',items:[]}); saveList(currentListData, renderBoard); }
+        function deleteTier() { if(confirm('Xóa hẳn hàng này?')) { currentListData.dock.push(...currentListData.tiers[editingTierIndex].items); currentListData.tiers.splice(editingTierIndex,1); closeModal('modal-overlay'); saveList(currentListData, renderBoard); } }
+        function clearRowImages() { if(currentListData.tiers[editingTierIndex].items.length === 0) { closeModal('modal-overlay'); return; } if(!confirm('Đưa ảnh về kho?')) return; currentListData.dock.push(...currentListData.tiers[editingTierIndex].items); currentListData.tiers[editingTierIndex].items = []; closeModal('modal-overlay'); saveList(currentListData, renderBoard); }
         function moveTier(d) { const n = editingTierIndex+d; if(n>=0 && n<currentListData.tiers.length) { [currentListData.tiers[editingTierIndex], currentListData.tiers[n]] = [currentListData.tiers[n], currentListData.tiers[editingTierIndex]]; editingTierIndex = n; saveList(currentListData, renderBoard); } }
 
-        // --- HEADER MODAL ---
-        function openHeaderModal() {
-            document.getElementById('header-edit-name').value = currentListData.name;
-            document.getElementById('header-edit-text').value = currentListData.header.text;
-            renderPresets('header-bg-preset-grid', 'header-edit-bg-hex');
-            document.getElementById('header-edit-bg-hex').value = currentListData.header.bg;
-            document.getElementById('header-modal-overlay').style.display = 'flex';
-        }
+        function openHeaderModal() { document.getElementById('header-edit-name').value = currentListData.name; document.getElementById('header-edit-text').value = currentListData.header.text; renderPresets('header-bg-preset-grid', 'header-edit-bg-hex'); document.getElementById('header-edit-bg-hex').value = currentListData.header.bg; document.getElementById('header-modal-overlay').style.display = 'flex'; }
         function syncHeaderHex() { document.querySelectorAll('#header-bg-preset-grid .circle').forEach(x => x.classList.remove('selected')); }
-        function saveHeaderEdit() {
-            currentListData.name = document.getElementById('header-edit-name').value;
-            currentListData.header.bg = document.getElementById('header-edit-bg-hex').value;
-            currentListData.header.text = document.getElementById('header-edit-text').value;
-            closeModal('header-modal-overlay');
-            saveList(currentListData, () => { updateListName(); renderBoard(); });
-        }
-
+        function saveHeaderEdit() { currentListData.name = document.getElementById('header-edit-name').value; currentListData.header.bg = document.getElementById('header-edit-bg-hex').value; currentListData.header.text = document.getElementById('header-edit-text').value; closeModal('header-modal-overlay'); saveList(currentListData, () => { updateListName(); renderBoard(); }); }
         function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
         function handleFiles(e) {
@@ -620,10 +659,13 @@
         
         function saveImage() { 
             deselectImg(); window.scrollTo(0,0); 
-            const captureArea = document.getElementById('capture-area');
-            captureArea.classList.add('is-exporting'); 
-            html2canvas(captureArea, {scale: 2, backgroundColor: '#000', useCORS: true}).then(c => { 
-                captureArea.classList.remove('is-exporting');
+            document.body.style.overflow = 'hidden'; 
+            const captureWrapper = document.querySelector('.capture-wrapper');
+            captureWrapper.classList.add('is-exporting'); 
+            html2canvas(captureWrapper, {
+                scale: 2, backgroundColor: '#09090b', useCORS: true
+            }).then(c => { 
+                captureWrapper.classList.remove('is-exporting'); document.body.style.overflow = ''; 
                 const a = document.createElement('a'); a.download = currentListData.name + '.png'; a.href = c.toDataURL(); a.click(); 
             }); 
         }
