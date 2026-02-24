@@ -6,7 +6,9 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#09090b" id="meta-theme-color">
-    <title>Tier List Pro - Definitive Edition</title>
+    <title>Tier List Pro - Enterprise Edition</title>
+    
+    <link rel="icon" href="./icon.png" type="image/png">
     
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <script src="https://bernardo-castilho.github.io/DragDropTouch/DragDropTouch.js"></script>
@@ -120,6 +122,16 @@
         .control-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .btn-pill { padding: 12px 5px; border-radius: var(--radius-md); border: none; font-weight: 600; font-size: 0.85rem; cursor: pointer; background: var(--bg-elevated); color: var(--text-main); border: 1px solid var(--border-color); }
         
+        /* TABLET OPTIMIZATION */
+        @media (min-width: 768px) {
+            .board-header-style { font-size: 2rem; padding: 30px; }
+            .tier-label-wrap { width: 140px; min-width: 140px; }
+            .tier-label { font-size: 16px; }
+            .bottom-toolbar { padding: 15px 40px; gap: 20px; }
+            .btn-bottom { font-size: 1.05rem; }
+            #dock { max-height: 40vh; gap: 8px; padding: 15px; }
+        }
+
         /* MODALS */
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 300; display: none; align-items: center; justify-content: center; backdrop-filter: blur(8px); padding: 20px; }
         .modal { background: var(--bg-surface); padding: 28px; border-radius: var(--radius-lg); width: 100%; max-width: 400px; border: 1px solid var(--border-color); box-shadow: var(--shadow-float); }
@@ -129,11 +141,9 @@
         .modal-btns button { width: 100%; padding: 14px; border-radius: var(--radius-md); font-weight: 600; cursor: pointer; border: none; font-size: 1rem; }
         
         .tier-controls-btn { flex: 1; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-elevated); color: var(--text-main); cursor: pointer; font-weight: bold; font-size: 0.9rem; }
-        
         .color-preset-btn { width: 30px; height: 30px; border-radius: 50%; cursor: pointer; border: 2px solid rgba(0,0,0,0.5); transition: transform 0.1s; }
         .color-preset-btn:hover { transform: scale(1.1); }
 
-        /* KEYBOARD CHEAT SHEET */
         .shortcut-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border-color); color: var(--text-main); font-size: 0.9rem;}
         kbd { background: var(--bg-elevated); border: 1px solid var(--border-color); padding: 2px 6px; border-radius: 4px; font-family: monospace; font-size: 0.85rem; color: var(--text-main); }
 
@@ -206,9 +216,7 @@
         <div id="resize-control" class="hidden">
             <div class="size-slider-wrap">
                 <button class="btn-size-step" aria-label="Giảm kích thước" onclick="adjustSize(-5); markDirty();">-</button>
-                
                 <input type="range" id="size-slider" min="40" max="300" value="85" oninput="resizeSelectedImg(this.value)" onchange="markDirty()" class="resize-slider" aria-label="Thanh trượt kích thước">
-                
                 <button class="btn-size-step" aria-label="Tăng kích thước" onclick="adjustSize(5); markDirty();">+</button>
                 <span id="size-val" style="min-width:45px; text-align:right; color:var(--text-main);">85px</span>
             </div>
@@ -305,7 +313,7 @@
                 <div class="shortcut-row"><span>Hoàn tác (Undo)</span> <kbd>Ctrl + Z</kbd></div>
                 <div class="shortcut-row"><span>Làm lại (Redo)</span> <kbd>Ctrl + Y</kbd></div>
                 <div class="shortcut-row"><span>Xóa ảnh đang chọn</span> <kbd>Del / Back</kbd></div>
-                <div class="shortcut-row"><span>Bỏ chọn ảnh / Thoát</span> <kbd>Esc</kbd></div>
+                <div class="shortcut-row"><span>Bỏ chọn / Thoát</span> <kbd>Esc</kbd></div>
             </div>
             <div class="modal-btns">
                 <button style="background:var(--primary); color:#fff;" onclick="closeModal('help-modal')">Đã hiểu</button>
@@ -344,6 +352,55 @@
     </div>
 
     <script>
+        // ----------------------------------------------------
+        // 1. INLINE PWA (HACK CHO 1 FILE DUY NHẤT)
+        // ----------------------------------------------------
+        (function initPWA() {
+            try {
+                const manifestData = {
+                    name: "Tier List Pro",
+                    short_name: "TierMaker",
+                    display: "standalone",
+                    background_color: "#09090b",
+                    theme_color: "#10b981",
+                    start_url: location.href,
+                    icons: [
+                        { 
+                            src: "./icon.png", 
+                            sizes: "192x192", 
+                            type: "image/png" 
+                        },
+                        { 
+                            src: "./icon.png", 
+                            sizes: "512x512", 
+                            type: "image/png" 
+                        }
+                    ]
+                };
+                const manifestBlob = new Blob([JSON.stringify(manifestData)], {type: 'application/manifest+json'});
+                document.head.insertAdjacentHTML('beforeend', `<link rel="manifest" href="${URL.createObjectURL(manifestBlob)}">`);
+
+                if ('serviceWorker' in navigator) {
+                    const swCode = `
+                        const CACHE_NAME = 'tier-list-cache-v1';
+                        self.addEventListener('install', e => e.waitUntil(caches.open(CACHE_NAME)));
+                        self.addEventListener('fetch', e => {
+                            e.respondWith(caches.match(e.request).then(res => res || fetch(e.request).catch(() => new Response('Offline mode'))));
+                        });
+                    `;
+                    const swBlob = new Blob([swCode], {type: 'application/javascript'});
+                    navigator.serviceWorker.register(URL.createObjectURL(swBlob))
+                        .then(() => console.log("[PWA] Đã bật chế độ Offline an toàn"))
+                        .catch(err => console.log("[PWA] Lỗi Service Worker:", err));
+                }
+            } catch (error) {
+                console.error("Không thể khởi tạo PWA:", error);
+            }
+        })();
+
+        // ----------------------------------------------------
+        // 2. CORE ENGINE & UTILS
+        // ----------------------------------------------------
         const DB_NAME = 'TierMaker_V26_Pro'; 
         let db, currentListData, selectedImgObj = null, editingTierIndex = -1, draggedItem = null, draggedRowIdx = null;
         let stateHistory = [], historyIndex = -1;
@@ -351,7 +408,7 @@
         
         let isDirty = false;
         
-        setInterval(() => {
+        const autoSaveInterval = setInterval(() => {
             if (isDirty && currentListData) {
                 saveListSilent(currentListData);
                 showToast('💾 Đã lưu tự động');
@@ -361,6 +418,13 @@
 
         function markDirty() { 
             isDirty = true; 
+        }
+
+        function escapeHTML(str) {
+            if (!str) return '';
+            return str.replace(/[&<>'"]/g, tag => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+            }[tag] || tag));
         }
 
         function initTheme() {
@@ -394,7 +458,10 @@
                 loadMenu(); 
                 initGlobalFileDrop(); 
                 initKeyboardShortcuts(); 
-            }; 
+            };
+            req.onerror = () => {
+                alert("Lỗi: Trình duyệt không hỗ trợ IndexedDB hoặc bạn đang dùng ẩn danh khắt khe.");
+            };
         };
         
         function showToast(msg) {
@@ -417,6 +484,9 @@
             closeModal('confirm-modal'); 
         }
 
+        // ----------------------------------------------------
+        // 3. EVENT LISTENERS
+        // ----------------------------------------------------
         function initGlobalFileDrop() { 
             const overlay = document.getElementById('drop-overlay'); 
             window.addEventListener('dragenter', e => { 
@@ -474,43 +544,61 @@
             });
         }
 
+        // ----------------------------------------------------
+        // 4. DATA VALIDATION
+        // ----------------------------------------------------
         function isValidTierData(data) {
-            if (!Array.isArray(data)) return false;
-            return data.every(l => l.id && typeof l.name === 'string' && Array.isArray(l.tiers) && Array.isArray(l.dock));
+            try {
+                if (!Array.isArray(data)) return false;
+                return data.every(l => l.id && typeof l.name === 'string' && Array.isArray(l.tiers) && Array.isArray(l.dock));
+            } catch (e) {
+                return false;
+            }
         }
 
-        // Đã sửa Template String cho loadMenu để tránh bị cắt chữ
+        // ----------------------------------------------------
+        // 5. MENU & LIST MANAGEMENT
+        // ----------------------------------------------------
         function loadMenu() { 
-            db.transaction(['lists']).objectStore('lists').getAll().onsuccess = e => { 
-                const list = e.target.result; 
-                const container = document.getElementById('list-container'); 
-                
-                if (list.length === 0) {
-                    container.innerHTML = '<div style="text-align:center; padding: 60px 20px; color: var(--text-muted); grid-column: 1/-1; font-size: 1.1rem;">📁<br><br>Bạn chưa có bảng xếp hạng nào.<br>Hãy bấm <b>+ Tạo Template Mới</b> ở trên nhé!</div>';
-                    return;
-                }
+            try {
+                db.transaction(['lists']).objectStore('lists').getAll().onsuccess = e => { 
+                    const list = e.target.result; 
+                    const container = document.getElementById('list-container'); 
+                    
+                    if (list.length === 0) {
+                        container.innerHTML = '<div style="text-align:center; padding: 60px 20px; color: var(--text-muted); grid-column: 1/-1; font-size: 1.1rem;">📁<br><br>Bạn chưa có bảng xếp hạng nào.<br>Hãy bấm <b>+ Tạo Template Mới</b> ở trên nhé!</div>';
+                        return;
+                    }
 
-                let html = '';
-                list.forEach(l => {
-                    html += `
-                    <div class="list-item" tabindex="0" aria-label="Bảng ${l.name}" onclick="openList('${l.id}')" onkeypress="if(event.key==='Enter') openList('${l.id}')">
-                        <button class="btn-delete-list" aria-label="Xóa bảng" title="Xóa bảng" onclick="deleteSingleList(event, '${l.id}', '${l.name}')">🗑️</button>
-                        <img src="${l.thumbnail || ''}" alt="Thumbnail" style="width:100%; height:180px; object-fit:cover; object-position:top; background:#000;">
-                        <div class="list-info-wrap">
-                            <h3 style="margin:0; font-size:1rem; flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${l.name}</h3>
-                        </div>
-                    </div>`;
-                });
-                container.innerHTML = html;
-            }; 
+                    let html = '';
+                    list.forEach(l => {
+                        const safeName = escapeHTML(l.name);
+                        html += `
+                        <div class="list-item" tabindex="0" aria-label="Bảng ${safeName}" onclick="openList('${l.id}')" onkeypress="if(event.key==='Enter') openList('${l.id}')">
+                            <button class="btn-delete-list" aria-label="Xóa bảng" title="Xóa bảng" onclick="deleteSingleList(event, '${l.id}', '${safeName}')">🗑️</button>
+                            <img src="${l.thumbnail || ''}" alt="Thumbnail" style="width:100%; height:180px; object-fit:cover; object-position:top; background:#000;">
+                            <div class="list-info-wrap">
+                                <h3 style="margin:0; font-size:1rem; flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${safeName}</h3>
+                            </div>
+                        </div>`;
+                    });
+                    container.innerHTML = html;
+                }; 
+            } catch (err) {
+                console.error("Lỗi loadMenu:", err);
+            }
         }
 
         function deleteSingleList(e, id, name) {
             e.stopPropagation(); 
             openConfirm("Xóa Bảng", `Bạn có chắc chắn muốn xóa bảng "${name}" không?`, () => {
-                const tx = db.transaction(['lists'], 'readwrite');
-                tx.objectStore('lists').delete(id);
-                tx.oncomplete = () => loadMenu(); 
+                try {
+                    const tx = db.transaction(['lists'], 'readwrite');
+                    tx.objectStore('lists').delete(id);
+                    tx.oncomplete = () => loadMenu(); 
+                } catch (err) {
+                    console.error("Lỗi khi xóa:", err);
+                }
             });
         }
         
@@ -560,96 +648,109 @@
 
         function openList(id) { 
             showLoading('Đang mở...');
-            db.transaction(['lists']).objectStore('lists').get(id).onsuccess = e => { 
-                currentListData = e.target.result; 
-                stateHistory = [JSON.stringify(currentListData)]; 
-                historyIndex = 0; 
-                isDirty = false;
-                document.getElementById('menu-screen').classList.add('hidden'); 
-                document.getElementById('editor-screen').classList.remove('hidden'); 
-                document.getElementById('list-name').value = currentListData.name; 
-                renderBoard(); 
+            try {
+                db.transaction(['lists']).objectStore('lists').get(id).onsuccess = e => { 
+                    currentListData = e.target.result; 
+                    stateHistory = [JSON.stringify(currentListData)]; 
+                    historyIndex = 0; 
+                    isDirty = false;
+                    document.getElementById('menu-screen').classList.add('hidden'); 
+                    document.getElementById('editor-screen').classList.remove('hidden'); 
+                    document.getElementById('list-name').value = currentListData.name; 
+                    renderBoard(); 
+                    hideLoading();
+                }; 
+            } catch (err) {
                 hideLoading();
-            }; 
+                alert("Lỗi khi mở bảng!");
+                console.error(err);
+            }
         }
         
+        // ----------------------------------------------------
+        // 6. BOARD RENDER & DRAG-DROP
+        // ----------------------------------------------------
         function renderBoard() {
-            const board = document.getElementById('tier-board'); 
-            board.innerHTML = '';
-            
-            const hEl = document.getElementById('tier-header'); 
-            hEl.innerText = currentListData.name;
-            hEl.style.display = currentListData.headerVisible === false ? 'none' : 'block';
+            try {
+                const board = document.getElementById('tier-board'); 
+                board.innerHTML = '';
+                
+                const hEl = document.getElementById('tier-header'); 
+                hEl.innerText = currentListData.name;
+                hEl.style.display = currentListData.headerVisible === false ? 'none' : 'block';
 
-            currentListData.tiers.forEach((t, i) => {
-                const row = document.createElement('div'); 
-                row.className = 'tier-row'; 
-                row.style.backgroundColor = t.color;
-                row.draggable = true; 
-                
-                row.ondragstart = e => { 
-                    if (e.target.closest('.img-wrap')) return; 
-                    draggedRowIdx = i; 
-                };
-                
-                row.ondragover = e => { 
-                    if (draggedRowIdx !== null) { 
-                        e.preventDefault(); 
-                        e.currentTarget.style.borderTop = "3px solid #10b981"; 
-                    }
-                };
-                
-                row.ondragleave = e => { 
-                    if (draggedRowIdx !== null) {
-                        e.currentTarget.style.borderTop = ""; 
-                    }
-                };
-                
-                row.ondrop = e => { 
-                    e.currentTarget.style.borderTop = "";
-                    if (draggedRowIdx !== null) { 
-                        const tmp = currentListData.tiers.splice(draggedRowIdx, 1)[0]; 
-                        currentListData.tiers.splice(i, 0, tmp); 
-                        draggedRowIdx = null; 
-                        commitChange(); 
-                    } 
-                };
-                
-                const labelWrap = document.createElement('div'); 
-                labelWrap.className = 'tier-label-wrap';
-                
-                const label = document.createElement('div'); 
-                label.className = 'tier-label'; 
-                label.innerText = t.name; 
-                label.onclick = () => openEditModal(i);
-                labelWrap.appendChild(label);
+                currentListData.tiers.forEach((t, i) => {
+                    const row = document.createElement('div'); 
+                    row.className = 'tier-row'; 
+                    row.style.backgroundColor = t.color;
+                    row.draggable = true; 
+                    
+                    row.ondragstart = e => { 
+                        if (e.target.closest('.img-wrap')) return; 
+                        draggedRowIdx = i; 
+                    };
+                    
+                    row.ondragover = e => { 
+                        if (draggedRowIdx !== null) { 
+                            e.preventDefault(); 
+                            e.currentTarget.style.borderTop = "3px solid #10b981"; 
+                        }
+                    };
+                    
+                    row.ondragleave = e => { 
+                        if (draggedRowIdx !== null) {
+                            e.currentTarget.style.borderTop = ""; 
+                        }
+                    };
+                    
+                    row.ondrop = e => { 
+                        e.currentTarget.style.borderTop = "";
+                        if (draggedRowIdx !== null) { 
+                            const tmp = currentListData.tiers.splice(draggedRowIdx, 1)[0]; 
+                            currentListData.tiers.splice(i, 0, tmp); 
+                            draggedRowIdx = null; 
+                            commitChange(); 
+                        } 
+                    };
+                    
+                    const labelWrap = document.createElement('div'); 
+                    labelWrap.className = 'tier-label-wrap';
+                    
+                    const label = document.createElement('div'); 
+                    label.className = 'tier-label'; 
+                    label.innerText = t.name; 
+                    label.onclick = () => openEditModal(i);
+                    labelWrap.appendChild(label);
 
-                const content = document.createElement('div'); 
-                content.className = 'tier-content';
-                content.ondragover = e => { 
-                    if (draggedItem) e.preventDefault(); 
-                };
+                    const content = document.createElement('div'); 
+                    content.className = 'tier-content';
+                    content.ondragover = e => { 
+                        if (draggedItem) e.preventDefault(); 
+                    };
+                    
+                    content.ondrop = e => { 
+                        if (draggedItem && e.target === content) { 
+                            let newArray = currentListData.tiers[i].items;
+                            let oldArray = (draggedItem.type === 'tier') ? currentListData.tiers[draggedItem.r].items : currentListData.dock;
+                            oldArray.splice(draggedItem.i, 1);
+                            newArray.push(draggedItem.data);
+                            draggedItem = null;
+                            commitChange(); 
+                        } 
+                    };
+                    
+                    t.items.forEach((img, idx) => content.appendChild(createImg(img, 'tier', i, idx)));
+                    row.appendChild(labelWrap); 
+                    row.appendChild(content); 
+                    board.appendChild(row);
+                });
                 
-                content.ondrop = e => { 
-                    if (draggedItem && e.target === content) { 
-                        let newArray = currentListData.tiers[i].items;
-                        let oldArray = (draggedItem.type === 'tier') ? currentListData.tiers[draggedItem.r].items : currentListData.dock;
-                        oldArray.splice(draggedItem.i, 1);
-                        newArray.push(draggedItem.data);
-                        draggedItem = null;
-                        commitChange(); 
-                    } 
-                };
-                
-                t.items.forEach((img, idx) => content.appendChild(createImg(img, 'tier', i, idx)));
-                row.appendChild(labelWrap); 
-                row.appendChild(content); 
-                board.appendChild(row);
-            });
-            
-            const dock = document.getElementById('dock'); 
-            dock.innerHTML = '';
-            currentListData.dock.forEach((img, idx) => dock.appendChild(createImg(img, 'dock', null, idx)));
+                const dock = document.getElementById('dock'); 
+                dock.innerHTML = '';
+                currentListData.dock.forEach((img, idx) => dock.appendChild(createImg(img, 'dock', null, idx)));
+            } catch (err) {
+                console.error("Lỗi Render Board:", err);
+            }
         }
 
         function createImg(data, type, r, i) {
@@ -745,6 +846,9 @@
             } 
         };
 
+        // ----------------------------------------------------
+        // 7. EDITING & MEDIA CONTROLS
+        // ----------------------------------------------------
         function clickImg(dom, data, type, r, i) { 
             if (!selectedImgObj) { 
                 selectedImgObj = {dom, data, type, r, i}; 
@@ -823,9 +927,26 @@
         }
         
         function handleFiles(e) { 
+            const MAX_FILE_SIZE = 5 * 1024 * 1024; 
+            const files = Array.from(e.target.files).filter(f => {
+                if (!f.type.startsWith('image/')) {
+                    alert(`❌ File "${escapeHTML(f.name)}" không phải là hình ảnh.`);
+                    return false;
+                }
+                if (f.size > MAX_FILE_SIZE) {
+                    alert(`❌ File "${escapeHTML(f.name)}" lớn hơn 5MB. Vui lòng nén trước.`);
+                    return false;
+                }
+                return true;
+            });
+
+            if (files.length === 0) {
+                e.target.value = '';
+                return;
+            }
+
             showLoading("Đang xử lý ảnh...");
             let processed = 0;
-            const files = Array.from(e.target.files);
             
             files.forEach(f => { 
                 const r = new FileReader(); 
@@ -833,27 +954,35 @@
                     const i = new Image(); 
                     i.src = ev.target.result; 
                     i.onload = () => { 
-                        const c = document.createElement('canvas');
-                        const x = c.getContext('2d');
-                        const M = 1500;
-                        let w = i.width;
-                        let h = i.height; 
-                        
-                        if (w > M) {
-                            h *= (M/w);
-                            w = M;
-                        } 
-                        
-                        c.width = w; 
-                        c.height = h; 
-                        x.drawImage(i, 0, 0, w, h); 
-                        currentListData.dock.push({src: c.toDataURL('image/jpeg', 0.8), h:85});
-                        
-                        processed++;
-                        if (processed === files.length) { 
-                            commitChange(); 
-                            hideLoading(); 
+                        try {
+                            const c = document.createElement('canvas');
+                            const x = c.getContext('2d');
+                            const M = 1500;
+                            let w = i.width;
+                            let h = i.height; 
+                            
+                            if (w > M) {
+                                h *= (M/w);
+                                w = M;
+                            } 
+                            
+                            c.width = w; 
+                            c.height = h; 
+                            x.drawImage(i, 0, 0, w, h); 
+                            currentListData.dock.push({src: c.toDataURL('image/jpeg', 0.8), h:85});
+                        } catch(err) {
+                            console.error("Lỗi vẽ Canvas:", err);
+                        } finally {
+                            processed++;
+                            if (processed === files.length) { 
+                                commitChange(); 
+                                hideLoading(); 
+                            }
                         }
+                    }
+                    i.onerror = () => {
+                        processed++;
+                        if (processed === files.length) { commitChange(); hideLoading(); }
                     }
                 }; 
                 r.readAsDataURL(f); 
@@ -862,8 +991,12 @@
         }
         
         function saveListSilent(d) { 
-            d.updatedAt = new Date().toISOString(); 
-            db.transaction(['lists'], 'readwrite').objectStore('lists').put(d); 
+            try {
+                d.updatedAt = new Date().toISOString(); 
+                db.transaction(['lists'], 'readwrite').objectStore('lists').put(d); 
+            } catch(e) {
+                console.error("Không thể lưu background:", e);
+            }
         }
         
         function toggleZenMode() { 
@@ -892,28 +1025,32 @@
         
         function confirmCreateList() { 
             const name = document.getElementById('new-template-name').value.trim() || 'Bảng mới'; 
-            db.transaction(['lists']).objectStore('lists').getAll().onsuccess = e => {
-                const list = e.target.result;
-                if (list.some(l => l.name.toLowerCase() === name.toLowerCase())) { 
-                    alert('⚠️ Tên bảng đã tồn tại! Vui lòng chọn tên khác.'); 
-                    return; 
-                }
-                
-                showLoading("Đang tạo...");
-                setTimeout(() => {
-                    const newList = { 
-                        id: 'list_'+Date.now(), 
-                        name: name, 
-                        tiers: [{name:'S', color:'#FF7F7F', items:[]}], 
-                        dock: [] 
-                    }; 
-                    saveListSilent(newList); 
-                    loadMenu(); 
-                    closeModal('create-modal-overlay'); 
-                    document.getElementById('new-template-name').value = ''; 
-                    hideLoading();
-                }, 300);
-            };
+            try {
+                db.transaction(['lists']).objectStore('lists').getAll().onsuccess = e => {
+                    const list = e.target.result;
+                    if (list.some(l => l.name.toLowerCase() === name.toLowerCase())) { 
+                        alert('⚠️ Tên bảng đã tồn tại! Vui lòng chọn tên khác.'); 
+                        return; 
+                    }
+                    
+                    showLoading("Đang tạo...");
+                    setTimeout(() => {
+                        const newList = { 
+                            id: 'list_'+Date.now(), 
+                            name: name, 
+                            tiers: [{name:'S', color:'#FF7F7F', items:[]}], 
+                            dock: [] 
+                        }; 
+                        saveListSilent(newList); 
+                        loadMenu(); 
+                        closeModal('create-modal-overlay'); 
+                        document.getElementById('new-template-name').value = ''; 
+                        hideLoading();
+                    }, 300);
+                };
+            } catch (err) {
+                alert("Lỗi khi tạo mới!");
+            }
         }
         
         function openEditModal(i) { 
@@ -1040,6 +1177,9 @@
                 saveListSilent(currentListData);
             } catch (err) { 
                 console.error("Lỗi thumbnail:", err); 
+            } finally {
+                currentListData = null;
+                selectedImgObj = null;
             }
             hideLoading(); 
             document.getElementById('editor-screen').classList.add('hidden'); 
@@ -1047,22 +1187,29 @@
             loadMenu(); 
         }
 
+        // ----------------------------------------------------
+        // 8. BACKUP & EXPORT ENGINE
+        // ----------------------------------------------------
         function openBackupMenu() { 
             document.getElementById('backup-modal-overlay').style.display='flex'; 
         }
         
-        // Đã sửa hàm exportData để không bị cắt xén
         function exportData() { 
-            db.transaction(['lists']).objectStore('lists').getAll().onsuccess = e => { 
-                const data = JSON.stringify(e.target.result); 
-                const blob = new Blob([data], {type: "application/json"}); 
-                const url = URL.createObjectURL(blob); 
-                const a = document.createElement('a'); 
-                a.href = url; 
-                a.download = `TierMaker_Backup_${Date.now()}.json`; 
-                a.click(); 
-                URL.revokeObjectURL(url); 
-            }; 
+            try {
+                db.transaction(['lists']).objectStore('lists').getAll().onsuccess = e => { 
+                    const data = JSON.stringify(e.target.result); 
+                    const blob = new Blob([data], {type: "application/json"}); 
+                    const url = URL.createObjectURL(blob); 
+                    const a = document.createElement('a'); 
+                    a.href = url; 
+                    a.download = `TierMaker_Backup_${Date.now()}.json`; 
+                    a.click(); 
+                    setTimeout(() => URL.revokeObjectURL(url), 1000); 
+                }; 
+            } catch (err) {
+                alert("Lỗi xuất dữ liệu!");
+                console.error(err);
+            }
         }
         
         function importData(e) { 
@@ -1092,15 +1239,19 @@
         }
         
         async function copyDataToClipboard() {
-            db.transaction(['lists']).objectStore('lists').getAll().onsuccess = async e => {
-                try { 
-                    await navigator.clipboard.writeText(JSON.stringify(e.target.result)); 
-                    alert('✅ Đã Copy mã dữ liệu!'); 
-                } 
-                catch (err) { 
-                    alert('❌ Máy bạn không hỗ trợ copy mã lớn. Hãy dùng Tải file.'); 
-                }
-            };
+            try {
+                db.transaction(['lists']).objectStore('lists').getAll().onsuccess = async e => {
+                    try { 
+                        await navigator.clipboard.writeText(JSON.stringify(e.target.result)); 
+                        alert('✅ Đã Copy mã dữ liệu!'); 
+                    } 
+                    catch (err) { 
+                        alert('❌ Máy bạn không hỗ trợ copy mã lớn. Hãy dùng Tải file.'); 
+                    }
+                };
+            } catch (err) {
+                console.error(err);
+            }
         }
 
         async function pasteDataFromClipboard() {
@@ -1145,7 +1296,11 @@
 
         function wipeAllData() { 
             openConfirm("CẢNH BÁO", "Xóa TOÀN BỘ dữ liệu? Hành động này KHÔNG THỂ hoàn tác!", () => { 
-                db.transaction(['lists'], 'readwrite').objectStore('lists').clear().onsuccess = () => location.reload(); 
+                try {
+                    db.transaction(['lists'], 'readwrite').objectStore('lists').clear().onsuccess = () => location.reload(); 
+                } catch(e) {
+                    console.error("Lỗi xóa dữ liệu:", e);
+                }
             }); 
         }
     </script>
