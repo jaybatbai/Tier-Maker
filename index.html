@@ -107,7 +107,6 @@
         .dock-container { background: var(--bg-base); padding: 15px; flex: 1; border-top: 1px solid var(--border-color); }
         #dock { display: flex; flex-wrap: wrap; gap: 6px; padding: 10px; background: var(--bg-surface); min-height: 100px; max-height: 35vh; overflow-y: auto; border: 1px solid var(--border-color); border-radius: var(--radius-sm); }
 
-        /* Responsive Bottom Toolbar */
         .bottom-toolbar { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 960px; background: var(--bg-surface); opacity: 0.95; backdrop-filter: blur(16px); padding: 12px 20px; padding-bottom: max(12px, env(safe-area-inset-bottom)); display: flex; gap: 12px; border-top: 1px solid var(--border-color); z-index: 200; flex-wrap: wrap; }
         .btn-bottom { flex: 1; min-width: 140px; padding: 14px; border: none; border-radius: var(--radius-md); font-size: 0.95rem; font-weight: 600; cursor: pointer; text-align: center; transition: transform 0.1s; color: var(--text-main); }
         .btn-save { background: var(--bg-elevated); border: 1px solid var(--border-color); } 
@@ -365,16 +364,8 @@
                     theme_color: "#10b981",
                     start_url: location.href,
                     icons: [
-                        { 
-                            src: "./icon.png", 
-                            sizes: "192x192", 
-                            type: "image/png" 
-                        },
-                        { 
-                            src: "./icon.png", 
-                            sizes: "512x512", 
-                            type: "image/png" 
-                        }
+                        { src: "./icon.png", sizes: "192x192", type: "image/png" },
+                        { src: "./icon.png", sizes: "512x512", type: "image/png" }
                     ]
                 };
                 const manifestBlob = new Blob([JSON.stringify(manifestData)], {type: 'application/manifest+json'});
@@ -416,9 +407,7 @@
             }
         }, 3000);
 
-        function markDirty() { 
-            isDirty = true; 
-        }
+        function markDirty() { isDirty = true; }
 
         function escapeHTML(str) {
             if (!str) return '';
@@ -458,6 +447,7 @@
                 loadMenu(); 
                 initGlobalFileDrop(); 
                 initKeyboardShortcuts(); 
+                initGlobalClick(); // BẢN VÁ LỖI 1
             };
             req.onerror = () => {
                 alert("Lỗi: Trình duyệt không hỗ trợ IndexedDB hoặc bạn đang dùng ẩn danh khắt khe.");
@@ -472,7 +462,6 @@
             toastTimeout = setTimeout(() => toast.classList.remove('show'), 2000);
         }
 
-        // Cập nhật hàm openConfirm để hỗ trợ Cancel Callback
         function openConfirm(title, desc, onConfirm, onCancel = null) {
             document.getElementById('confirm-title').innerText = title;
             document.getElementById('confirm-desc').innerText = desc;
@@ -494,6 +483,21 @@
         // ----------------------------------------------------
         // 3. EVENT LISTENERS
         // ----------------------------------------------------
+        
+        // BẢN VÁ LỖI 1: Click ra ngoài để tắt menu điều khiển ảnh
+        function initGlobalClick() {
+            window.addEventListener('click', (e) => {
+                if (selectedImgObj) {
+                    const isClickInsideImage = e.target.closest('.img-wrap');
+                    const isClickInsideControl = e.target.closest('#resize-control');
+                    
+                    if (!isClickInsideImage && !isClickInsideControl) {
+                        deselectImg();
+                    }
+                }
+            });
+        }
+
         function initGlobalFileDrop() { 
             const overlay = document.getElementById('drop-overlay'); 
             window.addEventListener('dragenter', e => { 
@@ -551,16 +555,11 @@
             });
         }
 
-        // ----------------------------------------------------
-        // 4. DATA VALIDATION
-        // ----------------------------------------------------
         function isValidTierData(data) {
             try {
                 if (!Array.isArray(data)) return false;
                 return data.every(l => l.id && typeof l.name === 'string' && Array.isArray(l.tiers) && Array.isArray(l.dock));
-            } catch (e) {
-                return false;
-            }
+            } catch (e) { return false; }
         }
 
         // ----------------------------------------------------
@@ -591,9 +590,7 @@
                     });
                     container.innerHTML = html;
                 }; 
-            } catch (err) {
-                console.error("Lỗi loadMenu:", err);
-            }
+            } catch (err) { console.error("Lỗi loadMenu:", err); }
         }
 
         function deleteSingleList(e, id, name) {
@@ -603,22 +600,12 @@
                     const tx = db.transaction(['lists'], 'readwrite');
                     tx.objectStore('lists').delete(id);
                     tx.oncomplete = () => loadMenu(); 
-                } catch (err) {
-                    console.error("Lỗi khi xóa:", err);
-                }
+                } catch (err) { console.error("Lỗi khi xóa:", err); }
             });
         }
         
-        function commitChange() { 
-            pushHistory(); 
-            renderBoard(); 
-            markDirty(); 
-        }
-        
-        function commitChangeSilent() { 
-            pushHistory(); 
-            markDirty(); 
-        }
+        function commitChange() { pushHistory(); renderBoard(); markDirty(); }
+        function commitChangeSilent() { pushHistory(); markDirty(); }
         
         function pushHistory() { 
             const s = JSON.stringify(currentListData); 
@@ -626,10 +613,7 @@
                 stateHistory = stateHistory.slice(0, historyIndex+1); 
                 stateHistory.push(s); 
                 historyIndex++; 
-                if (stateHistory.length > 15) { 
-                    stateHistory.shift(); 
-                    historyIndex--; 
-                }
+                if (stateHistory.length > 15) { stateHistory.shift(); historyIndex--; }
             } 
         }
         
@@ -637,9 +621,7 @@
             if (historyIndex > 0) { 
                 historyIndex--; 
                 currentListData = JSON.parse(stateHistory[historyIndex]); 
-                renderBoard(); 
-                markDirty(); 
-                showToast("↩️ Đã hoàn tác"); 
+                renderBoard(); markDirty(); showToast("↩️ Đã hoàn tác"); 
             } 
         }
         
@@ -647,9 +629,7 @@
             if (historyIndex < stateHistory.length-1) { 
                 historyIndex++; 
                 currentListData = JSON.parse(stateHistory[historyIndex]); 
-                renderBoard(); 
-                markDirty(); 
-                showToast("↪️ Đã làm lại"); 
+                renderBoard(); markDirty(); showToast("↪️ Đã làm lại"); 
             } 
         }
 
@@ -668,9 +648,7 @@
                     hideLoading();
                 }; 
             } catch (err) {
-                hideLoading();
-                alert("Lỗi khi mở bảng!");
-                console.error(err);
+                hideLoading(); alert("Lỗi khi mở bảng!"); console.error(err);
             }
         }
         
@@ -705,9 +683,7 @@
                     };
                     
                     row.ondragleave = e => { 
-                        if (draggedRowIdx !== null) {
-                            e.currentTarget.style.borderTop = ""; 
-                        }
+                        if (draggedRowIdx !== null) e.currentTarget.style.borderTop = ""; 
                     };
                     
                     row.ondrop = e => { 
@@ -754,6 +730,20 @@
                 
                 const dock = document.getElementById('dock'); 
                 dock.innerHTML = '';
+                
+                // BẢN VÁ LỖI 2: Thêm logic ondrop cho vùng Dock để kéo ảnh từ bảng về
+                dock.ondragover = e => { e.preventDefault(); };
+                dock.ondrop = e => {
+                    // Xử lý khi thả thẳng vào vùng trống của Dock
+                    if(draggedItem && (e.target === dock || e.target.closest('#dock-container-box'))) {
+                        let oldArray = (draggedItem.type === 'tier') ? currentListData.tiers[draggedItem.r].items : currentListData.dock;
+                        oldArray.splice(draggedItem.i, 1);
+                        currentListData.dock.push(draggedItem.data);
+                        draggedItem = null;
+                        commitChange();
+                    }
+                };
+
                 currentListData.dock.forEach((img, idx) => dock.appendChild(createImg(img, 'dock', null, idx)));
             } catch (err) {
                 console.error("Lỗi Render Board:", err);
@@ -785,17 +775,20 @@
             
             wrap.draggable = true;
             
+            // BẢN VÁ LỖI 3: Thêm hiệu ứng làm mờ ảnh khi kéo giúp mượt chuột
             wrap.ondragstart = e => { 
                 e.stopPropagation(); 
                 draggedItem = {data, type, r, i}; 
                 const tz = document.getElementById('trash-zone');
                 tz.style.display='flex'; 
                 tz.classList.remove('hover');
+                setTimeout(() => wrap.style.opacity = '0.4', 0); // Làm mờ 
             };
             
             wrap.ondragend = () => { 
                 draggedItem = null; 
                 document.getElementById('trash-zone').style.display='none'; 
+                wrap.style.opacity = '1'; // Phục hồi độ nét
             };
 
             wrap.ondragover = e => {
@@ -933,7 +926,6 @@
             }, 100); 
         }
         
-        // --- XỬ LÝ UPLOAD ẢNH & KIỂM TRA TRÙNG LẶP (ĐÃ NÂNG CẤP) ---
         function processFilesArray(filesToProcess) {
             if (filesToProcess.length === 0) {
                 document.getElementById('imgInput').value = '';
@@ -956,16 +948,12 @@
                             let w = i.width;
                             let h = i.height; 
                             
-                            if (w > M) {
-                                h *= (M/w);
-                                w = M;
-                            } 
+                            if (w > M) { h *= (M/w); w = M; } 
                             
                             c.width = w; 
                             c.height = h; 
                             x.drawImage(i, 0, 0, w, h); 
                             
-                            // Lưu thêm thuộc tính 'name' để check trùng lặp cho lần sau
                             currentListData.dock.push({
                                 src: c.toDataURL('image/jpeg', 0.8), 
                                 h: 85,
@@ -975,10 +963,7 @@
                             console.error("Lỗi vẽ Canvas:", err);
                         } finally {
                             processed++;
-                            if (processed === filesToProcess.length) { 
-                                commitChange(); 
-                                hideLoading(); 
-                            }
+                            if (processed === filesToProcess.length) { commitChange(); hideLoading(); }
                         }
                     }
                     i.onerror = () => {
@@ -997,16 +982,13 @@
                     alert(`❌ File "${escapeHTML(f.name)}" không phải là hình ảnh.`);
                     return false;
                 }
-                // ĐÃ GỠ BỎ GIỚI HẠN 5MB TẠI ĐÂY
                 return true;
             });
 
             if (files.length === 0) {
-                e.target.value = '';
-                return;
+                e.target.value = ''; return;
             }
 
-            // Thu thập tên các ảnh đang có trong bảng
             const existingNames = new Set();
             if (currentListData) {
                 currentListData.dock.forEach(img => { if(img.name) existingNames.add(img.name); });
@@ -1015,38 +997,24 @@
                 });
             }
 
-            // Phân loại ảnh mới và ảnh trùng
             const newFiles = [];
             const duplicateFiles = [];
 
             files.forEach(f => {
-                if (existingNames.has(f.name)) {
-                    duplicateFiles.push(f);
-                } else {
-                    newFiles.push(f);
-                }
+                if (existingNames.has(f.name)) duplicateFiles.push(f);
+                else newFiles.push(f);
             });
 
-            // Nếu có ảnh trùng, hiện bảng hỏi ý kiến
             if (duplicateFiles.length > 0) {
                 const dupNames = duplicateFiles.map(f => escapeHTML(f.name)).slice(0, 3).join(', ');
                 const extraDup = duplicateFiles.length > 3 ? ` và ${duplicateFiles.length - 3} file khác` : '';
-                const msg = `Phát hiện ${duplicateFiles.length} ảnh đã tồn tại trong bảng (VD: ${dupNames}${extraDup}).\n\nBạn có muốn tải lên lại những ảnh này không?`;
+                const msg = `Phát hiện ${duplicateFiles.length} ảnh đã có trong bảng (VD: ${dupNames}${extraDup}).\n\nBạn có muốn up TRÙNG LẶP những ảnh này không?`;
                 
-                openConfirm(
-                    "Phát hiện ảnh trùng lặp", 
-                    msg, 
-                    () => {
-                        // Nút Đồng ý: Upload tất cả (Cả mới lẫn trùng)
-                        processFilesArray([...newFiles, ...duplicateFiles]);
-                    },
-                    () => {
-                        // Nút Hủy: Chỉ upload những ảnh mới
-                        processFilesArray(newFiles);
-                    }
+                openConfirm("Phát hiện trùng lặp", msg, 
+                    () => processFilesArray([...newFiles, ...duplicateFiles]), // Yes
+                    () => processFilesArray(newFiles) // No (Cancel)
                 );
             } else {
-                // Nếu không có ảnh trùng, xử lý bình thường
                 processFilesArray(newFiles);
             }
         }
@@ -1055,9 +1023,7 @@
             try {
                 d.updatedAt = new Date().toISOString(); 
                 db.transaction(['lists'], 'readwrite').objectStore('lists').put(d); 
-            } catch(e) {
-                console.error("Không thể lưu background:", e);
-            }
+            } catch(e) { console.error("Không thể lưu:", e); }
         }
         
         function toggleZenMode() { 
@@ -1071,18 +1037,11 @@
         
         function openHeaderModal() { 
             const inputName = document.getElementById('list-name');
-            inputName.focus();
-            inputName.select();
+            inputName.focus(); inputName.select();
         }
 
-        function openCreateModal() { 
-            document.getElementById('create-modal-overlay').style.display='flex'; 
-            document.getElementById('new-template-name').focus(); 
-        }
-        
-        function openHelpModal() { 
-            document.getElementById('help-modal').style.display='flex'; 
-        }
+        function openCreateModal() { document.getElementById('create-modal-overlay').style.display='flex'; document.getElementById('new-template-name').focus(); }
+        function openHelpModal() { document.getElementById('help-modal').style.display='flex'; }
         
         function confirmCreateList() { 
             const name = document.getElementById('new-template-name').value.trim() || 'Bảng mới'; 
@@ -1090,170 +1049,55 @@
                 db.transaction(['lists']).objectStore('lists').getAll().onsuccess = e => {
                     const list = e.target.result;
                     if (list.some(l => l.name.toLowerCase() === name.toLowerCase())) { 
-                        alert('⚠️ Tên bảng đã tồn tại! Vui lòng chọn tên khác.'); 
-                        return; 
+                        alert('⚠️ Tên bảng đã tồn tại! Vui lòng chọn tên khác.'); return; 
                     }
                     
                     showLoading("Đang tạo...");
                     setTimeout(() => {
-                        const newList = { 
-                            id: 'list_'+Date.now(), 
-                            name: name, 
-                            tiers: [{name:'S', color:'#FF7F7F', items:[]}], 
-                            dock: [] 
-                        }; 
-                        saveListSilent(newList); 
-                        loadMenu(); 
-                        closeModal('create-modal-overlay'); 
-                        document.getElementById('new-template-name').value = ''; 
-                        hideLoading();
+                        const newList = { id: 'list_'+Date.now(), name: name, tiers: [{name:'S', color:'#FF7F7F', items:[]}], dock: [] }; 
+                        saveListSilent(newList); loadMenu(); closeModal('create-modal-overlay'); 
+                        document.getElementById('new-template-name').value = ''; hideLoading();
                     }, 300);
                 };
-            } catch (err) {
-                alert("Lỗi khi tạo mới!");
-            }
+            } catch (err) { alert("Lỗi khi tạo mới!"); }
         }
         
-        function openEditModal(i) { 
-            editingTierIndex = i; 
-            const t = currentListData.tiers[i]; 
-            document.getElementById('edit-name').value = t.name; 
-            document.getElementById('edit-color-picker').value = t.color; 
-            document.getElementById('modal-overlay').style.display='flex'; 
-            document.getElementById('edit-name').focus(); 
-        }
+        function openEditModal(i) { editingTierIndex = i; const t = currentListData.tiers[i]; document.getElementById('edit-name').value = t.name; document.getElementById('edit-color-picker').value = t.color; document.getElementById('modal-overlay').style.display='flex'; document.getElementById('edit-name').focus(); }
+        function setTierColor(color) { document.getElementById('edit-color-picker').value = color; }
+        function saveTierEdit() { currentListData.tiers[editingTierIndex].name = document.getElementById('edit-name').value; currentListData.tiers[editingTierIndex].color = document.getElementById('edit-color-picker').value; closeModal('modal-overlay'); commitChange(); }
+        function moveTierUp() { if (editingTierIndex > 0) { const tmp = currentListData.tiers[editingTierIndex]; currentListData.tiers[editingTierIndex] = currentListData.tiers[editingTierIndex - 1]; currentListData.tiers[editingTierIndex - 1] = tmp; editingTierIndex--; commitChange(); } }
+        function moveTierDown() { if (editingTierIndex < currentListData.tiers.length - 1) { const tmp = currentListData.tiers[editingTierIndex]; currentListData.tiers[editingTierIndex] = currentListData.tiers[editingTierIndex + 1]; currentListData.tiers[editingTierIndex + 1] = tmp; editingTierIndex++; commitChange(); } }
+        function deleteTier() { openConfirm("Xóa Hàng", "Xóa hàng này? Các ảnh trong hàng (nếu có) cũng sẽ bị xóa.", () => { currentListData.tiers.splice(editingTierIndex, 1); closeModal('modal-overlay'); commitChange(); }); }
+        function addNewTier() { currentListData.tiers.push({name:'NEW', color:'#1a1a1a', items:[]}); commitChange(); }
+        function toggleHeader() { currentListData.headerVisible = currentListData.headerVisible === false ? true : false; commitChange(); }
+        function resetBoard() { openConfirm("Reset", "Đưa toàn bộ ảnh về Kho (Dock)?", () => { currentListData.tiers.forEach(t => { currentListData.dock.push(...t.items); t.items = []; }); commitChange(); }); }
         
-        function setTierColor(color) { 
-            document.getElementById('edit-color-picker').value = color; 
-        }
-        
-        function saveTierEdit() { 
-            currentListData.tiers[editingTierIndex].name = document.getElementById('edit-name').value; 
-            currentListData.tiers[editingTierIndex].color = document.getElementById('edit-color-picker').value; 
-            closeModal('modal-overlay'); 
-            commitChange(); 
-        }
-        
-        function moveTierUp() { 
-            if (editingTierIndex > 0) { 
-                const tmp = currentListData.tiers[editingTierIndex]; 
-                currentListData.tiers[editingTierIndex] = currentListData.tiers[editingTierIndex - 1]; 
-                currentListData.tiers[editingTierIndex - 1] = tmp; 
-                editingTierIndex--; 
-                commitChange(); 
-            } 
-        }
-        
-        function moveTierDown() { 
-            if (editingTierIndex < currentListData.tiers.length - 1) { 
-                const tmp = currentListData.tiers[editingTierIndex]; 
-                currentListData.tiers[editingTierIndex] = currentListData.tiers[editingTierIndex + 1]; 
-                currentListData.tiers[editingTierIndex + 1] = tmp; 
-                editingTierIndex++; 
-                commitChange(); 
-            } 
-        }
-        
-        function deleteTier() { 
-            openConfirm("Xóa Hàng", "Xóa hàng này? Các ảnh trong hàng (nếu có) cũng sẽ bị xóa.", () => { 
-                currentListData.tiers.splice(editingTierIndex, 1); 
-                closeModal('modal-overlay'); 
-                commitChange(); 
-            }); 
-        }
-        
-        function addNewTier() { 
-            currentListData.tiers.push({name:'NEW', color:'#1a1a1a', items:[]}); 
-            commitChange(); 
-        }
-        
-        function toggleHeader() { 
-            currentListData.headerVisible = currentListData.headerVisible === false ? true : false; 
-            commitChange(); 
-        }
-
-        function resetBoard() { 
-            openConfirm("Reset", "Đưa toàn bộ ảnh về Kho (Dock)?", () => { 
-                currentListData.tiers.forEach(t => { 
-                    currentListData.dock.push(...t.items); 
-                    t.items = []; 
-                }); 
-                commitChange(); 
-            }); 
-        }
-        
-        function openCaptionModal() { 
-            if (selectedImgObj) { 
-                document.getElementById('caption-input').value = selectedImgObj.data.caption || ''; 
-                document.getElementById('caption-modal-overlay').style.display='flex'; 
-                document.getElementById('caption-input').focus(); 
-            } 
-        }
-        
-        function saveCaption() { 
-            selectedImgObj.data.caption = document.getElementById('caption-input').value; 
-            closeModal('caption-modal-overlay'); 
-            commitChange(); 
-        }
-        
-        function deleteSelected() { 
-            let oldArray = (selectedImgObj.type === 'tier') ? currentListData.tiers[selectedImgObj.r].items : currentListData.dock; 
-            oldArray.splice(selectedImgObj.i, 1); 
-            commitChange(); 
-            deselectImg(); 
-        }
-        
-        function moveToDock() { 
-            let oldArray = (selectedImgObj.type === 'tier') ? currentListData.tiers[selectedImgObj.r].items : currentListData.dock; 
-            oldArray.splice(selectedImgObj.i, 1); 
-            currentListData.dock.push(selectedImgObj.data); 
-            commitChange(); 
-            deselectImg(); 
-        }
-        
-        function closeModal(id) { 
-            document.getElementById(id).style.display='none'; 
-        }
+        function openCaptionModal() { if (selectedImgObj) { document.getElementById('caption-input').value = selectedImgObj.data.caption || ''; document.getElementById('caption-modal-overlay').style.display='flex'; document.getElementById('caption-input').focus(); } }
+        function saveCaption() { selectedImgObj.data.caption = document.getElementById('caption-input').value; closeModal('caption-modal-overlay'); commitChange(); }
+        function deleteSelected() { let oldArray = (selectedImgObj.type === 'tier') ? currentListData.tiers[selectedImgObj.r].items : currentListData.dock; oldArray.splice(selectedImgObj.i, 1); commitChange(); deselectImg(); }
+        function moveToDock() { let oldArray = (selectedImgObj.type === 'tier') ? currentListData.tiers[selectedImgObj.r].items : currentListData.dock; oldArray.splice(selectedImgObj.i, 1); currentListData.dock.push(selectedImgObj.data); commitChange(); deselectImg(); }
+        function closeModal(id) { document.getElementById(id).style.display='none'; }
         
         function debounceSaveName() {
             clearTimeout(saveTimeout);
-            saveTimeout = setTimeout(() => { 
-                currentListData.name = document.getElementById('list-name').value; 
-                commitChangeSilent(); 
-                document.getElementById('tier-header').innerText = currentListData.name; 
-            }, 500);
+            saveTimeout = setTimeout(() => { currentListData.name = document.getElementById('list-name').value; commitChangeSilent(); document.getElementById('tier-header').innerText = currentListData.name; }, 500);
         }
         
         async function backToMenu() { 
-            deselectImg(); 
-            showLoading('Đang lưu bảng...');
+            deselectImg(); showLoading('Đang lưu bảng...');
             try {
                 if (isDirty) saveListSilent(currentListData);
-                const canvas = await html2canvas(document.getElementById('capture-area'), { 
-                    scale: 1, 
-                    backgroundColor: '#000', 
-                    useCORS: true 
-                });
-                currentListData.thumbnail = canvas.toDataURL('image/jpeg', 0.6); 
-                saveListSilent(currentListData);
-            } catch (err) { 
-                console.error("Lỗi thumbnail:", err); 
-            } finally {
-                currentListData = null;
-                selectedImgObj = null;
-            }
-            hideLoading(); 
-            document.getElementById('editor-screen').classList.add('hidden'); 
-            document.getElementById('menu-screen').classList.remove('hidden'); 
-            loadMenu(); 
+                const canvas = await html2canvas(document.getElementById('capture-area'), { scale: 1, backgroundColor: '#000', useCORS: true });
+                currentListData.thumbnail = canvas.toDataURL('image/jpeg', 0.6); saveListSilent(currentListData);
+            } catch (err) { console.error("Lỗi thumbnail:", err); 
+            } finally { currentListData = null; selectedImgObj = null; }
+            hideLoading(); document.getElementById('editor-screen').classList.add('hidden'); document.getElementById('menu-screen').classList.remove('hidden'); loadMenu(); 
         }
 
         // ----------------------------------------------------
         // 8. BACKUP & EXPORT ENGINE
         // ----------------------------------------------------
-        function openBackupMenu() { 
-            document.getElementById('backup-modal-overlay').style.display='flex'; 
-        }
+        function openBackupMenu() { document.getElementById('backup-modal-overlay').style.display='flex'; }
         
         function exportData() { 
             try {
@@ -1262,15 +1106,10 @@
                     const blob = new Blob([data], {type: "application/json"}); 
                     const url = URL.createObjectURL(blob); 
                     const a = document.createElement('a'); 
-                    a.href = url; 
-                    a.download = `TierMaker_Backup_${Date.now()}.json`; 
-                    a.click(); 
+                    a.href = url; a.download = `TierMaker_Backup_${Date.now()}.json`; a.click(); 
                     setTimeout(() => URL.revokeObjectURL(url), 1000); 
                 }; 
-            } catch (err) {
-                alert("Lỗi xuất dữ liệu!");
-                console.error(err);
-            }
+            } catch (err) { alert("Lỗi xuất dữ liệu!"); console.error(err); }
         }
         
         function importData(e) { 
@@ -1281,87 +1120,53 @@
                 try { 
                     const data = JSON.parse(ev.target.result); 
                     if (!isValidTierData(data)) throw new Error("Cấu trúc JSON không hợp lệ");
-
                     const tx = db.transaction(['lists'], 'readwrite'); 
                     const store = tx.objectStore('lists'); 
                     data.forEach(item => store.put(item)); 
-                    tx.oncomplete = () => { 
-                        alert('✅ Khôi phục thành công!'); 
-                        loadMenu(); 
-                        closeModal('backup-modal-overlay'); 
-                    }; 
-                } catch(err) { 
-                    alert('❌ File bị lỗi định dạng!'); 
-                    console.error(err); 
-                } 
+                    tx.oncomplete = () => { alert('✅ Khôi phục thành công!'); loadMenu(); closeModal('backup-modal-overlay'); }; 
+                } catch(err) { alert('❌ File bị lỗi định dạng!'); console.error(err); } 
             }; 
-            reader.readAsText(file); 
-            e.target.value = ''; 
+            reader.readAsText(file); e.target.value = ''; 
         }
         
         async function copyDataToClipboard() {
             try {
                 db.transaction(['lists']).objectStore('lists').getAll().onsuccess = async e => {
-                    try { 
-                        await navigator.clipboard.writeText(JSON.stringify(e.target.result)); 
-                        alert('✅ Đã Copy mã dữ liệu!'); 
-                    } 
-                    catch (err) { 
-                        alert('❌ Máy bạn không hỗ trợ copy mã lớn. Hãy dùng Tải file.'); 
-                    }
+                    try { await navigator.clipboard.writeText(JSON.stringify(e.target.result)); alert('✅ Đã Copy mã dữ liệu!'); } 
+                    catch (err) { alert('❌ Máy bạn không hỗ trợ copy mã lớn. Hãy dùng Tải file.'); }
                 };
-            } catch (err) {
-                console.error(err);
-            }
+            } catch (err) { console.error(err); }
         }
 
         async function pasteDataFromClipboard() {
             try {
                 const text = await navigator.clipboard.readText();
-                if (!text) { 
-                    alert('⚠️ Clipboard trống!'); 
-                    return; 
-                }
+                if (!text) { alert('⚠️ Clipboard trống!'); return; }
                 processPastedString(text);
-            } catch (err) {
-                document.getElementById('manual-paste-textarea').value = ''; 
-                document.getElementById('manual-paste-modal').style.display = 'flex'; 
-                document.getElementById('manual-paste-textarea').focus();
-            }
+            } catch (err) { document.getElementById('manual-paste-textarea').value = ''; document.getElementById('manual-paste-modal').style.display = 'flex'; document.getElementById('manual-paste-textarea').focus(); }
         }
 
         function processManualPaste() { 
             const text = document.getElementById('manual-paste-textarea').value; 
             if (!text) return; 
-            closeModal('manual-paste-modal'); 
-            processPastedString(text); 
+            closeModal('manual-paste-modal'); processPastedString(text); 
         }
         
         function processPastedString(text) { 
             try { 
                 const data = JSON.parse(text); 
                 if (!isValidTierData(data)) throw new Error("Cấu trúc dữ liệu không hợp lệ"); 
-                
                 const tx = db.transaction(['lists'], 'readwrite'); 
                 const store = tx.objectStore('lists'); 
                 data.forEach(item => store.put(item)); 
-                tx.oncomplete = () => { 
-                    alert('✅ Khôi phục thành công!'); 
-                    loadMenu(); 
-                    closeModal('backup-modal-overlay'); 
-                }; 
-            } catch(e) { 
-                alert('❌ Mã không hợp lệ!'); 
-            } 
+                tx.oncomplete = () => { alert('✅ Khôi phục thành công!'); loadMenu(); closeModal('backup-modal-overlay'); }; 
+            } catch(e) { alert('❌ Mã không hợp lệ!'); } 
         }
 
         function wipeAllData() { 
             openConfirm("CẢNH BÁO", "Xóa TOÀN BỘ dữ liệu? Hành động này KHÔNG THỂ hoàn tác!", () => { 
-                try {
-                    db.transaction(['lists'], 'readwrite').objectStore('lists').clear().onsuccess = () => location.reload(); 
-                } catch(e) {
-                    console.error("Lỗi xóa dữ liệu:", e);
-                }
+                try { db.transaction(['lists'], 'readwrite').objectStore('lists').clear().onsuccess = () => location.reload(); } 
+                catch(e) { console.error("Lỗi xóa dữ liệu:", e); }
             }); 
         }
     </script>
