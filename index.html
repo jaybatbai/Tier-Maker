@@ -107,6 +107,7 @@
         .dock-container { background: var(--bg-base); padding: 15px; flex: 1; border-top: 1px solid var(--border-color); }
         #dock { display: flex; flex-wrap: wrap; gap: 6px; padding: 10px; background: var(--bg-surface); min-height: 100px; max-height: 35vh; overflow-y: auto; border: 1px solid var(--border-color); border-radius: var(--radius-sm); }
 
+        /* Responsive Bottom Toolbar */
         .bottom-toolbar { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 960px; background: var(--bg-surface); opacity: 0.95; backdrop-filter: blur(16px); padding: 12px 20px; padding-bottom: max(12px, env(safe-area-inset-bottom)); display: flex; gap: 12px; border-top: 1px solid var(--border-color); z-index: 200; flex-wrap: wrap; }
         .btn-bottom { flex: 1; min-width: 140px; padding: 14px; border: none; border-radius: var(--radius-md); font-size: 0.95rem; font-weight: 600; cursor: pointer; text-align: center; transition: transform 0.1s; color: var(--text-main); }
         .btn-save { background: var(--bg-elevated); border: 1px solid var(--border-color); } 
@@ -447,7 +448,7 @@
                 loadMenu(); 
                 initGlobalFileDrop(); 
                 initKeyboardShortcuts(); 
-                initGlobalClick(); // BẢN VÁ LỖI 1
+                initGlobalClick(); 
             };
             req.onerror = () => {
                 alert("Lỗi: Trình duyệt không hỗ trợ IndexedDB hoặc bạn đang dùng ẩn danh khắt khe.");
@@ -484,7 +485,6 @@
         // 3. EVENT LISTENERS
         // ----------------------------------------------------
         
-        // BẢN VÁ LỖI 1: Click ra ngoài để tắt menu điều khiển ảnh
         function initGlobalClick() {
             window.addEventListener('click', (e) => {
                 if (selectedImgObj) {
@@ -504,6 +504,7 @@
                 if (draggedItem) return; 
                 if (e.dataTransfer.types.includes("Files")) { 
                     e.preventDefault(); 
+                    e.dataTransfer.dropEffect = 'copy'; // Chỉ định hiệu ứng copy cho file drop
                     overlay.style.display = 'flex'; 
                 } 
             }); 
@@ -513,6 +514,7 @@
             }); 
             window.addEventListener('dragover', e => { 
                 e.preventDefault(); 
+                e.dataTransfer.dropEffect = 'copy'; 
             });
             window.addEventListener('drop', e => { 
                 overlay.style.display = 'none'; 
@@ -673,11 +675,13 @@
                     row.ondragstart = e => { 
                         if (e.target.closest('.img-wrap')) return; 
                         draggedRowIdx = i; 
+                        e.dataTransfer.effectAllowed = 'move'; // Ngăn icon rác khi kéo hàng
                     };
                     
                     row.ondragover = e => { 
                         if (draggedRowIdx !== null) { 
                             e.preventDefault(); 
+                            e.dataTransfer.dropEffect = 'move';
                             e.currentTarget.style.borderTop = "3px solid #10b981"; 
                         }
                     };
@@ -708,7 +712,10 @@
                     const content = document.createElement('div'); 
                     content.className = 'tier-content';
                     content.ondragover = e => { 
-                        if (draggedItem) e.preventDefault(); 
+                        if (draggedItem) {
+                            e.preventDefault(); 
+                            e.dataTransfer.dropEffect = 'move'; // Ngăn icon rác
+                        }
                     };
                     
                     content.ondrop = e => { 
@@ -731,10 +738,13 @@
                 const dock = document.getElementById('dock'); 
                 dock.innerHTML = '';
                 
-                // BẢN VÁ LỖI 2: Thêm logic ondrop cho vùng Dock để kéo ảnh từ bảng về
-                dock.ondragover = e => { e.preventDefault(); };
+                dock.ondragover = e => { 
+                    if(draggedItem) {
+                        e.preventDefault(); 
+                        e.dataTransfer.dropEffect = 'move'; // Ngăn icon rác
+                    }
+                };
                 dock.ondrop = e => {
-                    // Xử lý khi thả thẳng vào vùng trống của Dock
                     if(draggedItem && (e.target === dock || e.target.closest('#dock-container-box'))) {
                         let oldArray = (draggedItem.type === 'tier') ? currentListData.tiers[draggedItem.r].items : currentListData.dock;
                         oldArray.splice(draggedItem.i, 1);
@@ -775,26 +785,31 @@
             
             wrap.draggable = true;
             
-            // BẢN VÁ LỖI 3: Thêm hiệu ứng làm mờ ảnh khi kéo giúp mượt chuột
             wrap.ondragstart = e => { 
                 e.stopPropagation(); 
                 draggedItem = {data, type, r, i}; 
+                e.dataTransfer.effectAllowed = 'move'; // BẢN VÁ LỖI 3: Ép hành động Move để diệt icon lạ
+                
                 const tz = document.getElementById('trash-zone');
                 tz.style.display='flex'; 
                 tz.classList.remove('hover');
-                setTimeout(() => wrap.style.opacity = '0.4', 0); // Làm mờ 
+                
+                // Ẩn ảnh gốc đang kéo để con trỏ chuột không bị vướng (chỉ hiện bóng ma mờ)
+                setTimeout(() => wrap.style.opacity = '0.01', 0); 
             };
             
             wrap.ondragend = () => { 
                 draggedItem = null; 
                 document.getElementById('trash-zone').style.display='none'; 
-                wrap.style.opacity = '1'; // Phục hồi độ nét
+                wrap.style.opacity = '1'; 
             };
 
             wrap.ondragover = e => {
                 if (!draggedItem || draggedItem.data === data) return;
                 e.preventDefault(); 
                 e.stopPropagation();
+                e.dataTransfer.dropEffect = 'move'; // BẢN VÁ LỖI 3
+                
                 const mid = wrap.getBoundingClientRect().left + wrap.getBoundingClientRect().width / 2;
                 wrap.style.boxShadow = e.clientX < mid ? "-3px 0 0 #10b981" : "3px 0 0 #10b981";  
                 wrap.style.zIndex = "10";
@@ -834,6 +849,7 @@
         const tz = document.getElementById('trash-zone');
         tz.ondragover = e => { 
             e.preventDefault(); 
+            e.dataTransfer.dropEffect = 'move'; // BẢN VÁ LỖI 3
             tz.classList.add('hover'); 
         };
         tz.ondragleave = () => tz.classList.remove('hover');
