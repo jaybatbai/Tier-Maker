@@ -70,7 +70,7 @@
         .list-item { background: var(--bg-surface); border-radius: var(--radius-lg); overflow: hidden; border: 1px solid var(--border-color); cursor: pointer; transition: transform 0.1s ease, box-shadow 0.2s; display: flex; flex-direction: column; position: relative; }
         .list-item:hover { box-shadow: var(--shadow-float); }
         .list-item:active { transform: scale(0.97); }
-        .btn-delete-list { position: absolute; top: 10px; right: 10px; background: rgba(239, 68, 68, 0.9); color: white; border: none; border-radius: 8px; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; font-size: 16px; cursor: pointer; transition: 0.2s; backdrop-filter: blur(4px); }
+        .btn-delete-list { position: absolute; top: 10px; right: 10px; background: rgba(239, 68, 68, 0.9); color: white; border: none; border-radius: 8px; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; font-size: 16px; cursor: pointer; transition: 0.2s; backdrop-filter: blur(4px); z-index: 10; }
         .btn-delete-list:hover { background: rgba(239, 68, 68, 1); transform: scale(1.1); }
         .list-info-wrap { padding: 15px; display: flex; align-items: center; }
         
@@ -96,8 +96,6 @@
         .tier-content { flex: 1; display: flex; flex-wrap: wrap; align-content: center; align-items: center; background: #1a1a1a; padding: 0px; gap: 0px; position: relative; min-height: 85px; }
         
         .img-wrap { display: block; position: relative; cursor: pointer; transition: transform 0.15s ease, box-shadow 0.1s; margin: 0; padding: 0; touch-action: none; }
-        
-        /* FIX: Thêm CSS cho ảnh đang được chọn (Selected) */
         .img-wrap.selected { outline: 3px solid var(--accent); outline-offset: -3px; z-index: 5; box-shadow: 0 4px 15px rgba(0,0,0,0.5); transform: scale(0.98); }
         .img-wrap:active { transform: scale(0.95); }
         
@@ -107,6 +105,7 @@
         .dock-container { background: var(--bg-base); padding: 15px; flex: 1; border-top: 1px solid var(--border-color); }
         #dock { display: flex; flex-wrap: wrap; gap: 6px; padding: 10px; background: var(--bg-surface); min-height: 100px; max-height: 35vh; overflow-y: auto; border: 1px solid var(--border-color); border-radius: var(--radius-sm); }
 
+        /* Responsive Bottom Toolbar */
         .bottom-toolbar { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 960px; background: var(--bg-surface); opacity: 0.95; backdrop-filter: blur(16px); padding: 12px 20px; padding-bottom: max(12px, env(safe-area-inset-bottom)); display: flex; gap: 12px; border-top: 1px solid var(--border-color); z-index: 200; flex-wrap: wrap; }
         .btn-bottom { flex: 1; min-width: 140px; padding: 14px; border: none; border-radius: var(--radius-md); font-size: 0.95rem; font-weight: 600; cursor: pointer; text-align: center; transition: transform 0.1s; color: var(--text-main); }
         .btn-save { background: var(--bg-elevated); border: 1px solid var(--border-color); } 
@@ -130,9 +129,11 @@
         .modal-btns button { width: 100%; padding: 14px; border-radius: var(--radius-md); font-weight: 600; cursor: pointer; border: none; font-size: 1rem; }
         
         .tier-controls-btn { flex: 1; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-elevated); color: var(--text-main); cursor: pointer; font-weight: bold; font-size: 0.9rem; }
+        
         .color-preset-btn { width: 30px; height: 30px; border-radius: 50%; cursor: pointer; border: 2px solid rgba(0,0,0,0.5); transition: transform 0.1s; }
         .color-preset-btn:hover { transform: scale(1.1); }
 
+        /* KEYBOARD CHEAT SHEET */
         .shortcut-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border-color); color: var(--text-main); font-size: 0.9rem;}
         kbd { background: var(--bg-elevated); border: 1px solid var(--border-color); padding: 2px 6px; border-radius: 4px; font-family: monospace; font-size: 0.85rem; color: var(--text-main); }
 
@@ -190,19 +191,24 @@
                 <button onclick="resetBoard()" class="btn-icon" style="color:var(--danger); border-color:var(--danger); flex:1;">Reset Bảng</button>
             </div>
             
-            <div id="dock-container-box" class="dock-container"><div id="dock" aria-label="Kho ảnh"></div></div>
+            <div id="dock-container-box" class="dock-container">
+                <div id="dock" aria-label="Kho ảnh"></div>
+            </div>
             
             <div class="bottom-toolbar">
                 <button class="btn-bottom btn-save" onclick="saveImage()">Lưu Ảnh (4K)</button>
                 <button class="btn-bottom btn-add" onclick="document.getElementById('imgInput').click()">Thêm Ảnh</button>
             </div>
+            
             <input type="file" id="imgInput" multiple accept="image/*" onchange="handleFiles(event)" style="display:none">
         </div>
 
         <div id="resize-control" class="hidden">
             <div class="size-slider-wrap">
                 <button class="btn-size-step" aria-label="Giảm kích thước" onclick="adjustSize(-5); markDirty();">-</button>
+                
                 <input type="range" id="size-slider" min="40" max="300" value="85" oninput="resizeSelectedImg(this.value)" onchange="markDirty()" class="resize-slider" aria-label="Thanh trượt kích thước">
+                
                 <button class="btn-size-step" aria-label="Tăng kích thước" onclick="adjustSize(5); markDirty();">+</button>
                 <span id="size-val" style="min-width:45px; text-align:right; color:var(--text-main);">85px</span>
             </div>
@@ -280,7 +286,16 @@
         </div>
     </div>
 
-    <div id="caption-modal-overlay" class="modal-overlay"><div class="modal"><h2>Chú thích ảnh</h2><input type="text" id="caption-input" placeholder="Tên nhân vật..." onkeypress="if(event.key==='Enter') saveCaption()"><div class="modal-btns"><button style="background:var(--text-main); color:var(--bg-base);" onclick="saveCaption()">Lưu</button><button style="background:transparent; color:var(--text-main);" onclick="closeModal('caption-modal-overlay')">Hủy</button></div></div></div>
+    <div id="caption-modal-overlay" class="modal-overlay">
+        <div class="modal">
+            <h2>Chú thích ảnh</h2>
+            <input type="text" id="caption-input" placeholder="Tên nhân vật..." onkeypress="if(event.key==='Enter') saveCaption()">
+            <div class="modal-btns">
+                <button style="background:var(--text-main); color:var(--bg-base);" onclick="saveCaption()">Lưu</button>
+                <button style="background:transparent; color:var(--text-main);" onclick="closeModal('caption-modal-overlay')">Hủy</button>
+            </div>
+        </div>
+    </div>
 
     <div id="help-modal" class="modal-overlay">
         <div class="modal">
@@ -292,7 +307,9 @@
                 <div class="shortcut-row"><span>Xóa ảnh đang chọn</span> <kbd>Del / Back</kbd></div>
                 <div class="shortcut-row"><span>Bỏ chọn ảnh / Thoát</span> <kbd>Esc</kbd></div>
             </div>
-            <div class="modal-btns"><button style="background:var(--primary); color:#fff;" onclick="closeModal('help-modal')">Đã hiểu</button></div>
+            <div class="modal-btns">
+                <button style="background:var(--primary); color:#fff;" onclick="closeModal('help-modal')">Đã hiểu</button>
+            </div>
         </div>
     </div>
 
@@ -333,21 +350,25 @@
         let saveTimeout, toastTimeout, confirmAction = null;
         
         let isDirty = false;
+        
         setInterval(() => {
-            if(isDirty && currentListData) {
+            if (isDirty && currentListData) {
                 saveListSilent(currentListData);
                 showToast('💾 Đã lưu tự động');
                 isDirty = false;
             }
         }, 3000);
 
-        function markDirty() { isDirty = true; }
+        function markDirty() { 
+            isDirty = true; 
+        }
 
         function initTheme() {
             const savedTheme = localStorage.getItem('theme') || 'dark';
             document.documentElement.setAttribute('data-theme', savedTheme);
             updateThemeIcon(savedTheme);
         }
+        
         function toggleTheme() {
             const current = document.documentElement.getAttribute('data-theme');
             const target = current === 'dark' ? 'light' : 'dark';
@@ -355,17 +376,25 @@
             localStorage.setItem('theme', target);
             updateThemeIcon(target);
         }
+        
         function updateThemeIcon(theme) {
             const btn = document.querySelector('.theme-toggle');
-            if(btn) btn.innerText = theme === 'dark' ? '🌙' : '☀️';
+            if (btn) btn.innerText = theme === 'dark' ? '🌙' : '☀️';
             document.getElementById('meta-theme-color').content = theme === 'dark' ? '#09090b' : '#f4f4f5';
         }
 
         window.onload = () => { 
             initTheme();
             const req = indexedDB.open(DB_NAME, 1); 
-            req.onupgradeneeded = e => e.target.result.createObjectStore('lists', {keyPath:'id'}); 
-            req.onsuccess = e => { db=e.target.result; loadMenu(); initGlobalFileDrop(); initKeyboardShortcuts(); }; 
+            req.onupgradeneeded = e => {
+                e.target.result.createObjectStore('lists', {keyPath:'id'}); 
+            };
+            req.onsuccess = e => { 
+                db = e.target.result; 
+                loadMenu(); 
+                initGlobalFileDrop(); 
+                initKeyboardShortcuts(); 
+            }; 
         };
         
         function showToast(msg) {
@@ -382,22 +411,37 @@
             confirmAction = callback;
             document.getElementById('confirm-modal').style.display = 'flex';
         }
-        function execConfirm() { if(confirmAction) confirmAction(); closeModal('confirm-modal'); }
+        
+        function execConfirm() { 
+            if (confirmAction) confirmAction(); 
+            closeModal('confirm-modal'); 
+        }
 
         function initGlobalFileDrop() { 
             const overlay = document.getElementById('drop-overlay'); 
             window.addEventListener('dragenter', e => { 
                 if (draggedItem) return; 
-                if (e.dataTransfer.types.includes("Files")) { e.preventDefault(); overlay.style.display = 'flex'; } 
+                if (e.dataTransfer.types.includes("Files")) { 
+                    e.preventDefault(); 
+                    overlay.style.display = 'flex'; 
+                } 
             }); 
-            overlay.addEventListener('dragleave', e => { e.preventDefault(); overlay.style.display = 'none'; }); 
-            window.addEventListener('dragover', e => { e.preventDefault(); });
+            overlay.addEventListener('dragleave', e => { 
+                e.preventDefault(); 
+                overlay.style.display = 'none'; 
+            }); 
+            window.addEventListener('dragover', e => { 
+                e.preventDefault(); 
+            });
             window.addEventListener('drop', e => { 
                 overlay.style.display = 'none'; 
                 if (draggedItem) return; 
                 e.preventDefault(); 
                 if (e.dataTransfer.files.length > 0) {
-                    if(!currentListData) { alert("Vui lòng mở một bảng xếp hạng trước khi thêm ảnh!"); return; }
+                    if (!currentListData) { 
+                        alert("Vui lòng mở một bảng xếp hạng trước khi thêm ảnh!"); 
+                        return; 
+                    }
                     handleFiles({target: {files: e.dataTransfer.files}}); 
                 }
             }); 
@@ -405,14 +449,18 @@
 
         function initKeyboardShortcuts() {
             window.addEventListener('keydown', e => {
-                if(e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+                if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
                 
                 if (e.ctrlKey || e.metaKey) {
                     if (e.key.toLowerCase() === 'z') { e.preventDefault(); undo(); }
                     if (e.key.toLowerCase() === 'y') { e.preventDefault(); redo(); }
                     if (e.key.toLowerCase() === 's') { 
                         e.preventDefault(); 
-                        if(currentListData) { saveListSilent(currentListData); showToast('💾 Đã lưu thủ công'); isDirty = false; }
+                        if (currentListData) { 
+                            saveListSilent(currentListData); 
+                            showToast('💾 Đã lưu thủ công'); 
+                            isDirty = false; 
+                        }
                     }
                 }
                 if (e.key === 'Delete' || e.key === 'Backspace') {
@@ -426,31 +474,34 @@
             });
         }
 
-        /* FIX: Hàm kiểm tra cấu trúc dữ liệu JSON để bảo vệ lỗi import */
         function isValidTierData(data) {
             if (!Array.isArray(data)) return false;
             return data.every(l => l.id && typeof l.name === 'string' && Array.isArray(l.tiers) && Array.isArray(l.dock));
         }
 
+        // Đã sửa Template String cho loadMenu để tránh bị cắt chữ
         function loadMenu() { 
             db.transaction(['lists']).objectStore('lists').getAll().onsuccess = e => { 
                 const list = e.target.result; 
                 const container = document.getElementById('list-container'); 
                 
                 if (list.length === 0) {
-                    container.innerHTML = `<div style="text-align:center; padding: 60px 20px; color: var(--text-muted); grid-column: 1/-1; font-size: 1.1rem;">📁<br><br>Bạn chưa có bảng xếp hạng nào.<br>Hãy bấm <b>+ Tạo Template Mới</b> ở trên nhé!</div>`;
+                    container.innerHTML = '<div style="text-align:center; padding: 60px 20px; color: var(--text-muted); grid-column: 1/-1; font-size: 1.1rem;">📁<br><br>Bạn chưa có bảng xếp hạng nào.<br>Hãy bấm <b>+ Tạo Template Mới</b> ở trên nhé!</div>';
                     return;
                 }
 
-                container.innerHTML = list.map(l => `
+                let html = '';
+                list.forEach(l => {
+                    html += `
                     <div class="list-item" tabindex="0" aria-label="Bảng ${l.name}" onclick="openList('${l.id}')" onkeypress="if(event.key==='Enter') openList('${l.id}')">
                         <button class="btn-delete-list" aria-label="Xóa bảng" title="Xóa bảng" onclick="deleteSingleList(event, '${l.id}', '${l.name}')">🗑️</button>
                         <img src="${l.thumbnail || ''}" alt="Thumbnail" style="width:100%; height:180px; object-fit:cover; object-position:top; background:#000;">
                         <div class="list-info-wrap">
                             <h3 style="margin:0; font-size:1rem; flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${l.name}</h3>
                         </div>
-                    </div>
-                `).join(''); 
+                    </div>`;
+                });
+                container.innerHTML = html;
             }; 
         }
 
@@ -463,20 +514,49 @@
             });
         }
         
-        function commitChange() { pushHistory(); renderBoard(); markDirty(); }
-        function commitChangeSilent() { pushHistory(); markDirty(); }
+        function commitChange() { 
+            pushHistory(); 
+            renderBoard(); 
+            markDirty(); 
+        }
+        
+        function commitChangeSilent() { 
+            pushHistory(); 
+            markDirty(); 
+        }
         
         function pushHistory() { 
             const s = JSON.stringify(currentListData); 
-            if(stateHistory[historyIndex] !== s) { 
+            if (stateHistory[historyIndex] !== s) { 
                 stateHistory = stateHistory.slice(0, historyIndex+1); 
                 stateHistory.push(s); 
                 historyIndex++; 
-                if(stateHistory.length > 15) { stateHistory.shift(); historyIndex--; }
+                if (stateHistory.length > 15) { 
+                    stateHistory.shift(); 
+                    historyIndex--; 
+                }
             } 
         }
-        function undo() { if(historyIndex > 0) { historyIndex--; currentListData = JSON.parse(stateHistory[historyIndex]); renderBoard(); markDirty(); showToast("↩️ Đã hoàn tác"); } }
-        function redo() { if(historyIndex < stateHistory.length-1) { historyIndex++; currentListData = JSON.parse(stateHistory[historyIndex]); renderBoard(); markDirty(); showToast("↪️ Đã làm lại"); } }
+        
+        function undo() { 
+            if (historyIndex > 0) { 
+                historyIndex--; 
+                currentListData = JSON.parse(stateHistory[historyIndex]); 
+                renderBoard(); 
+                markDirty(); 
+                showToast("↩️ Đã hoàn tác"); 
+            } 
+        }
+        
+        function redo() { 
+            if (historyIndex < stateHistory.length-1) { 
+                historyIndex++; 
+                currentListData = JSON.parse(stateHistory[historyIndex]); 
+                renderBoard(); 
+                markDirty(); 
+                showToast("↪️ Đã làm lại"); 
+            } 
+        }
 
         function openList(id) { 
             showLoading('Đang mở...');
@@ -494,25 +574,40 @@
         }
         
         function renderBoard() {
-            const board = document.getElementById('tier-board'); board.innerHTML = '';
+            const board = document.getElementById('tier-board'); 
+            board.innerHTML = '';
             
-            // FIX: Xử lý ẩn hiện Header đúng logic
             const hEl = document.getElementById('tier-header'); 
             hEl.innerText = currentListData.name;
             hEl.style.display = currentListData.headerVisible === false ? 'none' : 'block';
 
             currentListData.tiers.forEach((t, i) => {
-                const row = document.createElement('div'); row.className = 'tier-row'; row.style.backgroundColor = t.color;
+                const row = document.createElement('div'); 
+                row.className = 'tier-row'; 
+                row.style.backgroundColor = t.color;
                 row.draggable = true; 
-                row.ondragstart = e => { if(e.target.closest('.img-wrap')) return; draggedRowIdx = i; };
+                
+                row.ondragstart = e => { 
+                    if (e.target.closest('.img-wrap')) return; 
+                    draggedRowIdx = i; 
+                };
                 
                 row.ondragover = e => { 
-                    if(draggedRowIdx !== null) { e.preventDefault(); e.currentTarget.style.borderTop = "3px solid #10b981"; }
+                    if (draggedRowIdx !== null) { 
+                        e.preventDefault(); 
+                        e.currentTarget.style.borderTop = "3px solid #10b981"; 
+                    }
                 };
-                row.ondragleave = e => { if(draggedRowIdx !== null) e.currentTarget.style.borderTop = ""; };
+                
+                row.ondragleave = e => { 
+                    if (draggedRowIdx !== null) {
+                        e.currentTarget.style.borderTop = ""; 
+                    }
+                };
+                
                 row.ondrop = e => { 
                     e.currentTarget.style.borderTop = "";
-                    if(draggedRowIdx !== null) { 
+                    if (draggedRowIdx !== null) { 
                         const tmp = currentListData.tiers.splice(draggedRowIdx, 1)[0]; 
                         currentListData.tiers.splice(i, 0, tmp); 
                         draggedRowIdx = null; 
@@ -520,14 +615,23 @@
                     } 
                 };
                 
-                const labelWrap = document.createElement('div'); labelWrap.className = 'tier-label-wrap';
-                const label = document.createElement('div'); label.className = 'tier-label'; label.innerText = t.name; label.onclick = () => openEditModal(i);
+                const labelWrap = document.createElement('div'); 
+                labelWrap.className = 'tier-label-wrap';
+                
+                const label = document.createElement('div'); 
+                label.className = 'tier-label'; 
+                label.innerText = t.name; 
+                label.onclick = () => openEditModal(i);
                 labelWrap.appendChild(label);
 
-                const content = document.createElement('div'); content.className = 'tier-content';
-                content.ondragover = e => { if(draggedItem) e.preventDefault(); };
+                const content = document.createElement('div'); 
+                content.className = 'tier-content';
+                content.ondragover = e => { 
+                    if (draggedItem) e.preventDefault(); 
+                };
+                
                 content.ondrop = e => { 
-                    if(draggedItem && e.target === content) { 
+                    if (draggedItem && e.target === content) { 
                         let newArray = currentListData.tiers[i].items;
                         let oldArray = (draggedItem.type === 'tier') ? currentListData.tiers[draggedItem.r].items : currentListData.dock;
                         oldArray.splice(draggedItem.i, 1);
@@ -538,21 +642,39 @@
                 };
                 
                 t.items.forEach((img, idx) => content.appendChild(createImg(img, 'tier', i, idx)));
-                row.appendChild(labelWrap); row.appendChild(content); board.appendChild(row);
+                row.appendChild(labelWrap); 
+                row.appendChild(content); 
+                board.appendChild(row);
             });
-            const dock = document.getElementById('dock'); dock.innerHTML = '';
+            
+            const dock = document.getElementById('dock'); 
+            dock.innerHTML = '';
             currentListData.dock.forEach((img, idx) => dock.appendChild(createImg(img, 'dock', null, idx)));
         }
 
         function createImg(data, type, r, i) {
-            const wrap = document.createElement('div'); wrap.className = 'img-wrap'; 
+            const wrap = document.createElement('div'); 
+            wrap.className = 'img-wrap'; 
             wrap.style.height = (type==='tier' ? data.h : 85) + 'px';
-            const img = document.createElement('img'); img.src = data.src; img.className = 'img-item'; 
+            
+            const img = document.createElement('img'); 
+            img.src = data.src; 
+            img.className = 'img-item'; 
             img.style.height = (type==='tier' ? data.h : 85) + 'px';
             wrap.appendChild(img);
-            if(data.caption) { const c = document.createElement('div'); c.className = 'img-caption'; c.innerText = data.caption; wrap.appendChild(c); }
             
-            wrap.onclick = e => { e.stopPropagation(); clickImg(wrap, data, type, r, i); };
+            if (data.caption) { 
+                const c = document.createElement('div'); 
+                c.className = 'img-caption'; 
+                c.innerText = data.caption; 
+                wrap.appendChild(c); 
+            }
+            
+            wrap.onclick = e => { 
+                e.stopPropagation(); 
+                clickImg(wrap, data, type, r, i); 
+            };
+            
             wrap.draggable = true;
             
             wrap.ondragstart = e => { 
@@ -562,25 +684,37 @@
                 tz.style.display='flex'; 
                 tz.classList.remove('hover');
             };
-            wrap.ondragend = () => { draggedItem = null; document.getElementById('trash-zone').style.display='none'; };
+            
+            wrap.ondragend = () => { 
+                draggedItem = null; 
+                document.getElementById('trash-zone').style.display='none'; 
+            };
 
             wrap.ondragover = e => {
                 if (!draggedItem || draggedItem.data === data) return;
-                e.preventDefault(); e.stopPropagation();
+                e.preventDefault(); 
+                e.stopPropagation();
                 const mid = wrap.getBoundingClientRect().left + wrap.getBoundingClientRect().width / 2;
                 wrap.style.boxShadow = e.clientX < mid ? "-3px 0 0 #10b981" : "3px 0 0 #10b981";  
                 wrap.style.zIndex = "10";
             };
 
-            wrap.ondragleave = e => { wrap.style.boxShadow = "none"; wrap.style.zIndex = "1"; };
+            wrap.ondragleave = e => { 
+                wrap.style.boxShadow = "none"; 
+                wrap.style.zIndex = "1"; 
+            };
 
             wrap.ondrop = e => {
-                e.preventDefault(); e.stopPropagation();
-                wrap.style.boxShadow = "none"; wrap.style.zIndex = "1";
+                e.preventDefault(); 
+                e.stopPropagation();
+                wrap.style.boxShadow = "none"; 
+                wrap.style.zIndex = "1";
 
-                if(draggedItem && draggedItem.data !== data) {
+                if (draggedItem && draggedItem.data !== data) {
                     let targetIndex = i;
-                    if(e.clientX >= wrap.getBoundingClientRect().left + wrap.getBoundingClientRect().width / 2) targetIndex++;
+                    if (e.clientX >= wrap.getBoundingClientRect().left + wrap.getBoundingClientRect().width / 2) {
+                        targetIndex++;
+                    }
 
                     let oldArray = (draggedItem.type === 'tier') ? currentListData.tiers[draggedItem.r].items : currentListData.dock;
                     let newArray = (type === 'tier') ? currentListData.tiers[r].items : currentListData.dock;
@@ -597,10 +731,13 @@
         }
 
         const tz = document.getElementById('trash-zone');
-        tz.ondragover = e => { e.preventDefault(); tz.classList.add('hover'); };
+        tz.ondragover = e => { 
+            e.preventDefault(); 
+            tz.classList.add('hover'); 
+        };
         tz.ondragleave = () => tz.classList.remove('hover');
         tz.ondrop = () => { 
-            if(draggedItem) { 
+            if (draggedItem) { 
                 let oldArray = (draggedItem.type === 'tier') ? currentListData.tiers[draggedItem.r].items : currentListData.dock; 
                 oldArray.splice(draggedItem.i, 1); 
                 commitChange(); 
@@ -609,20 +746,29 @@
         };
 
         function clickImg(dom, data, type, r, i) { 
-            if(!selectedImgObj) { 
+            if (!selectedImgObj) { 
                 selectedImgObj = {dom, data, type, r, i}; 
                 dom.classList.add('selected'); 
                 document.getElementById('resize-control').classList.remove('hidden'); 
                 document.getElementById('size-slider').value = data.h;
                 document.getElementById('size-val').innerText = data.h + 'px';
-            } else if(selectedImgObj.dom === dom) deselectImg(); 
+            } else if (selectedImgObj.dom === dom) {
+                deselectImg(); 
+            }
         }
         
-        function deselectImg() { if(selectedImgObj) selectedImgObj.dom.classList.remove('selected'); selectedImgObj = null; document.getElementById('resize-control').classList.add('hidden'); }
+        function deselectImg() { 
+            if (selectedImgObj) {
+                selectedImgObj.dom.classList.remove('selected'); 
+                selectedImgObj = null; 
+                document.getElementById('resize-control').classList.add('hidden'); 
+            }
+        }
         
         function resizeSelectedImg(h) { 
-            if(selectedImgObj) { 
-                h = parseInt(h); selectedImgObj.data.h = h; 
+            if (selectedImgObj) { 
+                h = parseInt(h); 
+                selectedImgObj.data.h = h; 
                 selectedImgObj.dom.style.height = h+'px'; 
                 selectedImgObj.dom.querySelector('.img-item').style.height = h+'px';
                 document.getElementById('size-val').innerText = h+'px'; 
@@ -630,20 +776,48 @@
             } 
         }
         
-        function adjustSize(d) { if(selectedImgObj) { let newH = parseInt(document.getElementById('size-slider').value) + d; newH = Math.max(40, Math.min(300, newH)); resizeSelectedImg(newH); } }
-        function applyToAll() { const h = selectedImgObj.data.h; currentListData.tiers.forEach(t => t.items.forEach(i => i.h = h)); currentListData.dock.forEach(i => i.h = h); commitChange(); }
+        function adjustSize(d) { 
+            if (selectedImgObj) { 
+                let newH = parseInt(document.getElementById('size-slider').value) + d; 
+                newH = Math.max(40, Math.min(300, newH)); 
+                resizeSelectedImg(newH); 
+            } 
+        }
         
-        function showLoading(text) { document.getElementById('loading-text').innerText = text; document.getElementById('loading-overlay').style.display='flex'; }
-        function hideLoading() { document.getElementById('loading-overlay').style.display='none'; }
+        function applyToAll() { 
+            const h = selectedImgObj.data.h; 
+            currentListData.tiers.forEach(t => t.items.forEach(i => i.h = h)); 
+            currentListData.dock.forEach(i => i.h = h); 
+            commitChange(); 
+        }
+        
+        function showLoading(text) { 
+            document.getElementById('loading-text').innerText = text; 
+            document.getElementById('loading-overlay').style.display='flex'; 
+        }
+        function hideLoading() { 
+            document.getElementById('loading-overlay').style.display='none'; 
+        }
 
         function saveImage() { 
-            deselectImg(); showLoading('Đang xuất ảnh 4K...');
+            deselectImg(); 
+            showLoading('Đang xuất ảnh 4K...');
             setTimeout(() => { 
-                html2canvas(document.getElementById('capture-area'), { scale: 4, backgroundColor: null, useCORS: true })
-                .then(c => { 
-                    const a = document.createElement('a'); a.download = 'TierList.png'; a.href = c.toDataURL('image/png', 1.0); a.click(); hideLoading(); showToast("✅ Lưu ảnh thành công");
+                html2canvas(document.getElementById('capture-area'), { 
+                    scale: 4, 
+                    backgroundColor: null, 
+                    useCORS: true 
+                }).then(c => { 
+                    const a = document.createElement('a'); 
+                    a.download = 'TierList.png'; 
+                    a.href = c.toDataURL('image/png', 1.0); 
+                    a.click(); 
+                    hideLoading(); 
+                    showToast("✅ Lưu ảnh thành công");
                 }).catch(err => {
-                    hideLoading(); alert('Lỗi xuất ảnh: Có thể bức ảnh bạn tải lên không hỗ trợ xuất (Lỗi CORS).'); console.error(err);
+                    hideLoading(); 
+                    alert('Lỗi xuất ảnh: Có thể bức ảnh bạn tải lên không hỗ trợ xuất (Lỗi CORS).'); 
+                    console.error(err);
                 }); 
             }, 100); 
         }
@@ -652,92 +826,248 @@
             showLoading("Đang xử lý ảnh...");
             let processed = 0;
             const files = Array.from(e.target.files);
+            
             files.forEach(f => { 
                 const r = new FileReader(); 
                 r.onload = ev => { 
-                    const i = new Image(); i.src = ev.target.result; 
+                    const i = new Image(); 
+                    i.src = ev.target.result; 
                     i.onload = () => { 
-                        const c = document.createElement('canvas'), x = c.getContext('2d'), M = 1500;
-                        let w = i.width, h = i.height; if(w>M){h*=(M/w);w=M;} 
-                        c.width = w; c.height = h; x.drawImage(i, 0, 0, w, h); 
+                        const c = document.createElement('canvas');
+                        const x = c.getContext('2d');
+                        const M = 1500;
+                        let w = i.width;
+                        let h = i.height; 
+                        
+                        if (w > M) {
+                            h *= (M/w);
+                            w = M;
+                        } 
+                        
+                        c.width = w; 
+                        c.height = h; 
+                        x.drawImage(i, 0, 0, w, h); 
                         currentListData.dock.push({src: c.toDataURL('image/jpeg', 0.8), h:85});
+                        
                         processed++;
-                        if(processed === files.length) { commitChange(); hideLoading(); }
+                        if (processed === files.length) { 
+                            commitChange(); 
+                            hideLoading(); 
+                        }
                     }
-                }; r.readAsDataURL(f); 
+                }; 
+                r.readAsDataURL(f); 
             }); 
             e.target.value = '';
         }
         
-        function saveListSilent(d) { d.updatedAt = new Date().toISOString(); db.transaction(['lists'], 'readwrite').objectStore('lists').put(d); }
-        function toggleZenMode() { document.body.classList.toggle('zen-mode'); if(document.body.classList.contains('zen-mode')) document.getElementById('exit-zen-btn').style.display='block'; else document.getElementById('exit-zen-btn').style.display='none'; }
+        function saveListSilent(d) { 
+            d.updatedAt = new Date().toISOString(); 
+            db.transaction(['lists'], 'readwrite').objectStore('lists').put(d); 
+        }
         
-        // FIX: Hàm click mở focus vào tên list để đổi dễ dàng
+        function toggleZenMode() { 
+            document.body.classList.toggle('zen-mode'); 
+            if (document.body.classList.contains('zen-mode')) {
+                document.getElementById('exit-zen-btn').style.display='block'; 
+            } else {
+                document.getElementById('exit-zen-btn').style.display='none';
+            }
+        }
+        
         function openHeaderModal() { 
             const inputName = document.getElementById('list-name');
             inputName.focus();
             inputName.select();
         }
 
-        function openCreateModal() { document.getElementById('create-modal-overlay').style.display='flex'; document.getElementById('new-template-name').focus(); }
-        function openHelpModal() { document.getElementById('help-modal').style.display='flex'; }
+        function openCreateModal() { 
+            document.getElementById('create-modal-overlay').style.display='flex'; 
+            document.getElementById('new-template-name').focus(); 
+        }
+        
+        function openHelpModal() { 
+            document.getElementById('help-modal').style.display='flex'; 
+        }
         
         function confirmCreateList() { 
             const name = document.getElementById('new-template-name').value.trim() || 'Bảng mới'; 
             db.transaction(['lists']).objectStore('lists').getAll().onsuccess = e => {
                 const list = e.target.result;
-                if(list.some(l => l.name.toLowerCase() === name.toLowerCase())) { alert('⚠️ Tên bảng đã tồn tại! Vui lòng chọn tên khác.'); return; }
+                if (list.some(l => l.name.toLowerCase() === name.toLowerCase())) { 
+                    alert('⚠️ Tên bảng đã tồn tại! Vui lòng chọn tên khác.'); 
+                    return; 
+                }
                 
                 showLoading("Đang tạo...");
                 setTimeout(() => {
-                    const newList = { id: 'list_'+Date.now(), name: name, tiers: [{name:'S', color:'#FF7F7F', items:[]}], dock: [] }; 
-                    saveListSilent(newList); loadMenu(); closeModal('create-modal-overlay'); document.getElementById('new-template-name').value = ''; hideLoading();
+                    const newList = { 
+                        id: 'list_'+Date.now(), 
+                        name: name, 
+                        tiers: [{name:'S', color:'#FF7F7F', items:[]}], 
+                        dock: [] 
+                    }; 
+                    saveListSilent(newList); 
+                    loadMenu(); 
+                    closeModal('create-modal-overlay'); 
+                    document.getElementById('new-template-name').value = ''; 
+                    hideLoading();
                 }, 300);
             };
         }
         
-        function openEditModal(i) { editingTierIndex = i; const t = currentListData.tiers[i]; document.getElementById('edit-name').value = t.name; document.getElementById('edit-color-picker').value = t.color; document.getElementById('modal-overlay').style.display='flex'; document.getElementById('edit-name').focus(); }
-        function setTierColor(color) { document.getElementById('edit-color-picker').value = color; }
-        function saveTierEdit() { currentListData.tiers[editingTierIndex].name = document.getElementById('edit-name').value; currentListData.tiers[editingTierIndex].color = document.getElementById('edit-color-picker').value; closeModal('modal-overlay'); commitChange(); }
-        function moveTierUp() { if(editingTierIndex > 0) { const tmp = currentListData.tiers[editingTierIndex]; currentListData.tiers[editingTierIndex] = currentListData.tiers[editingTierIndex - 1]; currentListData.tiers[editingTierIndex - 1] = tmp; editingTierIndex--; commitChange(); } }
-        function moveTierDown() { if(editingTierIndex < currentListData.tiers.length - 1) { const tmp = currentListData.tiers[editingTierIndex]; currentListData.tiers[editingTierIndex] = currentListData.tiers[editingTierIndex + 1]; currentListData.tiers[editingTierIndex + 1] = tmp; editingTierIndex++; commitChange(); } }
-        function deleteTier() { openConfirm("Xóa Hàng", "Xóa hàng này? Các ảnh trong hàng (nếu có) cũng sẽ bị xóa.", () => { currentListData.tiers.splice(editingTierIndex, 1); closeModal('modal-overlay'); commitChange(); }); }
-        function addNewTier() { currentListData.tiers.push({name:'NEW', color:'#1a1a1a', items:[]}); commitChange(); }
+        function openEditModal(i) { 
+            editingTierIndex = i; 
+            const t = currentListData.tiers[i]; 
+            document.getElementById('edit-name').value = t.name; 
+            document.getElementById('edit-color-picker').value = t.color; 
+            document.getElementById('modal-overlay').style.display='flex'; 
+            document.getElementById('edit-name').focus(); 
+        }
         
-        // FIX: Toggle Header Status
+        function setTierColor(color) { 
+            document.getElementById('edit-color-picker').value = color; 
+        }
+        
+        function saveTierEdit() { 
+            currentListData.tiers[editingTierIndex].name = document.getElementById('edit-name').value; 
+            currentListData.tiers[editingTierIndex].color = document.getElementById('edit-color-picker').value; 
+            closeModal('modal-overlay'); 
+            commitChange(); 
+        }
+        
+        function moveTierUp() { 
+            if (editingTierIndex > 0) { 
+                const tmp = currentListData.tiers[editingTierIndex]; 
+                currentListData.tiers[editingTierIndex] = currentListData.tiers[editingTierIndex - 1]; 
+                currentListData.tiers[editingTierIndex - 1] = tmp; 
+                editingTierIndex--; 
+                commitChange(); 
+            } 
+        }
+        
+        function moveTierDown() { 
+            if (editingTierIndex < currentListData.tiers.length - 1) { 
+                const tmp = currentListData.tiers[editingTierIndex]; 
+                currentListData.tiers[editingTierIndex] = currentListData.tiers[editingTierIndex + 1]; 
+                currentListData.tiers[editingTierIndex + 1] = tmp; 
+                editingTierIndex++; 
+                commitChange(); 
+            } 
+        }
+        
+        function deleteTier() { 
+            openConfirm("Xóa Hàng", "Xóa hàng này? Các ảnh trong hàng (nếu có) cũng sẽ bị xóa.", () => { 
+                currentListData.tiers.splice(editingTierIndex, 1); 
+                closeModal('modal-overlay'); 
+                commitChange(); 
+            }); 
+        }
+        
+        function addNewTier() { 
+            currentListData.tiers.push({name:'NEW', color:'#1a1a1a', items:[]}); 
+            commitChange(); 
+        }
+        
         function toggleHeader() { 
             currentListData.headerVisible = currentListData.headerVisible === false ? true : false; 
             commitChange(); 
         }
 
-        function resetBoard() { openConfirm("Reset", "Đưa toàn bộ ảnh về Kho (Dock)?", () => { currentListData.tiers.forEach(t => { currentListData.dock.push(...t.items); t.items = []; }); commitChange(); }); }
-        function openCaptionModal() { if(selectedImgObj) { document.getElementById('caption-input').value = selectedImgObj.data.caption || ''; document.getElementById('caption-modal-overlay').style.display='flex'; document.getElementById('caption-input').focus(); } }
-        function saveCaption() { selectedImgObj.data.caption = document.getElementById('caption-input').value; closeModal('caption-modal-overlay'); commitChange(); }
-        function deleteSelected() { let oldArray = (selectedImgObj.type === 'tier') ? currentListData.tiers[selectedImgObj.r].items : currentListData.dock; oldArray.splice(selectedImgObj.i, 1); commitChange(); deselectImg(); }
-        function moveToDock() { let oldArray = (selectedImgObj.type === 'tier') ? currentListData.tiers[selectedImgObj.r].items : currentListData.dock; oldArray.splice(selectedImgObj.i, 1); currentListData.dock.push(selectedImgObj.data); commitChange(); deselectImg(); }
-        function closeModal(id) { document.getElementById(id).style.display='none'; }
+        function resetBoard() { 
+            openConfirm("Reset", "Đưa toàn bộ ảnh về Kho (Dock)?", () => { 
+                currentListData.tiers.forEach(t => { 
+                    currentListData.dock.push(...t.items); 
+                    t.items = []; 
+                }); 
+                commitChange(); 
+            }); 
+        }
+        
+        function openCaptionModal() { 
+            if (selectedImgObj) { 
+                document.getElementById('caption-input').value = selectedImgObj.data.caption || ''; 
+                document.getElementById('caption-modal-overlay').style.display='flex'; 
+                document.getElementById('caption-input').focus(); 
+            } 
+        }
+        
+        function saveCaption() { 
+            selectedImgObj.data.caption = document.getElementById('caption-input').value; 
+            closeModal('caption-modal-overlay'); 
+            commitChange(); 
+        }
+        
+        function deleteSelected() { 
+            let oldArray = (selectedImgObj.type === 'tier') ? currentListData.tiers[selectedImgObj.r].items : currentListData.dock; 
+            oldArray.splice(selectedImgObj.i, 1); 
+            commitChange(); 
+            deselectImg(); 
+        }
+        
+        function moveToDock() { 
+            let oldArray = (selectedImgObj.type === 'tier') ? currentListData.tiers[selectedImgObj.r].items : currentListData.dock; 
+            oldArray.splice(selectedImgObj.i, 1); 
+            currentListData.dock.push(selectedImgObj.data); 
+            commitChange(); 
+            deselectImg(); 
+        }
+        
+        function closeModal(id) { 
+            document.getElementById(id).style.display='none'; 
+        }
         
         function debounceSaveName() {
             clearTimeout(saveTimeout);
-            saveTimeout = setTimeout(() => { currentListData.name = document.getElementById('list-name').value; commitChangeSilent(); document.getElementById('tier-header').innerText = currentListData.name; }, 500);
+            saveTimeout = setTimeout(() => { 
+                currentListData.name = document.getElementById('list-name').value; 
+                commitChangeSilent(); 
+                document.getElementById('tier-header').innerText = currentListData.name; 
+            }, 500);
         }
         
         async function backToMenu() { 
-            deselectImg(); showLoading('Đang lưu bảng...');
+            deselectImg(); 
+            showLoading('Đang lưu bảng...');
             try {
-                if(isDirty) saveListSilent(currentListData);
-                const canvas = await html2canvas(document.getElementById('capture-area'), { scale: 1, backgroundColor: '#000', useCORS: true });
-                currentListData.thumbnail = canvas.toDataURL('image/jpeg', 0.6); saveListSilent(currentListData);
-            } catch (err) { console.error("Lỗi thumbnail:", err); }
-            hideLoading(); document.getElementById('editor-screen').classList.add('hidden'); document.getElementById('menu-screen').classList.remove('hidden'); loadMenu(); 
+                if (isDirty) saveListSilent(currentListData);
+                const canvas = await html2canvas(document.getElementById('capture-area'), { 
+                    scale: 1, 
+                    backgroundColor: '#000', 
+                    useCORS: true 
+                });
+                currentListData.thumbnail = canvas.toDataURL('image/jpeg', 0.6); 
+                saveListSilent(currentListData);
+            } catch (err) { 
+                console.error("Lỗi thumbnail:", err); 
+            }
+            hideLoading(); 
+            document.getElementById('editor-screen').classList.add('hidden'); 
+            document.getElementById('menu-screen').classList.remove('hidden'); 
+            loadMenu(); 
         }
 
-        function openBackupMenu() { document.getElementById('backup-modal-overlay').style.display='flex'; }
-        function exportData() { db.transaction(['lists']).objectStore('lists').getAll().onsuccess = e => { const data = JSON.stringify(e.target.result); const blob = new Blob([data], {type: "application/json"}); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `TierMaker_Backup_${Date.now()}.json`; a.click(); URL.revokeObjectURL(url); }; }
+        function openBackupMenu() { 
+            document.getElementById('backup-modal-overlay').style.display='flex'; 
+        }
+        
+        // Đã sửa hàm exportData để không bị cắt xén
+        function exportData() { 
+            db.transaction(['lists']).objectStore('lists').getAll().onsuccess = e => { 
+                const data = JSON.stringify(e.target.result); 
+                const blob = new Blob([data], {type: "application/json"}); 
+                const url = URL.createObjectURL(blob); 
+                const a = document.createElement('a'); 
+                a.href = url; 
+                a.download = `TierMaker_Backup_${Date.now()}.json`; 
+                a.click(); 
+                URL.revokeObjectURL(url); 
+            }; 
+        }
         
         function importData(e) { 
             const file = e.target.files[0]; 
-            if(!file) return; 
+            if (!file) return; 
             const reader = new FileReader(); 
             reader.onload = ev => { 
                 try { 
@@ -747,30 +1077,53 @@
                     const tx = db.transaction(['lists'], 'readwrite'); 
                     const store = tx.objectStore('lists'); 
                     data.forEach(item => store.put(item)); 
-                    tx.oncomplete = () => { alert('✅ Khôi phục thành công!'); loadMenu(); closeModal('backup-modal-overlay'); }; 
-                } catch(err) { alert('❌ File bị lỗi định dạng!'); console.error(err); } 
+                    tx.oncomplete = () => { 
+                        alert('✅ Khôi phục thành công!'); 
+                        loadMenu(); 
+                        closeModal('backup-modal-overlay'); 
+                    }; 
+                } catch(err) { 
+                    alert('❌ File bị lỗi định dạng!'); 
+                    console.error(err); 
+                } 
             }; 
-            reader.readAsText(file); e.target.value = ''; 
+            reader.readAsText(file); 
+            e.target.value = ''; 
         }
         
         async function copyDataToClipboard() {
             db.transaction(['lists']).objectStore('lists').getAll().onsuccess = async e => {
-                try { await navigator.clipboard.writeText(JSON.stringify(e.target.result)); alert('✅ Đã Copy mã dữ liệu!'); } 
-                catch (err) { alert('❌ Máy bạn không hỗ trợ copy mã lớn. Hãy dùng Tải file.'); }
+                try { 
+                    await navigator.clipboard.writeText(JSON.stringify(e.target.result)); 
+                    alert('✅ Đã Copy mã dữ liệu!'); 
+                } 
+                catch (err) { 
+                    alert('❌ Máy bạn không hỗ trợ copy mã lớn. Hãy dùng Tải file.'); 
+                }
             };
         }
 
         async function pasteDataFromClipboard() {
             try {
                 const text = await navigator.clipboard.readText();
-                if (!text) { alert('⚠️ Clipboard trống!'); return; }
+                if (!text) { 
+                    alert('⚠️ Clipboard trống!'); 
+                    return; 
+                }
                 processPastedString(text);
             } catch (err) {
-                document.getElementById('manual-paste-textarea').value = ''; document.getElementById('manual-paste-modal').style.display = 'flex'; document.getElementById('manual-paste-textarea').focus();
+                document.getElementById('manual-paste-textarea').value = ''; 
+                document.getElementById('manual-paste-modal').style.display = 'flex'; 
+                document.getElementById('manual-paste-textarea').focus();
             }
         }
 
-        function processManualPaste() { const text = document.getElementById('manual-paste-textarea').value; if(!text) return; closeModal('manual-paste-modal'); processPastedString(text); }
+        function processManualPaste() { 
+            const text = document.getElementById('manual-paste-textarea').value; 
+            if (!text) return; 
+            closeModal('manual-paste-modal'); 
+            processPastedString(text); 
+        }
         
         function processPastedString(text) { 
             try { 
@@ -780,11 +1133,21 @@
                 const tx = db.transaction(['lists'], 'readwrite'); 
                 const store = tx.objectStore('lists'); 
                 data.forEach(item => store.put(item)); 
-                tx.oncomplete = () => { alert('✅ Khôi phục thành công!'); loadMenu(); closeModal('backup-modal-overlay'); }; 
-            } catch(e) { alert('❌ Mã không hợp lệ!'); } 
+                tx.oncomplete = () => { 
+                    alert('✅ Khôi phục thành công!'); 
+                    loadMenu(); 
+                    closeModal('backup-modal-overlay'); 
+                }; 
+            } catch(e) { 
+                alert('❌ Mã không hợp lệ!'); 
+            } 
         }
 
-        function wipeAllData() { openConfirm("CẢNH BÁO", "Xóa TOÀN BỘ dữ liệu? Hành động này KHÔNG THỂ hoàn tác!", () => { db.transaction(['lists'], 'readwrite').objectStore('lists').clear().onsuccess = () => location.reload(); }); }
+        function wipeAllData() { 
+            openConfirm("CẢNH BÁO", "Xóa TOÀN BỘ dữ liệu? Hành động này KHÔNG THỂ hoàn tác!", () => { 
+                db.transaction(['lists'], 'readwrite').objectStore('lists').clear().onsuccess = () => location.reload(); 
+            }); 
+        }
     </script>
 </body>
 </html>
