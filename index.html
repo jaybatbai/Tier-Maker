@@ -235,7 +235,7 @@
             <h2 id="confirm-title">Xác nhận</h2>
             <p id="confirm-desc" style="color:var(--text-muted); margin-bottom: 20px;">Bạn có chắc chắn?</p>
             <div class="modal-btns" style="flex-direction: row;">
-                <button style="background:transparent; color:var(--text-main); border: 1px solid var(--border-color);" onclick="closeModal('confirm-modal')">Hủy</button>
+                <button style="background:transparent; color:var(--text-main); border: 1px solid var(--border-color);" onclick="execCancel()">Hủy</button>
                 <button style="background:var(--danger); color:white;" onclick="execConfirm()">Đồng ý</button>
             </div>
         </div>
@@ -353,7 +353,7 @@
 
     <script>
         // ----------------------------------------------------
-        // 1. INLINE PWA (HACK CHO 1 FILE DUY NHẤT)
+        // 1. INLINE PWA
         // ----------------------------------------------------
         (function initPWA() {
             try {
@@ -404,7 +404,7 @@
         const DB_NAME = 'TierMaker_V26_Pro'; 
         let db, currentListData, selectedImgObj = null, editingTierIndex = -1, draggedItem = null, draggedRowIdx = null;
         let stateHistory = [], historyIndex = -1;
-        let saveTimeout, toastTimeout, confirmAction = null;
+        let saveTimeout, toastTimeout, confirmAction = null, confirmCancelAction = null;
         
         let isDirty = false;
         
@@ -472,16 +472,23 @@
             toastTimeout = setTimeout(() => toast.classList.remove('show'), 2000);
         }
 
-        function openConfirm(title, desc, callback) {
+        // Cập nhật hàm openConfirm để hỗ trợ Cancel Callback
+        function openConfirm(title, desc, onConfirm, onCancel = null) {
             document.getElementById('confirm-title').innerText = title;
             document.getElementById('confirm-desc').innerText = desc;
-            confirmAction = callback;
+            confirmAction = onConfirm;
+            confirmCancelAction = onCancel;
             document.getElementById('confirm-modal').style.display = 'flex';
         }
         
         function execConfirm() { 
             if (confirmAction) confirmAction(); 
             closeModal('confirm-modal'); 
+        }
+
+        function execCancel() {
+            if (confirmCancelAction) confirmCancelAction();
+            closeModal('confirm-modal');
         }
 
         // ----------------------------------------------------
@@ -926,29 +933,17 @@
             }, 100); 
         }
         
-        function handleFiles(e) { 
-            const MAX_FILE_SIZE = 5 * 1024 * 1024; 
-            const files = Array.from(e.target.files).filter(f => {
-                if (!f.type.startsWith('image/')) {
-                    alert(`❌ File "${escapeHTML(f.name)}" không phải là hình ảnh.`);
-                    return false;
-                }
-                if (f.size > MAX_FILE_SIZE) {
-                    alert(`❌ File "${escapeHTML(f.name)}" lớn hơn 5MB. Vui lòng nén trước.`);
-                    return false;
-                }
-                return true;
-            });
-
-            if (files.length === 0) {
-                e.target.value = '';
+        // --- XỬ LÝ UPLOAD ẢNH & KIỂM TRA TRÙNG LẶP (ĐÃ NÂNG CẤP) ---
+        function processFilesArray(filesToProcess) {
+            if (filesToProcess.length === 0) {
+                document.getElementById('imgInput').value = '';
                 return;
             }
-
+            
             showLoading("Đang xử lý ảnh...");
             let processed = 0;
             
-            files.forEach(f => { 
+            filesToProcess.forEach(f => { 
                 const r = new FileReader(); 
                 r.onload = ev => { 
                     const i = new Image(); 
@@ -969,12 +964,18 @@
                             c.width = w; 
                             c.height = h; 
                             x.drawImage(i, 0, 0, w, h); 
-                            currentListData.dock.push({src: c.toDataURL('image/jpeg', 0.8), h:85});
+                            
+                            // Lưu thêm thuộc tính 'name' để check trùng lặp cho lần sau
+                            currentListData.dock.push({
+                                src: c.toDataURL('image/jpeg', 0.8), 
+                                h: 85,
+                                name: f.name 
+                            });
                         } catch(err) {
                             console.error("Lỗi vẽ Canvas:", err);
                         } finally {
                             processed++;
-                            if (processed === files.length) { 
+                            if (processed === filesToProcess.length) { 
                                 commitChange(); 
                                 hideLoading(); 
                             }
@@ -982,12 +983,72 @@
                     }
                     i.onerror = () => {
                         processed++;
-                        if (processed === files.length) { commitChange(); hideLoading(); }
+                        if (processed === filesToProcess.length) { commitChange(); hideLoading(); }
                     }
                 }; 
                 r.readAsDataURL(f); 
             }); 
-            e.target.value = '';
+            document.getElementById('imgInput').value = '';
+        }
+
+        function handleFiles(e) { 
+            const files = Array.from(e.target.files).filter(f => {
+                if (!f.type.startsWith('image/')) {
+                    alert(`❌ File "${escapeHTML(f.name)}" không phải là hình ảnh.`);
+                    return false;
+                }
+                // ĐÃ GỠ BỎ GIỚI HẠN 5MB TẠI ĐÂY
+                return true;
+            });
+
+            if (files.length === 0) {
+                e.target.value = '';
+                return;
+            }
+
+            // Thu thập tên các ảnh đang có trong bảng
+            const existingNames = new Set();
+            if (currentListData) {
+                currentListData.dock.forEach(img => { if(img.name) existingNames.add(img.name); });
+                currentListData.tiers.forEach(t => {
+                    t.items.forEach(img => { if(img.name) existingNames.add(img.name); });
+                });
+            }
+
+            // Phân loại ảnh mới và ảnh trùng
+            const newFiles = [];
+            const duplicateFiles = [];
+
+            files.forEach(f => {
+                if (existingNames.has(f.name)) {
+                    duplicateFiles.push(f);
+                } else {
+                    newFiles.push(f);
+                }
+            });
+
+            // Nếu có ảnh trùng, hiện bảng hỏi ý kiến
+            if (duplicateFiles.length > 0) {
+                const dupNames = duplicateFiles.map(f => escapeHTML(f.name)).slice(0, 3).join(', ');
+                const extraDup = duplicateFiles.length > 3 ? ` và ${duplicateFiles.length - 3} file khác` : '';
+                const msg = `Phát hiện ${duplicateFiles.length} ảnh đã tồn tại trong bảng (VD: ${dupNames}${extraDup}).\n\nBạn có muốn tải lên lại những ảnh này không?`;
+                
+                openConfirm(
+                    "Phát hiện ảnh trùng lặp", 
+                    msg, 
+                    () => {
+                        // Nút Đồng ý: Upload tất cả (Cả mới lẫn trùng)
+                        processFilesArray([...newFiles, ...duplicateFiles]);
+                    },
+                    () => {
+                        // Nút Hủy: Chỉ upload những ảnh mới
+                        processFilesArray(newFiles);
+                    }
+                );
+            } else {
+                // Nếu không có ảnh trùng, xử lý bình thường
+                processFilesArray(newFiles);
+            }
         }
         
         function saveListSilent(d) { 
