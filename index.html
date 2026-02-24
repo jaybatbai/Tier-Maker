@@ -100,9 +100,7 @@
         .img-wrap { display: block; position: relative; cursor: pointer; transition: transform 0.15s ease, box-shadow 0.1s; margin: 0; padding: 0; touch-action: none; }
         .img-wrap.selected { outline: 3px solid var(--accent); outline-offset: -3px; z-index: 5; box-shadow: 0 4px 15px rgba(0,0,0,0.5); transform: scale(0.98); }
         .img-wrap:active { transform: scale(0.95); }
-        
-        /* Hiệu ứng khi nhấc ảnh lên, mờ đi 1 xíu để phân biệt gốc và bóng */
-        .img-wrap.dragging { opacity: 0.4; }
+        .img-wrap.dragging { opacity: 0.5; }
         
         .img-item { height: 85px; width: auto; border-radius: 0; display: block; pointer-events: none; }
         .img-caption { position: absolute; bottom: 0; left: 0; width: 100%; background: rgba(0,0,0,0.7); color: white; font-size: 11px; text-align: center; padding: 2px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; pointer-events: none; }
@@ -489,7 +487,7 @@
         // ----------------------------------------------------
         
         function initGlobalClickAndDrop() {
-            // FIX: Tắt bảng điểu khiển khi bấm ra ngoài vùng ảnh
+            // Tắt bảng điểu khiển khi bấm ra ngoài vùng ảnh
             const handleOutsideClick = (e) => {
                 if (selectedImgObj) {
                     const isClickInsideImage = e.target.closest('.img-wrap');
@@ -504,17 +502,17 @@
             document.addEventListener('mousedown', handleOutsideClick);
             document.addEventListener('touchstart', handleOutsideClick, {passive: true});
 
-            // FIX: Cấp quyền Drop cho nguyên cả khu vực chứa Dock dưới đáy
+            // Cấp quyền Drop cho khu vực chứa Dock dưới đáy
             const dockContainer = document.getElementById('dock-container-box');
             dockContainer.ondragover = e => {
+                e.preventDefault(); // Lệnh BẮT BUỘC để cho phép thả (Chống cấm thả)
                 if(draggedItem) {
-                    e.preventDefault(); 
-                    e.dataTransfer.dropEffect = 'move'; // Chống icon rác
+                    e.dataTransfer.dropEffect = 'move';
                 }
             };
             dockContainer.ondrop = e => {
+                e.preventDefault(); // Lệnh BẮT BUỘC
                 if(draggedItem) {
-                    e.preventDefault();
                     let oldArray = (draggedItem.type === 'tier') ? currentListData.tiers[draggedItem.r].items : currentListData.dock;
                     oldArray.splice(draggedItem.i, 1);
                     currentListData.dock.push(draggedItem.data);
@@ -527,9 +525,9 @@
         function initGlobalFileDrop() { 
             const overlay = document.getElementById('drop-overlay'); 
             window.addEventListener('dragenter', e => { 
+                e.preventDefault();
                 if (draggedItem) return; 
                 if (e.dataTransfer.types && e.dataTransfer.types.includes("Files")) { 
-                    e.preventDefault(); 
                     e.dataTransfer.dropEffect = 'copy'; 
                     overlay.style.display = 'flex'; 
                 } 
@@ -539,17 +537,21 @@
                 overlay.style.display = 'none'; 
             }); 
             
-            // FIX ICON RÁC: Chỉ cho phép dropEffect = 'copy' NẾU đang thả File từ ngoài vào. Cấm can thiệp nếu đang kéo ảnh trong web
+            // FIX ICON RÁC: Xử lý triệt để lệnh cho phép thả trên toàn Window
             window.addEventListener('dragover', e => { 
-                if (draggedItem) return; // Nếu đang kéo ảnh trong App, ngừng ngay hàm này để trả lại quyền cho 'Move'
-                e.preventDefault(); 
-                e.dataTransfer.dropEffect = 'copy'; 
+                e.preventDefault(); // Lệnh BẮT BUỘC để cho phép thả ở mọi nơi, chống biển cấm 🚫
+                if (draggedItem) {
+                    e.dataTransfer.dropEffect = 'move'; // Icon di chuyển
+                    return;
+                }
+                e.dataTransfer.dropEffect = 'copy'; // Icon copy file
             });
             
             window.addEventListener('drop', e => { 
-                if (draggedItem) return; // Nếu đang kéo ảnh trong App, bỏ qua
+                e.preventDefault(); // Lệnh BẮT BUỘC
+                if (draggedItem) return; // Đang kéo ảnh trong App, kệ hàm này
+                
                 overlay.style.display = 'none'; 
-                e.preventDefault(); 
                 if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
                     if (!currentListData) { 
                         alert("Vui lòng mở một bảng xếp hạng trước khi thêm ảnh!"); 
@@ -709,8 +711,8 @@
                     };
                     
                     row.ondragover = e => { 
+                        e.preventDefault(); // Lệnh BẮT BUỘC
                         if (draggedRowIdx !== null) { 
-                            e.preventDefault(); 
                             e.dataTransfer.dropEffect = 'move';
                             e.currentTarget.style.borderTop = "3px solid #10b981"; 
                         }
@@ -721,6 +723,7 @@
                     };
                     
                     row.ondrop = e => { 
+                        e.preventDefault(); // Lệnh BẮT BUỘC
                         e.currentTarget.style.borderTop = "";
                         if (draggedRowIdx !== null) { 
                             const tmp = currentListData.tiers.splice(draggedRowIdx, 1)[0]; 
@@ -742,13 +745,14 @@
                     const content = document.createElement('div'); 
                     content.className = 'tier-content';
                     content.ondragover = e => { 
+                        e.preventDefault(); // Lệnh BẮT BUỘC
                         if (draggedItem) {
-                            e.preventDefault(); 
                             e.dataTransfer.dropEffect = 'move'; 
                         }
                     };
                     
                     content.ondrop = e => { 
+                        e.preventDefault(); // Lệnh BẮT BUỘC
                         if (draggedItem && e.target === content) { 
                             let newArray = currentListData.tiers[i].items;
                             let oldArray = (draggedItem.type === 'tier') ? currentListData.tiers[draggedItem.r].items : currentListData.dock;
@@ -769,10 +773,13 @@
                 dock.innerHTML = '';
                 
                 dock.ondragover = e => { 
+                    e.preventDefault(); // Lệnh BẮT BUỘC
                     if(draggedItem) {
-                        e.preventDefault(); 
                         e.dataTransfer.dropEffect = 'move'; 
                     }
+                };
+                dock.ondrop = e => { 
+                    e.preventDefault(); // Lệnh BẮT BUỘC
                 };
                 
                 currentListData.dock.forEach((img, idx) => dock.appendChild(createImg(img, 'dock', null, idx)));
@@ -825,8 +832,8 @@
             };
 
             wrap.ondragover = e => {
+                e.preventDefault(); // Lệnh BẮT BUỘC
                 if (!draggedItem || draggedItem.data === data) return;
-                e.preventDefault(); 
                 e.stopPropagation();
                 e.dataTransfer.dropEffect = 'move'; 
                 
@@ -841,7 +848,7 @@
             };
 
             wrap.ondrop = e => {
-                e.preventDefault(); 
+                e.preventDefault(); // Lệnh BẮT BUỘC
                 e.stopPropagation();
                 wrap.style.boxShadow = "none"; 
                 wrap.style.zIndex = "1";
@@ -868,8 +875,8 @@
 
         const tz = document.getElementById('trash-zone');
         tz.ondragover = e => { 
+            e.preventDefault(); // Lệnh BẮT BUỘC
             if(draggedItem) {
-                e.preventDefault(); 
                 e.dataTransfer.dropEffect = 'move';
                 tz.classList.add('hover'); 
             }
