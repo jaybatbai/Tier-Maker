@@ -85,6 +85,7 @@
         @media (min-width: 600px) { .tier-label-wrap { width: 120px; min-width: 120px; } } 
         .tier-label { font-family: Arial, Helvetica, sans-serif; font-size: 14px; font-weight: 400; line-height: 1.3; color: #000; text-align: center; padding: 8px; word-wrap: break-word; overflow-wrap: break-word; cursor: pointer; width: 100%; position: relative; }
         .tier-content { flex: 1; display: flex; flex-wrap: wrap; align-content: center; align-items: center; background: #1a1a1a; padding: 0px; gap: 0px; position: relative; min-height: 85px; transition: background 0.2s; }
+        
         .img-wrap { display: block; position: relative; cursor: pointer; transition: transform 0.15s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.2s; margin: 0; padding: 0; touch-action: none; }
         .img-wrap.selected { outline: 3px solid var(--accent); outline-offset: -3px; z-index: 5; box-shadow: 0 4px 15px rgba(0,0,0,0.5); transform: scale(0.98); }
         .img-wrap.dragging { opacity: 0.2; transform: scale(0.85); }
@@ -157,7 +158,7 @@
 
             <div class="menu-actions">
                 <button class="btn-create" onclick="openCreateModal()">+ Tạo Template Mới</button>
-                <button class="btn-data" onclick="openBackupMenu()">📦 Dữ liệu & Backup (Local)</button>
+                <button class="btn-data" onclick="openBackupMenu()">📦 Nhập / Xuất dữ liệu</button>
             </div>
             <div id="list-container" role="list">Đang tải dữ liệu...</div>
         </div>
@@ -221,7 +222,7 @@
     <div id="modal-overlay" class="modal-overlay"><div class="modal"><h2>Chỉnh sửa Hàng</h2><input type="text" id="edit-name" onkeypress="if(event.key==='Enter') saveTierEdit()"><div style="margin-top:20px;"><label style="display:block; margin-bottom:8px; font-weight:bold; color:var(--text-main);">Màu nền:</label><div style="display:flex; align-items:center; gap:10px;"><input type="color" id="edit-color-picker" style="cursor:pointer; width: 40px; height: 35px; border:none; background:transparent;" aria-label="Bộ chọn màu"><div style="display:flex; flex-wrap:wrap; gap:6px; max-width: 280px;"><div class="color-preset-btn" style="background:#FF7F7F;" onclick="setTierColor('#FF7F7F')"></div><div class="color-preset-btn" style="background:#FFBF7F;" onclick="setTierColor('#FFBF7F')"></div><div class="color-preset-btn" style="background:#FFDF7F;" onclick="setTierColor('#FFDF7F')"></div><div class="color-preset-btn" style="background:#FFFF7F;" onclick="setTierColor('#FFFF7F')"></div><div class="color-preset-btn" style="background:#BFFF7F;" onclick="setTierColor('#BFFF7F')"></div><div class="color-preset-btn" style="background:#7FFF7F;" onclick="setTierColor('#7FFF7F')"></div><div class="color-preset-btn" style="background:#7FFFFF;" onclick="setTierColor('#7FFFFF')"></div><div class="color-preset-btn" style="background:#7FBFFF;" onclick="setTierColor('#7FBFFF')"></div><div class="color-preset-btn" style="background:#7F7FFF;" onclick="setTierColor('#7F7FFF')"></div><div class="color-preset-btn" style="background:#FF7FFF;" onclick="setTierColor('#FF7FFF')"></div><div class="color-preset-btn" style="background:#BF7FFF;" onclick="setTierColor('#BF7FFF')"></div><div class="color-preset-btn" style="background:#333333;" onclick="setTierColor('#333333')"></div><div class="color-preset-btn" style="background:#888888;" onclick="setTierColor('#888888')"></div><div class="color-preset-btn" style="background:#CCCCCC;" onclick="setTierColor('#CCCCCC')"></div><div class="color-preset-btn" style="background:#FFFFFF;" onclick="setTierColor('#FFFFFF')"></div></div></div></div><div style="margin-top:25px; display:flex; gap:10px;"><button class="tier-controls-btn" onclick="moveTierUp()">🔼 Đẩy lên</button><button class="tier-controls-btn" onclick="moveTierDown()">🔽 Đẩy xuống</button></div><div class="modal-btns"><button style="background:var(--text-main); color:var(--bg-base);" onclick="saveTierEdit()">Lưu thay đổi</button><button style="background:var(--danger); color:#fff; border:none;" onclick="deleteTier()">Xóa Hàng</button><button style="background:transparent; color:var(--text-main); border: 1px solid var(--border-color);" onclick="closeModal('modal-overlay')">Đóng</button></div></div></div>
     <div id="caption-modal-overlay" class="modal-overlay"><div class="modal"><h2>Chú thích ảnh</h2><input type="text" id="caption-input" placeholder="Tên nhân vật..." onkeypress="if(event.key==='Enter') saveCaption()"><div class="modal-btns"><button style="background:var(--text-main); color:var(--bg-base);" onclick="saveCaption()">Lưu</button><button style="background:transparent; color:var(--text-main);" onclick="closeModal('caption-modal-overlay')">Hủy</button></div></div></div>
     <div id="help-modal" class="modal-overlay"><div class="modal"><h2>Phím tắt hệ thống</h2><div style="margin-top: 15px;"><div class="shortcut-row"><span>Lưu bảng thủ công</span> <kbd>Ctrl + S</kbd></div><div class="shortcut-row"><span>Hoàn tác (Undo)</span> <kbd>Ctrl + Z</kbd></div><div class="shortcut-row"><span>Làm lại (Redo)</span> <kbd>Ctrl + Y</kbd></div><div class="shortcut-row"><span>Xóa ảnh đang chọn</span> <kbd>Del / Back</kbd></div><div class="shortcut-row"><span>Bỏ chọn / Thoát</span> <kbd>Esc</kbd></div></div><div class="modal-btns"><button style="background:var(--primary); color:#fff;" onclick="closeModal('help-modal')">Đã hiểu</button></div></div></div>
-    <div id="backup-modal-overlay" class="modal-overlay"><div class="modal"><h2>Dữ liệu & Sao lưu</h2><p style="color:var(--text-muted); font-size:0.9rem; margin-bottom: 20px;">Lưu ý: Nếu bạn dùng Cloud, dữ liệu đã an toàn. Bảng này chỉ dùng để copy cho máy Offline.</p><div class="modal-btns"><button style="background:var(--primary); color:#fff;" onclick="exportData()">⬇️ Xuất dữ liệu (Tải file)</button><button style="background:var(--accent); color:#fff;" onclick="document.getElementById('importInput').click()">⬆️ Nhập dữ liệu (Khôi phục)</button><button style="background:#f59e0b; color:#fff; margin-top:10px;" onclick="copyDataToClipboard()">📋 Copy Code (Dán máy khác)</button><button style="background:#8b5cf6; color:#fff; margin-top:5px;" onclick="pasteDataFromClipboard()">📝 Dán Code (Lấy từ máy khác)</button><button style="background:var(--danger); color:#fff; margin-top:15px;" onclick="wipeAllData()">🗑️ Xóa sạch mọi thứ (Reset)</button><button style="background:transparent; color:var(--text-main); margin-top:5px;" onclick="closeModal('backup-modal-overlay')">Đóng</button></div><input type="file" id="importInput" accept=".json" onchange="importData(event)" style="display:none" aria-label="Nhập file dữ liệu"></div></div>
+    <div id="backup-modal-overlay" class="modal-overlay"><div class="modal"><h2>Dữ liệu & Sao lưu</h2><p style="color:var(--text-muted); font-size:0.9rem; margin-bottom: 20px;">Lưu ý: Nếu bạn đang đăng nhập, dán/nhập dữ liệu sẽ tự động đồng bộ lên Cloud luôn.</p><div class="modal-btns"><button style="background:var(--primary); color:#fff;" onclick="exportData()">⬇️ Xuất dữ liệu (Tải file)</button><button style="background:var(--accent); color:#fff;" onclick="document.getElementById('importInput').click()">⬆️ Nhập dữ liệu (Khôi phục)</button><button style="background:#f59e0b; color:#fff; margin-top:10px;" onclick="copyDataToClipboard()">📋 Copy Code (Dán máy khác)</button><button style="background:#8b5cf6; color:#fff; margin-top:5px;" onclick="pasteDataFromClipboard()">📝 Dán Code (Lấy từ máy khác)</button><button style="background:var(--danger); color:#fff; margin-top:15px;" onclick="wipeAllData()">🗑️ Xóa sạch mọi thứ (Reset Local)</button><button style="background:transparent; color:var(--text-main); margin-top:5px;" onclick="closeModal('backup-modal-overlay')">Đóng</button></div><input type="file" id="importInput" accept=".json" onchange="importData(event)" style="display:none" aria-label="Nhập file dữ liệu"></div></div>
     <div id="manual-paste-modal" class="modal-overlay"><div class="modal"><h2>Dán mã dữ liệu</h2><p style="color:var(--text-muted); font-size:0.85rem;">Trình duyệt chặn dán tự động. Nhấn vào ô bên dưới và bấm <kbd>Ctrl+V</kbd>.</p><textarea id="manual-paste-textarea" rows="4" placeholder="Dán mã vào đây..."></textarea><div class="modal-btns"><button style="background:#8b5cf6; color:#fff;" onclick="processManualPaste()">Khôi phục dữ liệu</button><button style="background:transparent; color:var(--text-main);" onclick="closeModal('manual-paste-modal')">Hủy</button></div></div></div>
 
     <script>
@@ -243,7 +244,6 @@
         const dbCloud = firebase.firestore();
         let currentUser = null;
 
-        // Bắt sự kiện đăng nhập/đăng xuất
         auth.onAuthStateChanged(user => {
             currentUser = user;
             const btnLogin = document.getElementById('btn-login');
@@ -258,7 +258,6 @@
                 btnLogin.style.display = 'flex';
                 userProfile.style.display = 'none';
             }
-            // Load lại menu dựa theo trạng thái (Cloud hay Local)
             if (db) loadMenu(); 
         });
 
@@ -301,7 +300,7 @@
             req.onupgradeneeded = e => { e.target.result.createObjectStore('lists', {keyPath:'id'}); };
             req.onsuccess = e => {
                 db = e.target.result;
-                loadMenu(); // Sẽ fetch từ Cloud nếu đã login
+                loadMenu();
                 initGlobalFileDrop();
                 initKeyboardShortcuts();
                 initGlobalClickAndDrop();
@@ -321,7 +320,6 @@
             container.innerHTML = '<div style="grid-column: 1/-1; text-align:center;">Đang tải dữ liệu...</div>';
             
             if (currentUser) {
-                // KÉO TỪ CLOUD
                 dbCloud.collection('users').doc(currentUser.uid).collection('tierlists').get()
                 .then(snapshot => {
                     const list = [];
@@ -333,7 +331,6 @@
                     container.innerHTML = 'Lỗi kết nối Cloud: ' + err.message;
                 });
             } else {
-                // KÉO TỪ LOCAL
                 try {
                     db.transaction(['lists']).objectStore('lists').getAll().onsuccess = e => {
                         renderMenuHTML(e.target.result, container, false);
@@ -347,7 +344,6 @@
                 container.innerHTML = `<div style="text-align:center; padding: 60px 20px; color: var(--text-muted); grid-column: 1/-1; font-size: 1.1rem;">📁<br><br>Bạn chưa có bảng xếp hạng nào.<br>${isCloud ? 'Dữ liệu đám mây đang trống.' : 'Hãy đăng nhập để đồng bộ, hoặc tạo mới ngay Offline!'}</div>`;
                 return;
             }
-            
             let html = '';
             list.forEach((l, index) => {
                 const safeName = escapeHTML(l.name);
@@ -368,14 +364,9 @@
         function saveListSilent(d) {
             try {
                 d.updatedAt = new Date().toISOString();
-                
-                // 1. Luôn lưu Local làm Backup
                 db.transaction(['lists'], 'readwrite').objectStore('lists').put(d);
-                
-                // 2. Nếu đăng nhập, bắn thẳng lên Cloud
                 if (currentUser) {
-                    dbCloud.collection('users').doc(currentUser.uid).collection('tierlists').doc(d.id).set(d)
-                           .catch(err => console.error("Lỗi đồng bộ Cloud:", err));
+                    dbCloud.collection('users').doc(currentUser.uid).collection('tierlists').doc(d.id).set(d).catch(err => {});
                 }
             } catch(e) {}
         }
@@ -384,18 +375,13 @@
             e.stopPropagation();
             openConfirm("Xóa Bảng", `Xóa bảng "${name}"?`, () => {
                 showLoading("Đang xóa...");
-                
-                // Xóa Local
                 try {
                     const tx = db.transaction(['lists'], 'readwrite');
                     tx.objectStore('lists').delete(id);
                 } catch(e){}
-                
-                // Xóa Cloud (Nếu có)
                 if (currentUser) {
                     dbCloud.collection('users').doc(currentUser.uid).collection('tierlists').doc(id).delete()
-                    .then(() => { hideLoading(); loadMenu(); })
-                    .catch(() => { hideLoading(); loadMenu(); });
+                    .then(() => { hideLoading(); loadMenu(); }).catch(() => { hideLoading(); loadMenu(); });
                 } else {
                     hideLoading(); loadMenu();
                 }
@@ -405,22 +391,16 @@
         function openList(id) {
             showLoading('Đang mở...');
             if (currentUser) {
-                // Mở từ Cloud
                 dbCloud.collection('users').doc(currentUser.uid).collection('tierlists').doc(id).get()
                 .then(doc => {
-                    if (doc.exists) {
-                        currentListData = doc.data();
-                        setupEditorAfterLoad();
-                    } else { hideLoading(); alert("Bảng không tồn tại trên Cloud!"); }
+                    if (doc.exists) { currentListData = doc.data(); setupEditorAfterLoad(); } 
+                    else { hideLoading(); alert("Bảng không tồn tại trên Cloud!"); }
                 });
             } else {
-                // Mở từ Local
                 try {
                     db.transaction(['lists']).objectStore('lists').get(id).onsuccess = e => {
-                        if(e.target.result) {
-                            currentListData = e.target.result;
-                            setupEditorAfterLoad();
-                        } else { hideLoading(); alert("Bảng không tồn tại!"); }
+                        if(e.target.result) { currentListData = e.target.result; setupEditorAfterLoad(); } 
+                        else { hideLoading(); alert("Bảng không tồn tại!"); }
                     };
                 } catch (err) { hideLoading(); }
             }
@@ -438,7 +418,7 @@
         }
 
         // ----------------------------------------------------
-        // CÁC HÀM CÒN LẠI (KÉO THẢ, RENDER, UI...) Y NHƯ CŨ
+        // 3. EDITOR & DRAG-DROP
         // ----------------------------------------------------
         function initGlobalClickAndDrop() {
             const handleOutsideClick = (e) => {
@@ -596,15 +576,129 @@
             hideLoading(); document.getElementById('editor-screen').classList.add('hidden'); document.getElementById('menu-screen').classList.remove('hidden'); loadMenu();
         }
 
-        // CÁC HÀM BACKUP LOCAL Y CŨ
+        // ----------------------------------------------------
+        // 4. BACKUP / EXPORT / IMPORT ENGINE CẬP NHẬT MỚI 
+        // ----------------------------------------------------
         function openBackupMenu() { document.getElementById('backup-modal-overlay').style.display='flex'; }
-        function exportData() { try { db.transaction(['lists']).objectStore('lists').getAll().onsuccess = e => { const data = JSON.stringify(e.target.result); const blob = new Blob([data], {type: "application/json"}); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `TierMaker_Backup_${Date.now()}.json`; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000); }; } catch (err) {} }
-        function importData(e) { const file = e.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = ev => { try { const data = JSON.parse(ev.target.result); const tx = db.transaction(['lists'], 'readwrite'); const store = tx.objectStore('lists'); data.forEach(item => store.put(item)); tx.oncomplete = () => { alert('✅ Khôi phục thành công!'); loadMenu(); closeModal('backup-modal-overlay'); }; } catch(err) {} }; reader.readAsText(file); e.target.value = ''; }
-        async function copyDataToClipboard() { try { db.transaction(['lists']).objectStore('lists').getAll().onsuccess = async e => { try { await navigator.clipboard.writeText(JSON.stringify(e.target.result)); alert('✅ Đã Copy!'); } catch (err) {} }; } catch (err) {} }
-        async function pasteDataFromClipboard() { try { const text = await navigator.clipboard.readText(); if (!text) { return; } processPastedString(text); } catch (err) { document.getElementById('manual-paste-textarea').value = ''; document.getElementById('manual-paste-modal').style.display = 'flex'; document.getElementById('manual-paste-textarea').focus(); } }
-        function processManualPaste() { const text = document.getElementById('manual-paste-textarea').value; if (!text) return; closeModal('manual-paste-modal'); processPastedString(text); }
-        function processPastedString(text) { try { const data = JSON.parse(text); const tx = db.transaction(['lists'], 'readwrite'); const store = tx.objectStore('lists'); data.forEach(item => store.put(item)); tx.oncomplete = () => { alert('✅ Khôi phục thành công!'); loadMenu(); closeModal('backup-modal-overlay'); }; } catch(e) {} }
-        function wipeAllData() { openConfirm("CẢNH BÁO", "Xóa TOÀN BỘ dữ liệu local?", () => { try { db.transaction(['lists'], 'readwrite').objectStore('lists').clear().onsuccess = () => location.reload(); } catch(e) {} }); }
+        
+        function exportData() { 
+            try { 
+                db.transaction(['lists']).objectStore('lists').getAll().onsuccess = e => { 
+                    const data = JSON.stringify(e.target.result); 
+                    const blob = new Blob([data], {type: "application/json"}); 
+                    const url = URL.createObjectURL(blob); 
+                    const a = document.createElement('a'); 
+                    a.href = url; a.download = `TierMaker_Backup_${Date.now()}.json`; a.click(); 
+                    setTimeout(() => URL.revokeObjectURL(url), 1000); 
+                }; 
+            } catch (err) {} 
+        }
+
+        function importData(e) { 
+            const file = e.target.files[0]; 
+            if (!file) return; 
+            const reader = new FileReader(); 
+            reader.onload = ev => { 
+                try { 
+                    const data = JSON.parse(ev.target.result); 
+                    const tx = db.transaction(['lists'], 'readwrite'); 
+                    const store = tx.objectStore('lists'); 
+                    
+                    showLoading("Đang khôi phục...");
+                    let cloudTasks = [];
+
+                    data.forEach(item => {
+                        store.put(item);
+                        if (currentUser) {
+                            cloudTasks.push(dbCloud.collection('users').doc(currentUser.uid).collection('tierlists').doc(item.id).set(item));
+                        }
+                    }); 
+                    
+                    tx.oncomplete = () => { 
+                        if (currentUser && cloudTasks.length > 0) {
+                            Promise.all(cloudTasks).then(() => {
+                                hideLoading();
+                                alert('✅ Đã khôi phục và Đồng bộ lên Cloud!'); 
+                                loadMenu(); 
+                                closeModal('backup-modal-overlay'); 
+                            });
+                        } else {
+                            hideLoading();
+                            alert('✅ Khôi phục Local thành công!'); 
+                            loadMenu(); 
+                            closeModal('backup-modal-overlay'); 
+                        }
+                    }; 
+                } catch(err) { hideLoading(); alert('❌ File bị lỗi định dạng!'); } 
+            }; 
+            reader.readAsText(file); e.target.value = ''; 
+        }
+
+        async function copyDataToClipboard() { 
+            try { 
+                db.transaction(['lists']).objectStore('lists').getAll().onsuccess = async e => { 
+                    try { await navigator.clipboard.writeText(JSON.stringify(e.target.result)); alert('✅ Đã Copy!'); } catch (err) {} 
+                }; 
+            } catch (err) {} 
+        }
+
+        async function pasteDataFromClipboard() { 
+            try { 
+                const text = await navigator.clipboard.readText(); 
+                if (!text) { return; } 
+                processPastedString(text); 
+            } catch (err) { 
+                document.getElementById('manual-paste-textarea').value = ''; 
+                document.getElementById('manual-paste-modal').style.display = 'flex'; 
+                document.getElementById('manual-paste-textarea').focus(); 
+            } 
+        }
+
+        function processManualPaste() { 
+            const text = document.getElementById('manual-paste-textarea').value; 
+            if (!text) return; 
+            closeModal('manual-paste-modal'); processPastedString(text); 
+        }
+
+        function processPastedString(text) { 
+            try { 
+                const data = JSON.parse(text); 
+                const tx = db.transaction(['lists'], 'readwrite'); 
+                const store = tx.objectStore('lists'); 
+                
+                showLoading("Đang khôi phục...");
+                let cloudTasks = [];
+
+                data.forEach(item => {
+                    store.put(item);
+                    if (currentUser) {
+                        cloudTasks.push(dbCloud.collection('users').doc(currentUser.uid).collection('tierlists').doc(item.id).set(item));
+                    }
+                }); 
+                
+                tx.oncomplete = () => { 
+                    if (currentUser && cloudTasks.length > 0) {
+                        Promise.all(cloudTasks).then(() => {
+                            hideLoading();
+                            alert('✅ Đã khôi phục và Đồng bộ lên Cloud!'); 
+                            loadMenu(); 
+                            closeModal('backup-modal-overlay'); 
+                        });
+                    } else {
+                        hideLoading();
+                        alert('✅ Khôi phục Local thành công!'); 
+                        loadMenu(); 
+                        closeModal('backup-modal-overlay'); 
+                    }
+                }; 
+            } catch(e) { hideLoading(); alert('❌ Mã không hợp lệ!'); } 
+        }
+
+        function wipeAllData() { 
+            openConfirm("CẢNH BÁO", "Xóa TOÀN BỘ dữ liệu local?", () => { 
+                try { db.transaction(['lists'], 'readwrite').objectStore('lists').clear().onsuccess = () => location.reload(); } catch(e) {} 
+            }); 
+        }
     </script>
 </body>
 </html>
