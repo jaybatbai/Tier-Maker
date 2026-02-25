@@ -366,7 +366,10 @@
                 d.updatedAt = new Date().toISOString();
                 db.transaction(['lists'], 'readwrite').objectStore('lists').put(d);
                 if (currentUser) {
-                    dbCloud.collection('users').doc(currentUser.uid).collection('tierlists').doc(d.id).set(d).catch(err => {});
+                    dbCloud.collection('users').doc(currentUser.uid).collection('tierlists').doc(d.id).set(d).catch(err => {
+                        console.error("Lỗi đồng bộ Cloud tự động:", err);
+                        // showToast("⚠️ Không thể lưu lên Cloud. Dung lượng có thể quá lớn.");
+                    });
                 }
             } catch(e) {}
         }
@@ -577,7 +580,7 @@
         }
 
         // ----------------------------------------------------
-        // 4. BACKUP / EXPORT / IMPORT ENGINE CẬP NHẬT MỚI 
+        // 4. BACKUP / EXPORT / IMPORT ENGINE (CÓ BẮT LỖI FIREBASE)
         // ----------------------------------------------------
         function openBackupMenu() { document.getElementById('backup-modal-overlay').style.display='flex'; }
         
@@ -604,7 +607,7 @@
                     const tx = db.transaction(['lists'], 'readwrite'); 
                     const store = tx.objectStore('lists'); 
                     
-                    showLoading("Đang khôi phục...");
+                    showLoading("Đang khôi phục & Đồng bộ...");
                     let cloudTasks = [];
 
                     data.forEach(item => {
@@ -621,6 +624,12 @@
                                 alert('✅ Đã khôi phục và Đồng bộ lên Cloud!'); 
                                 loadMenu(); 
                                 closeModal('backup-modal-overlay'); 
+                            }).catch(err => {
+                                hideLoading();
+                                console.error("Lỗi Firebase:", err);
+                                alert("❌ Lỗi đồng bộ lên Cloud:\n" + err.message + "\n\n(Dữ liệu vẫn được khôi phục ở chế độ Offline trong máy của bạn)");
+                                loadMenu();
+                                closeModal('backup-modal-overlay');
                             });
                         } else {
                             hideLoading();
@@ -637,7 +646,7 @@
         async function copyDataToClipboard() { 
             try { 
                 db.transaction(['lists']).objectStore('lists').getAll().onsuccess = async e => { 
-                    try { await navigator.clipboard.writeText(JSON.stringify(e.target.result)); alert('✅ Đã Copy!'); } catch (err) {} 
+                    try { await navigator.clipboard.writeText(JSON.stringify(e.target.result)); alert('✅ Đã Copy!'); } catch (err) { alert('Lỗi copy, mã quá dài. Vui lòng dùng Tải File.'); } 
                 }; 
             } catch (err) {} 
         }
@@ -666,7 +675,7 @@
                 const tx = db.transaction(['lists'], 'readwrite'); 
                 const store = tx.objectStore('lists'); 
                 
-                showLoading("Đang khôi phục...");
+                showLoading("Đang khôi phục & Đồng bộ...");
                 let cloudTasks = [];
 
                 data.forEach(item => {
@@ -683,6 +692,12 @@
                             alert('✅ Đã khôi phục và Đồng bộ lên Cloud!'); 
                             loadMenu(); 
                             closeModal('backup-modal-overlay'); 
+                        }).catch(err => {
+                            hideLoading();
+                            console.error("Lỗi Firebase:", err);
+                            alert("❌ Lỗi đồng bộ lên Cloud:\n" + err.message + "\n\n(Dữ liệu vẫn được khôi phục ở chế độ Offline trong máy của bạn)");
+                            loadMenu();
+                            closeModal('backup-modal-overlay');
                         });
                     } else {
                         hideLoading();
