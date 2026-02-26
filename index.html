@@ -90,15 +90,14 @@
         #btn-drag-toggle { background: var(--bg-surface); color: var(--primary); font-weight: 800; border: 1px solid var(--border-color); border-radius: 6px; padding: 6px 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; width: max-content; transition: all 0.2s;}
 
         .capture-wrapper { padding: 15px 12px; background: var(--bg-base); overflow-x: auto; touch-action: pan-y; } 
-        #capture-area { background: #000; display: inline-flex; flex-direction: column; width: 100%; min-width: 100%; border-radius: 4px; overflow: hidden; outline: 1px solid var(--border-color); }
-        .board-header-style { text-align: center; font-size: clamp(1.2rem, 4vw, 1.75rem); font-weight: 800; padding: 20px 10px; background: #000; color: #fff; text-transform: uppercase; border-bottom: 1px solid #000; cursor: pointer; transition: background 0.2s; }
+        #capture-area { background: #000; display: inline-flex; flex-direction: column; width: 100%; min-width: 100%; border-radius: 4px; overflow: hidden; outline: 1px solid var(--border-color); transition: background 0.3s; }
+        .board-header-style { text-align: center; font-size: clamp(1.2rem, 4vw, 1.75rem); font-weight: 800; padding: 20px 10px; background: #000; color: #fff; text-transform: uppercase; cursor: pointer; transition: background 0.2s; }
         .board-header-style:hover { background: #1a1a1a; }
-        #tier-board { display: flex; flex-direction: column; gap: 4px; background: #000; border-top: 1px solid #000; padding: 4px; } 
+        #tier-board { display: flex; flex-direction: column; gap: 4px; background: #000; border-top: 1px solid #000; padding: 4px; transition: background 0.3s; } 
         
         .tier-row { display: flex; align-items: stretch; background: #1a1a1a; border-radius: 2px; overflow: hidden; transition: border-top 0.2s; }
         
-        /* ĐÃ FIX LABEL XUỐNG DÒNG (THÊM HYPHENS, BỘ FONT MỚI, SIZE CHUẨN) */
-        .tier-label-wrap { width: 85px; min-width: 85px; display: flex; align-items: center; justify-content: center; border-right: 1px solid #000; position: relative; cursor: grab; touch-action: none; }
+        .tier-label-wrap { width: 85px; min-width: 85px; display: flex; align-items: center; justify-content: center; position: relative; cursor: grab; touch-action: none; }
         .tier-label-wrap:active { cursor: grabbing; }
         .tier-label { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; font-size: 12px; font-weight: 600; line-height: 1.25; color: #000; text-align: center; padding: 4px; word-wrap: break-word; overflow-wrap: break-word; word-break: break-word; hyphens: auto; -webkit-hyphens: auto; width: 100%; pointer-events: none; }
         @media (min-width: 600px) { 
@@ -150,6 +149,8 @@
         
         @media (min-width: 768px) {
             .board-header-style { font-size: 2rem; padding: 30px; }
+            .tier-label-wrap { width: 140px; min-width: 140px; }
+            .tier-label { font-size: 16px; }
             .bottom-toolbar { padding: 15px 40px; gap: 20px; }
             .btn-bottom { font-size: 1.05rem; }
             #dock { max-height: 40vh; gap: 8px; padding: 15px; }
@@ -160,7 +161,7 @@
         @keyframes modalPopUp { 0% { opacity: 0; transform: scale(0.9) translateY(20px); } 100% { opacity: 1; transform: scale(1) translateY(0); } }
 
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 300; display: none; align-items: center; justify-content: center; backdrop-filter: blur(8px); padding: 20px; animation: overlayFadeIn 0.2s ease-out forwards; }
-        .modal { background: var(--bg-surface); padding: 28px; border-radius: var(--radius-lg); width: 100%; max-width: 400px; border: 1px solid var(--border-color); box-shadow: var(--shadow-float); animation: modalPopUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+        .modal { background: var(--bg-surface); padding: 28px; border-radius: var(--radius-lg); width: 100%; max-width: 400px; border: 1px solid var(--border-color); box-shadow: var(--shadow-float); animation: modalPopUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; max-height: 90vh; overflow-y: auto; }
         .modal h2 { margin-top: 0; color: var(--text-main); }
         .modal input[type="text"], .modal textarea { width: 100%; padding: 14px; background: var(--bg-base); color: var(--text-main); border: 1px solid var(--border-color); border-radius: var(--radius-md); outline: none; font-family: inherit; }
         .modal-btns { display: flex; flex-direction: column; gap: 10px; margin-top: 28px; }
@@ -218,10 +219,11 @@
             </div>
             
             <div class="board-footer-actions" style="padding: 0 20px 20px 20px; display:flex; flex-wrap: wrap; gap:10px;">
-                <button onclick="addNewTier()" class="btn-icon" style="flex:1;">+ Add Row</button>
-                <button onclick="toggleImageShape()" id="btn-shape-toggle" class="btn-icon" style="flex:1;">🔄 Shape: Original</button>
-                <button onclick="toggleHeader()" class="btn-icon" style="flex:1;">Toggle Header</button>
-                <button onclick="resetBoard()" class="btn-icon" style="color:var(--danger); border-color:var(--danger); flex:1;">Reset Board</button>
+                <button onclick="addNewTier()" class="btn-icon" style="flex:1; min-width: 100px;">+ Add Row</button>
+                <button onclick="openBgModal()" class="btn-icon" style="flex:1; min-width: 100px;">🎨 Background</button>
+                <button onclick="toggleImageShape()" id="btn-shape-toggle" class="btn-icon" style="flex:1; min-width: 100px;">🔄 Shape: Original</button>
+                <button onclick="toggleHeader()" class="btn-icon" style="flex:1; min-width: 100px;">Toggle Header</button>
+                <button onclick="resetBoard()" class="btn-icon" style="color:var(--danger); border-color:var(--danger); flex:1; min-width: 100px;">Reset Board</button>
             </div>
             
             <div id="dock-container-box" class="dock-container">
@@ -264,6 +266,39 @@
             <div class="modal-btns" style="flex-direction: row;">
                 <button style="background:transparent; color:var(--text-main); border: 1px solid var(--border-color);" onclick="execCancel()">Cancel</button>
                 <button style="background:var(--danger); color:white;" onclick="execConfirm()">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="bg-modal-overlay" class="modal-overlay">
+        <div class="modal">
+            <h2>Custom Background</h2>
+            <div style="margin-top:20px;">
+                <label style="display:block; margin-bottom:8px; font-weight:bold; color:var(--text-main);">Solid Color:</label>
+                <input type="color" id="bg-color-picker" style="cursor:pointer; width: 100%; height: 40px; border:none; background:transparent; border-radius: 8px;" onchange="setBgColor(this.value)">
+
+                <label style="display:block; margin-top:20px; margin-bottom:8px; font-weight:bold; color:var(--text-main);">Gradient Presets:</label>
+                <div style="display:flex; flex-wrap:wrap; gap:8px;">
+                    <div class="color-preset-btn" style="background: linear-gradient(45deg, #ff9a9e, #fecfef);" onclick="setBgColor('linear-gradient(45deg, #ff9a9e, #fecfef)')"></div>
+                    <div class="color-preset-btn" style="background: linear-gradient(45deg, #a18cd1, #fbc2eb);" onclick="setBgColor('linear-gradient(45deg, #a18cd1, #fbc2eb)')"></div>
+                    <div class="color-preset-btn" style="background: linear-gradient(45deg, #84fab0, #8fd3f4);" onclick="setBgColor('linear-gradient(45deg, #84fab0, #8fd3f4)')"></div>
+                    <div class="color-preset-btn" style="background: linear-gradient(45deg, #fccb90, #d57eeb);" onclick="setBgColor('linear-gradient(45deg, #fccb90, #d57eeb)')"></div>
+                    <div class="color-preset-btn" style="background: linear-gradient(45deg, #e0c3fc, #8ec5fc);" onclick="setBgColor('linear-gradient(45deg, #e0c3fc, #8ec5fc)')"></div>
+                    <div class="color-preset-btn" style="background: linear-gradient(45deg, #4facfe, #00f2fe);" onclick="setBgColor('linear-gradient(45deg, #4facfe, #00f2fe)')"></div>
+                    <div class="color-preset-btn" style="background: linear-gradient(45deg, #43e97b, #38f9d7);" onclick="setBgColor('linear-gradient(45deg, #43e97b, #38f9d7)')"></div>
+                    <div class="color-preset-btn" style="background: linear-gradient(45deg, #fa709a, #fee140);" onclick="setBgColor('linear-gradient(45deg, #fa709a, #fee140)')"></div>
+                    <div class="color-preset-btn" style="background: linear-gradient(45deg, #30cfd0, #330867);" onclick="setBgColor('linear-gradient(45deg, #30cfd0, #330867)')"></div>
+                    <div class="color-preset-btn" style="background: linear-gradient(to right, #434343 0%, black 100%);" onclick="setBgColor('linear-gradient(to right, #434343 0%, black 100%)')"></div>
+                </div>
+
+                <label style="display:block; margin-top:20px; margin-bottom:8px; font-weight:bold; color:var(--text-main);">Custom Image:</label>
+                <input type="file" id="bg-img-input" accept="image/*" onchange="handleBgImage(event)" style="display:none">
+                <button onclick="document.getElementById('bg-img-input').click()" style="width:100%; padding:12px; background:var(--bg-elevated); color:var(--text-main); border:1px solid var(--border-color); border-radius:var(--radius-md); font-weight:bold; cursor:pointer;">📁 Upload Background Image</button>
+            </div>
+            
+            <div class="modal-btns">
+                <button style="background:var(--danger); color:white; border:none;" onclick="resetBackground()">Reset to Default</button>
+                <button style="background:transparent; color:var(--text-main); border: 1px solid var(--border-color);" onclick="closeModal('bg-modal-overlay')">Close</button>
             </div>
         </div>
     </div>
@@ -500,6 +535,31 @@
             commitChange();
         }
 
+        // TÍNH NĂNG ĐỔI NỀN BẢNG (CUSTOM BACKGROUND)
+        function openBgModal() { document.getElementById('bg-modal-overlay').style.display='flex'; }
+        function setBgColor(val) { currentListData.background = val; closeModal('bg-modal-overlay'); commitChange(); }
+        function resetBackground() { currentListData.background = null; closeModal('bg-modal-overlay'); commitChange(); }
+        
+        function handleBgImage(e) {
+            const file = e.target.files[0];
+            if (!file || !file.type.startsWith('image/')) return;
+            showLoading("Processing background...");
+            const r = new FileReader();
+            r.onload = ev => {
+                const i = new Image(); i.src = ev.target.result;
+                i.onload = () => {
+                    try {
+                        const c = document.createElement('canvas'); const x = c.getContext('2d');
+                        const M = 1920; let w = i.width; let h = i.height;
+                        if (w > M) { h *= (M/w); w = M; }
+                        c.width = w; c.height = h; x.drawImage(i, 0, 0, w, h);
+                        currentListData.background = `url(${c.toDataURL('image/jpeg', 0.8)})`;
+                        commitChange();
+                    } catch(err) {} finally { hideLoading(); closeModal('bg-modal-overlay'); document.getElementById('bg-img-input').value = ''; }
+                }; i.onerror = () => { hideLoading(); document.getElementById('bg-img-input').value = ''; }
+            }; r.readAsDataURL(file);
+        }
+
         // 5. MENU & LIST MANAGEMENT
         function loadMenu() { 
             try { db.transaction(['lists']).objectStore('lists').getAll().onsuccess = e => { 
@@ -531,7 +591,6 @@
         // 6. BOARD RENDER & DRAG-DROP
         function renderBoard() {
             try {
-                // Xử lý nút Shape
                 const editorScreen = document.getElementById('editor-screen');
                 editorScreen.classList.remove('shape-square', 'shape-circle');
                 const shapeBtn = document.getElementById('btn-shape-toggle');
@@ -541,6 +600,21 @@
 
                 const board = document.getElementById('tier-board'); board.innerHTML = '';
                 const hEl = document.getElementById('tier-header'); hEl.innerText = currentListData.name; hEl.style.display = currentListData.headerVisible === false ? 'none' : 'block';
+
+                const captureArea = document.getElementById('capture-area');
+                if (currentListData.background) {
+                    captureArea.style.background = currentListData.background;
+                    captureArea.style.backgroundSize = 'cover';
+                    captureArea.style.backgroundPosition = 'center';
+                    hEl.style.backgroundColor = 'rgba(0,0,0,0.6)';
+                    board.style.backgroundColor = 'transparent';
+                    board.style.borderTop = 'none';
+                } else {
+                    captureArea.style.background = '#000';
+                    hEl.style.backgroundColor = '#000';
+                    board.style.backgroundColor = '#000';
+                    board.style.borderTop = '1px solid #000';
+                }
 
                 currentListData.tiers.forEach((t, i) => {
                     const row = document.createElement('div'); row.className = 'tier-row'; row.style.backgroundColor = t.color; 
@@ -561,6 +635,7 @@
                     const label = document.createElement('div'); label.className = 'tier-label'; label.innerText = t.name; labelWrap.appendChild(label);
 
                     const content = document.createElement('div'); content.className = 'tier-content';
+                    content.style.backgroundColor = currentListData.background ? 'rgba(0,0,0,0.6)' : '#1a1a1a';
                     
                     content.ondragover = e => { 
                         e.preventDefault(); 
@@ -630,14 +705,14 @@
                 };
                 
                 currentListData.dock.forEach((img, idx) => dock.appendChild(createImg(img, 'dock', null, idx)));
-                filterDock(); // GỌI LẠI HÀM LỌC SAU KHI RENDER
+                filterDock();
             } catch (err) {}
         }
 
         function createImg(data, type, r, i) {
             const wrap = document.createElement('div'); wrap.className = 'img-wrap'; 
             wrap.style.height = (type==='tier' ? data.h : 85) + 'px';
-            wrap.dataset.name = (data.name || '').toLowerCase(); // Gắn tên ẩn để dùng cho Search Bar
+            wrap.dataset.name = (data.name || '').toLowerCase();
             
             if(isDragMode) wrap.draggable = true;
             else wrap.style.cursor = 'pointer';
@@ -746,7 +821,6 @@
         function openCreateModal() { document.getElementById('create-modal-overlay').style.display='flex'; document.getElementById('new-template-name').focus(); }
         function openHelpModal() { document.getElementById('help-modal').style.display='flex'; }
         
-        // TỰ ĐỘNG TẠO BẢNG CHUẨN (S, A, B, C, D, F)
         function confirmCreateList() { 
             const name = document.getElementById('new-template-name').value.trim() || 'New Board'; 
             try { 
@@ -767,7 +841,8 @@
                                 {name:'F', color:'#7F7FFF', items:[]}
                             ], 
                             dock: [],
-                            shape: 'auto'
+                            shape: 'auto',
+                            background: null
                         }; 
                         saveListSilent(newList); loadMenu(); closeModal('create-modal-overlay'); document.getElementById('new-template-name').value = ''; hideLoading(); 
                     }, 300); 
