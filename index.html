@@ -36,8 +36,6 @@
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif; }
         ::-webkit-scrollbar { width: 4px; height: 4px; }
         ::-webkit-scrollbar-thumb { background: var(--bg-elevated); border-radius: 10px; }
-        
-        /* FIX MOBILE SCROLL: Added safe area paddings */
         body { background: var(--bg-base); color: var(--text-main); margin: 0; padding: 0; padding-bottom: 100px; overscroll-behavior: none; -webkit-font-smoothing: antialiased; padding-left: env(safe-area-inset-left); padding-right: env(safe-area-inset-right); }
         .hidden { display: none !important; }
         
@@ -57,7 +55,7 @@
         #trash-zone { position: fixed; bottom: 100px; right: 30px; width: 70px; height: 70px; background: var(--danger); color: white; border-radius: 50%; display: none; align-items: center; justify-content: center; font-size: 1.8rem; z-index: 9999; box-shadow: 0 10px 25px rgba(239,68,68,0.5); border: 3px solid #fff; transition: transform 0.2s; }
         #trash-zone.hover { transform: scale(1.2); background: #dc2626; }
 
-        /* MENU SCREEN */
+        /* MENU SCREEN & ANIMATIONS */
         #menu-screen { padding: 60px 20px; flex: 1; display: flex; flex-direction: column; align-items: center; }
         .app-header { display: flex; align-items: center; justify-content: center; width: 100%; max-width: 380px; margin-bottom: 30px; position: relative; }
         .app-title { color: var(--text-main); font-size: clamp(2rem, 6vw, 2.5rem); margin: 0; font-weight: 800; letter-spacing: -1px; text-transform: uppercase; }
@@ -79,29 +77,29 @@
         .btn-delete-list:hover { background: rgba(239, 68, 68, 1); transform: scale(1.1); }
         .list-info-wrap { padding: 15px; display: flex; align-items: center; }
         
-        /* EDITOR SCREEN */
-        .top-bar { background: var(--bg-surface); opacity: 0.95; backdrop-filter: blur(12px); padding: 12px 20px; display: flex; gap: 10px; align-items: center; position: sticky; top: 0; z-index: 100; border-bottom: 1px solid var(--border-color); flex-wrap: wrap; }
-        .btn-back { background: transparent; color: var(--text-main); border: none; cursor: pointer; font-weight: bold; font-size: 1.1rem; padding: 5px; }
-        .list-name-input { flex: 1; min-width: 120px; background: transparent; border: none; color: var(--text-main); font-size: 1.1rem; font-weight: 600; outline: none; text-overflow: ellipsis; }
+        /* EDITOR SCREEN & NEW MOBILE UX */
+        .top-bar { background: var(--bg-surface); opacity: 0.98; backdrop-filter: blur(12px); padding: 12px 15px; display: flex; gap: 8px; align-items: center; position: sticky; top: 0; z-index: 100; border-bottom: 1px solid var(--border-color); flex-wrap: wrap; }
+        .btn-back { background: transparent; color: var(--text-main); border: none; cursor: pointer; font-weight: bold; font-size: 1.1rem; padding: 5px 0; }
+        .list-name-input { flex: 1; min-width: 100px; background: transparent; border: none; color: var(--text-main); font-size: 1.1rem; font-weight: 600; outline: none; text-overflow: ellipsis; padding: 0 5px; }
         .top-actions { display: flex; gap: 6px; flex-wrap: nowrap; }
-        .btn-icon { background: var(--bg-elevated); color: var(--text-main); border: 1px solid var(--border-color); padding: 6px 10px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .btn-icon { background: var(--bg-elevated); color: var(--text-main); border: 1px solid var(--border-color); padding: 6px 10px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; }
         
-        /* CẬP NHẬT GIAO DIỆN MOBILE CHỐNG ĐƠ VÀ TRÀN ẢNH */
+        /* Nút Khóa Kéo Thả (Toggle Mode) */
+        #btn-drag-toggle { background: var(--bg-surface); color: var(--primary); font-weight: 800; border: 1px solid var(--border-color); border-radius: 6px; padding: 6px 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; width: max-content; }
+        
+        /* Gợi ý cho Mobile */
         .mobile-scroll-hint { background: var(--bg-elevated); color: var(--text-muted); font-size: 0.8rem; text-align: center; padding: 8px; border-bottom: 1px solid var(--border-color); }
         @media (min-width: 768px) { .mobile-scroll-hint { display: none; } }
 
-        /* Thêm padding hai bên (12px) để tạo làn đường vuốt cuộn trang an toàn */
-        .capture-wrapper { padding: 15px 12px; background: var(--bg-base); overflow-x: auto; } 
-        #capture-area { background: #000; display: inline-flex; flex-direction: column; width: 100%; min-width: 100%; border-radius: 6px; overflow: hidden; }
-        .board-header-style { text-align: center; font-size: clamp(1.2rem, 4vw, 1.75rem); font-weight: 800; padding: 25px 15px; background: #000; color: #fff; text-transform: uppercase; border-bottom: 1px solid #000; cursor: pointer; transition: background 0.2s; }
+        /* LỀ AN TOÀN (SAFE MARGIN) ĐỂ CUỘN TRANG */
+        .capture-wrapper { padding: 15px 12px; background: var(--bg-base); overflow-x: auto; touch-action: pan-y; } 
+        #capture-area { background: #000; display: inline-flex; flex-direction: column; width: 100%; min-width: 100%; border-radius: 4px; overflow: hidden; outline: 1px solid var(--border-color); }
+        .board-header-style { text-align: center; font-size: clamp(1.2rem, 4vw, 1.75rem); font-weight: 800; padding: 20px 10px; background: #000; color: #fff; text-transform: uppercase; border-bottom: 1px solid #000; cursor: pointer; transition: background 0.2s; }
         .board-header-style:hover { background: #1a1a1a; }
+        #tier-board { display: flex; flex-direction: column; gap: 4px; background: #000; border-top: 1px solid #000; padding: 4px; } 
         
-        /* Thêm rãnh đen (gap: 6px) giữa các hàng để làm chỗ cuộn tay */
-        #tier-board { display: flex; flex-direction: column; gap: 6px; background: #000; border-top: 1px solid #000; padding: 6px; } 
+        .tier-row { display: flex; align-items: stretch; background: #1a1a1a; border-radius: 2px; overflow: hidden; transition: border-top 0.2s; }
         
-        .tier-row { display: flex; align-items: stretch; background: #1a1a1a; border-radius: 4px; overflow: hidden; transition: border-top 0.2s; }
-        
-        /* Thu nhỏ Label trên điện thoại từ 100px xuống 75px để chừa chỗ cho ảnh dài */
         .tier-label-wrap { width: 75px; min-width: 75px; display: flex; align-items: center; justify-content: center; border-right: 1px solid #000; position: relative; cursor: grab; touch-action: none; }
         .tier-label-wrap:active { cursor: grabbing; }
         @media (min-width: 600px) { .tier-label-wrap { width: 120px; min-width: 120px; } } 
@@ -109,7 +107,7 @@
         
         .tier-content { flex: 1; display: flex; flex-wrap: wrap; align-content: flex-start; align-items: flex-start; background: #1a1a1a; padding: 4px; gap: 4px; position: relative; min-height: 85px; transition: background 0.2s; }
         
-        /* FIX AUTO-FIT: Ép ảnh không được dài quá màn hình */
+        /* HÌNH ẢNH & KÉO THẢ */
         .img-wrap { display: flex; align-items: center; justify-content: center; position: relative; cursor: grab; transition: transform 0.15s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.2s; margin: 0; padding: 0; touch-action: none; max-width: 100%; }
         .img-wrap.selected { outline: 3px solid var(--accent); outline-offset: -3px; z-index: 5; box-shadow: 0 4px 15px rgba(0,0,0,0.5); transform: scale(0.98); }
         .img-wrap:active { transform: scale(0.95); cursor: grabbing;}
@@ -118,12 +116,11 @@
         .drag-placeholder { opacity: 0.7; outline: 3px dashed var(--primary); outline-offset: -3px; pointer-events: none !important; transform: scale(0.98); animation: fadeInGhost 0.2s; border-radius: 4px; overflow: hidden; filter: brightness(1.2); }
         @keyframes fadeInGhost { from { opacity: 0; transform: scale(0.8); } to { opacity: 0.7; transform: scale(0.98); } }
         
-        /* Ảnh sẽ thu nhỏ (contain) nếu quá to */
         .img-item { max-height: 100%; max-width: 100%; object-fit: contain; display: block; pointer-events: none; border-radius: 2px; }
         
         .img-caption { position: absolute; bottom: 0; left: 0; width: 100%; background: rgba(0,0,0,0.7); color: white; font-size: 11px; text-align: center; padding: 2px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; pointer-events: none; }
         
-        .dock-container { background: var(--bg-base); padding: 15px; flex: 1; border-top: 1px solid var(--border-color); }
+        .dock-container { background: var(--bg-base); padding: 15px 12px; flex: 1; border-top: 1px solid var(--border-color); touch-action: pan-y; }
         #dock::-webkit-scrollbar { width: 6px; height: 6px; }
         #dock::-webkit-scrollbar-track { background: transparent; }
         #dock::-webkit-scrollbar-thumb { background: var(--border-hover); border-radius: 10px; }
@@ -204,13 +201,14 @@
                 <button class="btn-back" onclick="backToMenu()" aria-label="Back">‹ Back</button>
                 <input type="text" id="list-name" class="list-name-input" oninput="debounceSaveName()" aria-label="Tier List Name">
                 <div class="top-actions">
+                    <button id="btn-drag-toggle" onclick="toggleDragMode()" title="Toggle Drag/Scroll Mode">✋ Drag: ON</button>
                     <button class="btn-icon" onclick="openHelpModal()" aria-label="Shortcuts" title="Shortcuts">⌨️</button>
                     <button class="btn-icon" onclick="undo()" aria-label="Undo" title="Undo (Ctrl+Z)">↩️</button>
                     <button class="btn-icon" onclick="redo()" aria-label="Redo" title="Redo (Ctrl+Y)">↪️</button>
                     <button class="btn-icon" onclick="toggleZenMode()" aria-label="Full Screen" title="Full Screen">👁️</button>
                 </div>
             </div>
-            <div class="mobile-scroll-hint">💡 Tip: Swipe on edges or black gaps to scroll.</div>
+            <div class="mobile-scroll-hint">💡 Tip: Use the [Drag] button above to lock images & scroll smoothly! Or swipe on edges.</div>
             
             <div class="capture-wrapper">
                 <div id="capture-area">
@@ -392,6 +390,7 @@
         let stateHistory = [], historyIndex = -1;
         let saveTimeout, toastTimeout, confirmAction = null, confirmCancelAction = null;
         let isDirty = false;
+        let isDragMode = true; // BIẾN QUẢN LÝ CHẾ ĐỘ KÉO THẢ/CUỘN TRANG
         
         const autoSaveInterval = setInterval(() => { if (isDirty && currentListData) { saveListSilent(currentListData); showToast('💾 Auto-saved'); isDirty = false; } }, 3000);
         function markDirty() { isDirty = true; }
@@ -427,11 +426,11 @@
             const dockContainer = document.getElementById('dock-container-box');
             dockContainer.ondragover = e => { 
                 e.preventDefault(); 
-                if (draggedItem && draggedItem.type !== 'row') e.dataTransfer.dropEffect = 'move'; 
+                if (isDragMode && draggedItem && draggedItem.type !== 'row') e.dataTransfer.dropEffect = 'move'; 
             };
             dockContainer.ondrop = e => { 
                 e.preventDefault(); 
-                if (draggedItem && draggedItem.type !== 'row') {
+                if (isDragMode && draggedItem && draggedItem.type !== 'row') {
                     let oldArray = (draggedItem.type === 'tier') ? currentListData.tiers[draggedItem.r].items : currentListData.dock;
                     oldArray.splice(draggedItem.i, 1);
                     currentListData.dock.push(draggedItem.data);
@@ -450,6 +449,31 @@
 
         function initKeyboardShortcuts() { window.addEventListener('keydown', e => { if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return; if (e.ctrlKey || e.metaKey) { if (e.key.toLowerCase() === 'z') { e.preventDefault(); undo(); } if (e.key.toLowerCase() === 'y') { e.preventDefault(); redo(); } if (e.key.toLowerCase() === 's') { e.preventDefault(); if (currentListData) { saveListSilent(currentListData); showToast('💾 Auto-saved'); isDirty = false; } } } if (e.key === 'Delete' || e.key === 'Backspace') { if (selectedImgObj) { e.preventDefault(); deleteSelected(); } } if (e.key === 'Escape') { if (document.body.classList.contains('zen-mode')) toggleZenMode(); if (selectedImgObj) deselectImg(); document.querySelectorAll('.modal-overlay').forEach(m => m.style.display = 'none'); } }); }
         function isValidTierData(data) { try { if (!Array.isArray(data)) return false; return data.every(l => l.id && typeof l.name === 'string' && Array.isArray(l.tiers) && Array.isArray(l.dock)); } catch (e) { return false; } }
+
+        // MỚI: CHỨC NĂNG BẬT/TẮT KÉO THẢ
+        function toggleDragMode() {
+            isDragMode = !isDragMode;
+            const btn = document.getElementById('btn-drag-toggle');
+            if (isDragMode) {
+                btn.innerHTML = '✋ Drag: ON';
+                btn.style.color = 'var(--primary)';
+                btn.style.borderColor = 'var(--border-color)';
+                btn.style.background = 'var(--bg-surface)';
+                document.querySelectorAll('.img-wrap, .tier-row, .tier-label-wrap').forEach(el => {
+                    el.setAttribute('draggable', 'true');
+                    if(el.classList.contains('img-wrap') || el.classList.contains('tier-label-wrap')) el.style.cursor = 'grab';
+                });
+            } else {
+                btn.innerHTML = '↕️ Scroll: ON';
+                btn.style.color = 'var(--bg-base)';
+                btn.style.borderColor = 'var(--text-main)';
+                btn.style.background = 'var(--text-main)';
+                document.querySelectorAll('.img-wrap, .tier-row, .tier-label-wrap').forEach(el => {
+                    el.removeAttribute('draggable');
+                    if(el.classList.contains('img-wrap') || el.classList.contains('tier-label-wrap')) el.style.cursor = 'pointer';
+                });
+            }
+        }
 
         // 5. MENU & LIST MANAGEMENT
         function loadMenu() { 
@@ -487,15 +511,18 @@
 
                 currentListData.tiers.forEach((t, i) => {
                     const row = document.createElement('div'); row.className = 'tier-row'; row.style.backgroundColor = t.color; 
+                    if(isDragMode) row.draggable = true; 
                     
-                    row.ondragover = e => { e.preventDefault(); if (draggedRowIdx !== null) { e.dataTransfer.dropEffect = 'move'; e.currentTarget.style.borderTop = "3px solid #10b981"; } };
-                    row.ondragleave = e => { if (draggedRowIdx !== null) e.currentTarget.style.borderTop = ""; };
-                    row.ondrop = e => { e.preventDefault(); e.currentTarget.style.borderTop = ""; if (draggedRowIdx !== null) { const tmp = currentListData.tiers.splice(draggedRowIdx, 1)[0]; currentListData.tiers.splice(i, 0, tmp); draggedRowIdx = null; commitChange(); } };
+                    row.ondragover = e => { e.preventDefault(); if (isDragMode && draggedRowIdx !== null) { e.dataTransfer.dropEffect = 'move'; e.currentTarget.style.borderTop = "3px solid #10b981"; } };
+                    row.ondragleave = e => { if (isDragMode && draggedRowIdx !== null) e.currentTarget.style.borderTop = ""; };
+                    row.ondrop = e => { e.preventDefault(); e.currentTarget.style.borderTop = ""; if (isDragMode && draggedRowIdx !== null) { const tmp = currentListData.tiers.splice(draggedRowIdx, 1)[0]; currentListData.tiers.splice(i, 0, tmp); draggedRowIdx = null; commitChange(); } };
                     
                     const labelWrap = document.createElement('div'); labelWrap.className = 'tier-label-wrap';
                     labelWrap.title = "Drag to reorder row. Click to edit.";
-                    labelWrap.draggable = true; 
-                    labelWrap.ondragstart = e => { draggedRowIdx = i; e.dataTransfer.effectAllowed = 'move'; }; 
+                    if(isDragMode) labelWrap.draggable = true; 
+                    else labelWrap.style.cursor = 'pointer';
+
+                    labelWrap.ondragstart = e => { if(!isDragMode) return; draggedRowIdx = i; e.dataTransfer.effectAllowed = 'move'; }; 
                     
                     const label = document.createElement('div'); label.className = 'tier-label'; label.innerText = t.name; label.onclick = () => openEditModal(i); labelWrap.appendChild(label);
 
@@ -503,7 +530,7 @@
                     
                     content.ondragover = e => { 
                         e.preventDefault(); 
-                        if (draggedItem && draggedItem.type !== 'row') { 
+                        if (isDragMode && draggedItem && draggedItem.type !== 'row') { 
                             e.dataTransfer.dropEffect = 'move'; 
                             if (currentPlaceholder) {
                                 const afterElement = getInsertionNode(content, e.clientX, e.clientY);
@@ -518,7 +545,7 @@
                     content.ondrop = e => { 
                         e.preventDefault(); 
                         e.stopPropagation(); 
-                        if (draggedItem && draggedItem.type !== 'row') { 
+                        if (isDragMode && draggedItem && draggedItem.type !== 'row') { 
                             let dropIndex = currentListData.tiers[i].items.length;
                             if (currentPlaceholder && currentPlaceholder.parentNode === content) {
                                 const elements = [...content.querySelectorAll('.img-wrap:not(.dragging)')];
@@ -540,7 +567,7 @@
                 
                 dock.ondragover = e => { 
                     e.preventDefault(); 
-                    if(draggedItem && draggedItem.type !== 'row') {
+                    if(isDragMode && draggedItem && draggedItem.type !== 'row') {
                         e.dataTransfer.dropEffect = 'move'; 
                         if (currentPlaceholder) {
                             const afterElement = getInsertionNode(dock, e.clientX, e.clientY);
@@ -554,7 +581,7 @@
                 dock.ondrop = e => { 
                     e.preventDefault(); 
                     e.stopPropagation(); 
-                    if (draggedItem && draggedItem.type !== 'row') { 
+                    if (isDragMode && draggedItem && draggedItem.type !== 'row') { 
                         let dropIndex = currentListData.dock.length;
                         if (currentPlaceholder && currentPlaceholder.parentNode === dock) {
                             const elements = [...dock.querySelectorAll('.img-wrap:not(.dragging)')];
@@ -575,16 +602,17 @@
         function createImg(data, type, r, i) {
             const wrap = document.createElement('div'); wrap.className = 'img-wrap'; 
             wrap.style.height = (type==='tier' ? data.h : 85) + 'px';
+            if(isDragMode) wrap.draggable = true;
+            else wrap.style.cursor = 'pointer';
             
             const img = document.createElement('img'); img.src = data.src; img.className = 'img-item'; 
-            // Removed fixed height here, CSS max-height: 100% handles it now
             wrap.appendChild(img);
             
             if (data.caption) { const c = document.createElement('div'); c.className = 'img-caption'; c.innerText = data.caption; wrap.appendChild(c); }
             wrap.onclick = e => { e.stopPropagation(); clickImg(wrap, data, type, r, i); };
-            wrap.draggable = true;
             
             wrap.ondragstart = e => { 
+                if(!isDragMode) return;
                 e.stopPropagation(); 
                 draggedItem = {data, type, r, i}; 
                 e.dataTransfer.effectAllowed = 'move'; 
@@ -610,24 +638,14 @@
         }
 
         const tz = document.getElementById('trash-zone');
-        tz.ondragover = e => { e.preventDefault(); if(draggedItem) { e.dataTransfer.dropEffect = 'move'; tz.classList.add('hover'); } };
+        tz.ondragover = e => { e.preventDefault(); if(isDragMode && draggedItem) { e.dataTransfer.dropEffect = 'move'; tz.classList.add('hover'); } };
         tz.ondragleave = () => tz.classList.remove('hover');
-        tz.ondrop = () => { if (draggedItem) { let oldArray = (draggedItem.type === 'tier') ? currentListData.tiers[draggedItem.r].items : currentListData.dock; oldArray.splice(draggedItem.i, 1); commitChange(); tz.classList.remove('hover'); } };
+        tz.ondrop = () => { if (isDragMode && draggedItem) { let oldArray = (draggedItem.type === 'tier') ? currentListData.tiers[draggedItem.r].items : currentListData.dock; oldArray.splice(draggedItem.i, 1); commitChange(); tz.classList.remove('hover'); } };
 
         // 7. EDITING & MEDIA CONTROLS
         function clickImg(dom, data, type, r, i) { if (!selectedImgObj) { selectedImgObj = {dom, data, type, r, i}; dom.classList.add('selected'); document.getElementById('resize-control').classList.remove('hidden'); document.getElementById('size-slider').value = data.h; document.getElementById('size-val').innerText = data.h + 'px'; } else if (selectedImgObj.dom === dom) { deselectImg(); } }
         function deselectImg() { if (selectedImgObj) { selectedImgObj.dom.classList.remove('selected'); selectedImgObj = null; document.getElementById('resize-control').classList.add('hidden'); } }
-        
-        function resizeSelectedImg(h) { 
-            if (selectedImgObj) { 
-                h = parseInt(h); 
-                selectedImgObj.data.h = h; 
-                selectedImgObj.dom.style.height = h+'px'; 
-                document.getElementById('size-val').innerText = h+'px'; 
-                document.getElementById('size-slider').value = h; 
-            } 
-        }
-        
+        function resizeSelectedImg(h) { if (selectedImgObj) { h = parseInt(h); selectedImgObj.data.h = h; selectedImgObj.dom.style.height = h+'px'; document.getElementById('size-val').innerText = h+'px'; document.getElementById('size-slider').value = h; } }
         function adjustSize(d) { if (selectedImgObj) { let newH = parseInt(document.getElementById('size-slider').value) + d; newH = Math.max(40, Math.min(300, newH)); resizeSelectedImg(newH); } }
         function applyToAll() { const h = selectedImgObj.data.h; currentListData.tiers.forEach(t => t.items.forEach(i => i.h = h)); currentListData.dock.forEach(i => i.h = h); commitChange(); }
         function showLoading(text) { document.getElementById('loading-text').innerText = text; document.getElementById('loading-overlay').style.display='flex'; }
