@@ -55,7 +55,7 @@
         #trash-zone { position: fixed; bottom: 100px; right: 30px; width: 70px; height: 70px; background: var(--danger); color: white; border-radius: 50%; display: none; align-items: center; justify-content: center; font-size: 1.8rem; z-index: 9999; box-shadow: 0 10px 25px rgba(239,68,68,0.5); border: 3px solid #fff; transition: transform 0.2s; }
         #trash-zone.hover { transform: scale(1.2); background: #dc2626; }
 
-        /* MENU SCREEN */
+        /* MENU SCREEN & ANIMATIONS */
         #menu-screen { padding: 60px 20px; flex: 1; display: flex; flex-direction: column; align-items: center; }
         
         .app-header { display: flex; align-items: center; justify-content: center; width: 100%; max-width: 380px; margin-bottom: 30px; position: relative; }
@@ -97,10 +97,14 @@
         
         .tier-row { display: flex; align-items: stretch; background: #1a1a1a; border-radius: 2px; overflow: hidden; transition: border-top 0.2s; }
         
-        .tier-label-wrap { width: 75px; min-width: 75px; display: flex; align-items: center; justify-content: center; border-right: 1px solid #000; position: relative; cursor: grab; touch-action: none; }
+        /* ĐÃ FIX LABEL XUỐNG DÒNG (THÊM HYPHENS, BỘ FONT MỚI, SIZE CHUẨN) */
+        .tier-label-wrap { width: 85px; min-width: 85px; display: flex; align-items: center; justify-content: center; border-right: 1px solid #000; position: relative; cursor: grab; touch-action: none; }
         .tier-label-wrap:active { cursor: grabbing; }
-        @media (min-width: 600px) { .tier-label-wrap { width: 120px; min-width: 120px; } } 
-        .tier-label { font-family: Arial, Helvetica, sans-serif; font-size: 14px; font-weight: 400; line-height: 1.3; color: #000; text-align: center; padding: 8px; word-wrap: break-word; overflow-wrap: break-word; width: 100%; pointer-events: none; }
+        .tier-label { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; font-size: 12px; font-weight: 600; line-height: 1.25; color: #000; text-align: center; padding: 4px; word-wrap: break-word; overflow-wrap: break-word; word-break: break-word; hyphens: auto; -webkit-hyphens: auto; width: 100%; pointer-events: none; }
+        @media (min-width: 600px) { 
+            .tier-label-wrap { width: 130px; min-width: 130px; } 
+            .tier-label { font-size: 16px; padding: 8px; font-weight: bold; }
+        }
         
         .tier-content { flex: 1; display: flex; flex-wrap: wrap; align-content: flex-start; align-items: flex-start; background: #1a1a1a; padding: 4px; gap: 4px; position: relative; min-height: 85px; transition: background 0.2s; }
         
@@ -146,8 +150,6 @@
         
         @media (min-width: 768px) {
             .board-header-style { font-size: 2rem; padding: 30px; }
-            .tier-label-wrap { width: 140px; min-width: 140px; }
-            .tier-label { font-size: 16px; }
             .bottom-toolbar { padding: 15px 40px; gap: 20px; }
             .btn-bottom { font-size: 1.05rem; }
             #dock { max-height: 40vh; gap: 8px; padding: 15px; }
