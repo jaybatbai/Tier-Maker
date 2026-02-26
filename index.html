@@ -8,7 +8,7 @@
     <meta name="theme-color" content="#09090b" id="meta-theme-color">
     <title>Tier List Pro</title>
     
-    <link rel="icon" href="./icon.png" type="image/png">
+    <link rel="icon" href="./icon.jpg" type="image/jpeg">
     
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <script src="https://bernardo-castilho.github.io/DragDropTouch/DragDropTouch.js"></script>
@@ -91,7 +91,7 @@
 
         .capture-wrapper { padding: 15px 12px; background: var(--bg-base); overflow-x: auto; touch-action: pan-y; } 
         #capture-area { background: #000; display: inline-flex; flex-direction: column; width: 100%; min-width: 100%; border-radius: 4px; overflow: hidden; outline: 1px solid var(--border-color); transition: background 0.3s; }
-        .board-header-style { text-align: center; font-size: clamp(1.2rem, 4vw, 1.75rem); font-weight: 800; padding: 20px 10px; background: #000; color: #fff; text-transform: uppercase; cursor: pointer; transition: background 0.2s; }
+        .board-header-style { text-align: center; font-size: clamp(1.2rem, 4vw, 1.75rem); font-weight: 800; padding: 20px 10px; background: #000; color: #fff; text-transform: uppercase; border-bottom: 1px solid #000; cursor: pointer; transition: background 0.2s; }
         .board-header-style:hover { background: #1a1a1a; }
         #tier-board { display: flex; flex-direction: column; gap: 4px; background: #000; border-top: 1px solid #000; padding: 4px; transition: background 0.3s; } 
         
@@ -412,7 +412,7 @@
         // 1. INLINE PWA
         (function initPWA() {
             try {
-                const manifestData = { name: "Tier List Pro", short_name: "TierMaker", display: "standalone", background_color: "#09090b", theme_color: "#10b981", start_url: location.href, icons: [ { src: "./icon.png", sizes: "192x192", type: "image/png" }, { src: "./icon.png", sizes: "512x512", type: "image/png" } ] };
+                const manifestData = { name: "Tier List Pro", short_name: "TierMaker", display: "standalone", background_color: "#09090b", theme_color: "#10b981", start_url: location.href, icons: [ { src: "./icon.jpg", sizes: "192x192", type: "image/jpeg" }, { src: "./icon.jpg", sizes: "512x512", type: "image/jpeg" } ] };
                 const manifestBlob = new Blob([JSON.stringify(manifestData)], {type: 'application/manifest+json'});
                 document.head.insertAdjacentHTML('beforeend', `<link rel="manifest" href="${URL.createObjectURL(manifestBlob)}">`);
                 if ('serviceWorker' in navigator) {
@@ -591,6 +591,7 @@
         // 6. BOARD RENDER & DRAG-DROP
         function renderBoard() {
             try {
+                // Xử lý nút Shape
                 const editorScreen = document.getElementById('editor-screen');
                 editorScreen.classList.remove('shape-square', 'shape-circle');
                 const shapeBtn = document.getElementById('btn-shape-toggle');
@@ -821,6 +822,7 @@
         function openCreateModal() { document.getElementById('create-modal-overlay').style.display='flex'; document.getElementById('new-template-name').focus(); }
         function openHelpModal() { document.getElementById('help-modal').style.display='flex'; }
         
+        // TỰ ĐỘNG TẠO BẢNG CHUẨN (S, A, B, C, D, F)
         function confirmCreateList() { 
             const name = document.getElementById('new-template-name').value.trim() || 'New Board'; 
             try { 
