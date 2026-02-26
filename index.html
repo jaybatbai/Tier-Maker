@@ -58,7 +58,6 @@
         /* MENU SCREEN & ANIMATIONS */
         #menu-screen { padding: 60px 20px; flex: 1; display: flex; flex-direction: column; align-items: center; }
         
-        /* CẬP NHẬT HEADER CĂN GIỮA CHỮ */
         .app-header { display: flex; align-items: center; justify-content: center; width: 100%; max-width: 380px; margin-bottom: 30px; position: relative; }
         .app-title { color: var(--text-main); font-size: clamp(2rem, 6vw, 2.5rem); margin: 0; font-weight: 800; letter-spacing: -1px; text-transform: uppercase; }
         .app-title span { color: var(--primary); }
@@ -72,10 +71,7 @@
 
         #list-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; width: 100%; }
         
-        @keyframes cardEnter {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+        @keyframes cardEnter { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
         
         .list-item { background: var(--bg-surface); border-radius: var(--radius-lg); overflow: hidden; border: 1px solid var(--border-color); cursor: pointer; transition: transform 0.1s ease, box-shadow 0.2s; display: flex; flex-direction: column; position: relative; opacity: 0; animation: cardEnter 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
         .list-item:hover { box-shadow: var(--shadow-float); }
@@ -91,23 +87,32 @@
         .top-actions { display: flex; gap: 6px; flex-wrap: nowrap; }
         .btn-icon { background: var(--bg-elevated); color: var(--text-main); border: 1px solid var(--border-color); padding: 6px 10px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
         
+        /* MOBILE SCROLL HINT */
+        .mobile-scroll-hint { background: var(--bg-elevated); color: var(--text-muted); font-size: 0.8rem; text-align: center; padding: 8px; border-bottom: 1px solid var(--border-color); }
+        @media (min-width: 768px) { .mobile-scroll-hint { display: none; } }
+
         .capture-wrapper { padding: 10px; background: var(--bg-base); overflow-x: auto; } 
         #capture-area { background: #000; display: inline-flex; flex-direction: column; min-width: 100%; border-radius: 0; border: none; }
         .board-header-style { text-align: center; font-size: clamp(1.2rem, 4vw, 1.75rem); font-weight: 800; padding: 25px 15px; background: #000; color: #fff; text-transform: uppercase; border-bottom: 1px solid #000; cursor: pointer; transition: background 0.2s; }
         .board-header-style:hover { background: #1a1a1a; }
         #tier-board { display: flex; flex-direction: column; gap: 0; background: #000; border-top: 1px solid #000; } 
         
-        .tier-row { display: flex; align-items: stretch; background: #1a1a1a; border-bottom: 1px solid #000; transition: border-top 0.2s; touch-action: none; }
-        .tier-label-wrap { width: 100px; min-width: 100px; display: flex; align-items: center; justify-content: center; border-right: 1px solid #000; }
-        @media (min-width: 600px) { .tier-label-wrap { width: 120px; min-width: 120px; } } 
-        .tier-label { font-family: Arial, Helvetica, sans-serif; font-size: 14px; font-weight: 400; line-height: 1.3; color: #000; text-align: center; padding: 8px; word-wrap: break-word; overflow-wrap: break-word; cursor: pointer; width: 100%; position: relative; }
+        /* ĐÃ BỎ LỆNH CẤM CUỘN (touch-action: none) TRÊN HÀNG ĐỂ NGƯỜI DÙNG CÓ THỂ CUỘN TRANG */
+        .tier-row { display: flex; align-items: stretch; background: #1a1a1a; border-bottom: 1px solid #000; transition: border-top 0.2s; }
         
-        .tier-content { flex: 1; display: flex; flex-wrap: wrap; align-content: center; align-items: center; background: #1a1a1a; padding: 0px; gap: 0px; position: relative; min-height: 85px; transition: background 0.2s; }
+        /* THÊM LỆNH CẤM CUỘN VÀO NHÃN CHỮ ĐỂ NẮM KÉO HÀNG */
+        .tier-label-wrap { width: 100px; min-width: 100px; display: flex; align-items: center; justify-content: center; border-right: 1px solid #000; position: relative; cursor: grab; touch-action: none; }
+        .tier-label-wrap:active { cursor: grabbing; }
+        @media (min-width: 600px) { .tier-label-wrap { width: 120px; min-width: 120px; } } 
+        .tier-label { font-family: Arial, Helvetica, sans-serif; font-size: 14px; font-weight: 400; line-height: 1.3; color: #000; text-align: center; padding: 8px; word-wrap: break-word; overflow-wrap: break-word; width: 100%; pointer-events: none; }
+        
+        /* TẠO VÙNG TRỐNG (PADDING-BOTTOM 25PX) Ở ĐÁY MỖI HÀNG ĐỂ CHUYÊN LÀM NƠI CUỘN TRANG */
+        .tier-content { flex: 1; display: flex; flex-wrap: wrap; align-content: flex-start; align-items: flex-start; background: #1a1a1a; padding: 0 0 25px 0; gap: 0; position: relative; min-height: 85px; transition: background 0.2s; }
         
         /* GHOST PLACEHOLDER & IMAGE EFFECTS */
-        .img-wrap { display: block; position: relative; cursor: pointer; transition: transform 0.15s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.2s; margin: 0; padding: 0; touch-action: none; }
+        .img-wrap { display: block; position: relative; cursor: grab; transition: transform 0.15s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.2s; margin: 0; padding: 0; touch-action: none; }
         .img-wrap.selected { outline: 3px solid var(--accent); outline-offset: -3px; z-index: 5; box-shadow: 0 4px 15px rgba(0,0,0,0.5); transform: scale(0.98); }
-        .img-wrap:active { transform: scale(0.95); }
+        .img-wrap:active { transform: scale(0.95); cursor: grabbing;}
         .img-wrap.dragging { opacity: 0.2; transform: scale(0.85); }
         
         .drag-placeholder { opacity: 0.7; outline: 3px dashed var(--primary); outline-offset: -3px; pointer-events: none !important; transform: scale(0.98); animation: fadeInGhost 0.2s; border-radius: 4px; overflow: hidden; filter: brightness(1.2); }
@@ -121,7 +126,8 @@
         #dock::-webkit-scrollbar { width: 6px; height: 6px; }
         #dock::-webkit-scrollbar-track { background: transparent; }
         #dock::-webkit-scrollbar-thumb { background: var(--border-hover); border-radius: 10px; }
-        #dock { display: flex; flex-wrap: wrap; gap: 6px; padding: 10px; background: var(--bg-surface); min-height: 100px; max-height: 35vh; overflow-y: auto; border: 1px solid var(--border-color); border-radius: var(--radius-sm); box-shadow: inset 0 2px 10px rgba(0,0,0,0.1); }
+        /* TẠO VÙNG TRỐNG Ở ĐÁY KHO ĐỂ CUỘN TRANG */
+        #dock { display: flex; flex-wrap: wrap; gap: 6px; padding: 10px 10px 40px 10px; background: var(--bg-surface); min-height: 100px; max-height: 35vh; overflow-y: auto; border: 1px solid var(--border-color); border-radius: var(--radius-sm); box-shadow: inset 0 2px 10px rgba(0,0,0,0.1); }
 
         /* Responsive Bottom Toolbar */
         .bottom-toolbar { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 960px; background: var(--bg-surface); opacity: 0.95; backdrop-filter: blur(16px); padding: 12px 20px; padding-bottom: max(12px, env(safe-area-inset-bottom)); display: flex; gap: 12px; border-top: 1px solid var(--border-color); z-index: 200; flex-wrap: wrap; }
@@ -164,7 +170,7 @@
         .shortcut-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border-color); color: var(--text-main); font-size: 0.9rem;}
         kbd { background: var(--bg-elevated); border: 1px solid var(--border-color); padding: 2px 6px; border-radius: 4px; font-family: monospace; font-size: 0.85rem; color: var(--text-main); }
 
-        body.zen-mode .top-bar, body.zen-mode .board-footer-actions, body.zen-mode .dock-container, body.zen-mode .bottom-toolbar, body.zen-mode #resize-control { display: none !important; }
+        body.zen-mode .top-bar, body.zen-mode .mobile-scroll-hint, body.zen-mode .board-footer-actions, body.zen-mode .dock-container, body.zen-mode .bottom-toolbar, body.zen-mode #resize-control { display: none !important; }
         #exit-zen-btn { display: none; position: fixed; top: 20px; right: 20px; z-index: 10000; padding: 12px 24px; background: rgba(0,0,0,0.5); color: white; border-radius: 9999px; border: 1px solid white; cursor: pointer; backdrop-filter: blur(4px); }
     </style>
 </head>
@@ -204,6 +210,7 @@
                     <button class="btn-icon" onclick="toggleZenMode()" aria-label="Full Screen" title="Full Screen">👁️</button>
                 </div>
             </div>
+            <div class="mobile-scroll-hint">💡 Tip: Swipe on the empty black spaces to scroll. Drag row letters to reorder.</div>
             
             <div class="capture-wrapper">
                 <div id="capture-area">
@@ -461,7 +468,6 @@
         function redo() { if (historyIndex < stateHistory.length-1) { historyIndex++; currentListData = JSON.parse(stateHistory[historyIndex]); renderBoard(); markDirty(); showToast("↪️ Redone"); } }
         function openList(id) { showLoading('Opening...'); try { db.transaction(['lists']).objectStore('lists').get(id).onsuccess = e => { currentListData = e.target.result; stateHistory = [JSON.stringify(currentListData)]; historyIndex = 0; isDirty = false; document.getElementById('menu-screen').classList.add('hidden'); document.getElementById('editor-screen').classList.remove('hidden'); document.getElementById('list-name').value = currentListData.name; renderBoard(); hideLoading(); }; } catch (err) { hideLoading(); } }
         
-        // --- THUẬT TOÁN TÍNH TOÁN VỊ TRÍ CHÈN BÓNG ẢNH TRONG LƯỚI 2D ---
         function getInsertionNode(container, clientX, clientY) {
             const elements = [...container.querySelectorAll('.img-wrap:not(.dragging):not(.drag-placeholder)')];
             for (let i = 0; i < elements.length; i++) {
@@ -480,14 +486,17 @@
                 const hEl = document.getElementById('tier-header'); hEl.innerText = currentListData.name; hEl.style.display = currentListData.headerVisible === false ? 'none' : 'block';
 
                 currentListData.tiers.forEach((t, i) => {
-                    const row = document.createElement('div'); row.className = 'tier-row'; row.style.backgroundColor = t.color; row.draggable = true; 
+                    const row = document.createElement('div'); row.className = 'tier-row'; row.style.backgroundColor = t.color; 
                     
-                    row.ondragstart = e => { if (e.target.closest('.img-wrap')) return; draggedRowIdx = i; e.dataTransfer.effectAllowed = 'move'; };
                     row.ondragover = e => { e.preventDefault(); if (draggedRowIdx !== null) { e.dataTransfer.dropEffect = 'move'; e.currentTarget.style.borderTop = "3px solid #10b981"; } };
                     row.ondragleave = e => { if (draggedRowIdx !== null) e.currentTarget.style.borderTop = ""; };
                     row.ondrop = e => { e.preventDefault(); e.currentTarget.style.borderTop = ""; if (draggedRowIdx !== null) { const tmp = currentListData.tiers.splice(draggedRowIdx, 1)[0]; currentListData.tiers.splice(i, 0, tmp); draggedRowIdx = null; commitChange(); } };
                     
                     const labelWrap = document.createElement('div'); labelWrap.className = 'tier-label-wrap';
+                    labelWrap.title = "Drag to reorder row. Click to edit.";
+                    labelWrap.draggable = true; 
+                    labelWrap.ondragstart = e => { draggedRowIdx = i; e.dataTransfer.effectAllowed = 'move'; }; 
+                    
                     const label = document.createElement('div'); label.className = 'tier-label'; label.innerText = t.name; label.onclick = () => openEditModal(i); labelWrap.appendChild(label);
 
                     const content = document.createElement('div'); content.className = 'tier-content';
