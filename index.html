@@ -36,7 +36,9 @@
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif; }
         ::-webkit-scrollbar { width: 4px; height: 4px; }
         ::-webkit-scrollbar-thumb { background: var(--bg-elevated); border-radius: 10px; }
-        body { background: var(--bg-base); color: var(--text-main); margin: 0; padding: 0; padding-bottom: 100px; overscroll-behavior: none; -webkit-font-smoothing: antialiased; }
+        
+        /* FIX MOBILE SCROLL: Added safe area paddings */
+        body { background: var(--bg-base); color: var(--text-main); margin: 0; padding: 0; padding-bottom: 100px; overscroll-behavior: none; -webkit-font-smoothing: antialiased; padding-left: env(safe-area-inset-left); padding-right: env(safe-area-inset-right); }
         .hidden { display: none !important; }
         
         button:focus-visible, input:focus-visible, .list-item:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
@@ -55,9 +57,8 @@
         #trash-zone { position: fixed; bottom: 100px; right: 30px; width: 70px; height: 70px; background: var(--danger); color: white; border-radius: 50%; display: none; align-items: center; justify-content: center; font-size: 1.8rem; z-index: 9999; box-shadow: 0 10px 25px rgba(239,68,68,0.5); border: 3px solid #fff; transition: transform 0.2s; }
         #trash-zone.hover { transform: scale(1.2); background: #dc2626; }
 
-        /* MENU SCREEN & ANIMATIONS */
+        /* MENU SCREEN */
         #menu-screen { padding: 60px 20px; flex: 1; display: flex; flex-direction: column; align-items: center; }
-        
         .app-header { display: flex; align-items: center; justify-content: center; width: 100%; max-width: 380px; margin-bottom: 30px; position: relative; }
         .app-title { color: var(--text-main); font-size: clamp(2rem, 6vw, 2.5rem); margin: 0; font-weight: 800; letter-spacing: -1px; text-transform: uppercase; }
         .app-title span { color: var(--primary); }
@@ -70,9 +71,7 @@
         button:active { transform: scale(0.97); }
 
         #list-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; width: 100%; }
-        
         @keyframes cardEnter { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
-        
         .list-item { background: var(--bg-surface); border-radius: var(--radius-lg); overflow: hidden; border: 1px solid var(--border-color); cursor: pointer; transition: transform 0.1s ease, box-shadow 0.2s; display: flex; flex-direction: column; position: relative; opacity: 0; animation: cardEnter 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
         .list-item:hover { box-shadow: var(--shadow-float); }
         .list-item:active { transform: scale(0.97); }
@@ -87,30 +86,31 @@
         .top-actions { display: flex; gap: 6px; flex-wrap: nowrap; }
         .btn-icon { background: var(--bg-elevated); color: var(--text-main); border: 1px solid var(--border-color); padding: 6px 10px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
         
-        /* MOBILE SCROLL HINT */
+        /* CẬP NHẬT GIAO DIỆN MOBILE CHỐNG ĐƠ VÀ TRÀN ẢNH */
         .mobile-scroll-hint { background: var(--bg-elevated); color: var(--text-muted); font-size: 0.8rem; text-align: center; padding: 8px; border-bottom: 1px solid var(--border-color); }
         @media (min-width: 768px) { .mobile-scroll-hint { display: none; } }
 
-        .capture-wrapper { padding: 10px; background: var(--bg-base); overflow-x: auto; } 
-        #capture-area { background: #000; display: inline-flex; flex-direction: column; min-width: 100%; border-radius: 0; border: none; }
+        /* Thêm padding hai bên (12px) để tạo làn đường vuốt cuộn trang an toàn */
+        .capture-wrapper { padding: 15px 12px; background: var(--bg-base); overflow-x: auto; } 
+        #capture-area { background: #000; display: inline-flex; flex-direction: column; width: 100%; min-width: 100%; border-radius: 6px; overflow: hidden; }
         .board-header-style { text-align: center; font-size: clamp(1.2rem, 4vw, 1.75rem); font-weight: 800; padding: 25px 15px; background: #000; color: #fff; text-transform: uppercase; border-bottom: 1px solid #000; cursor: pointer; transition: background 0.2s; }
         .board-header-style:hover { background: #1a1a1a; }
-        #tier-board { display: flex; flex-direction: column; gap: 0; background: #000; border-top: 1px solid #000; } 
         
-        /* ĐÃ BỎ LỆNH CẤM CUỘN (touch-action: none) TRÊN HÀNG ĐỂ NGƯỜI DÙNG CÓ THỂ CUỘN TRANG */
-        .tier-row { display: flex; align-items: stretch; background: #1a1a1a; border-bottom: 1px solid #000; transition: border-top 0.2s; }
+        /* Thêm rãnh đen (gap: 6px) giữa các hàng để làm chỗ cuộn tay */
+        #tier-board { display: flex; flex-direction: column; gap: 6px; background: #000; border-top: 1px solid #000; padding: 6px; } 
         
-        /* THÊM LỆNH CẤM CUỘN VÀO NHÃN CHỮ ĐỂ NẮM KÉO HÀNG */
-        .tier-label-wrap { width: 100px; min-width: 100px; display: flex; align-items: center; justify-content: center; border-right: 1px solid #000; position: relative; cursor: grab; touch-action: none; }
+        .tier-row { display: flex; align-items: stretch; background: #1a1a1a; border-radius: 4px; overflow: hidden; transition: border-top 0.2s; }
+        
+        /* Thu nhỏ Label trên điện thoại từ 100px xuống 75px để chừa chỗ cho ảnh dài */
+        .tier-label-wrap { width: 75px; min-width: 75px; display: flex; align-items: center; justify-content: center; border-right: 1px solid #000; position: relative; cursor: grab; touch-action: none; }
         .tier-label-wrap:active { cursor: grabbing; }
         @media (min-width: 600px) { .tier-label-wrap { width: 120px; min-width: 120px; } } 
         .tier-label { font-family: Arial, Helvetica, sans-serif; font-size: 14px; font-weight: 400; line-height: 1.3; color: #000; text-align: center; padding: 8px; word-wrap: break-word; overflow-wrap: break-word; width: 100%; pointer-events: none; }
         
-        /* TẠO VÙNG TRỐNG (PADDING-BOTTOM 25PX) Ở ĐÁY MỖI HÀNG ĐỂ CHUYÊN LÀM NƠI CUỘN TRANG */
-        .tier-content { flex: 1; display: flex; flex-wrap: wrap; align-content: flex-start; align-items: flex-start; background: #1a1a1a; padding: 0 0 25px 0; gap: 0; position: relative; min-height: 85px; transition: background 0.2s; }
+        .tier-content { flex: 1; display: flex; flex-wrap: wrap; align-content: flex-start; align-items: flex-start; background: #1a1a1a; padding: 4px; gap: 4px; position: relative; min-height: 85px; transition: background 0.2s; }
         
-        /* GHOST PLACEHOLDER & IMAGE EFFECTS */
-        .img-wrap { display: block; position: relative; cursor: grab; transition: transform 0.15s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.2s; margin: 0; padding: 0; touch-action: none; }
+        /* FIX AUTO-FIT: Ép ảnh không được dài quá màn hình */
+        .img-wrap { display: flex; align-items: center; justify-content: center; position: relative; cursor: grab; transition: transform 0.15s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.2s; margin: 0; padding: 0; touch-action: none; max-width: 100%; }
         .img-wrap.selected { outline: 3px solid var(--accent); outline-offset: -3px; z-index: 5; box-shadow: 0 4px 15px rgba(0,0,0,0.5); transform: scale(0.98); }
         .img-wrap:active { transform: scale(0.95); cursor: grabbing;}
         .img-wrap.dragging { opacity: 0.2; transform: scale(0.85); }
@@ -118,15 +118,15 @@
         .drag-placeholder { opacity: 0.7; outline: 3px dashed var(--primary); outline-offset: -3px; pointer-events: none !important; transform: scale(0.98); animation: fadeInGhost 0.2s; border-radius: 4px; overflow: hidden; filter: brightness(1.2); }
         @keyframes fadeInGhost { from { opacity: 0; transform: scale(0.8); } to { opacity: 0.7; transform: scale(0.98); } }
         
-        .img-item { height: 85px; width: auto; border-radius: 0; display: block; pointer-events: none; }
+        /* Ảnh sẽ thu nhỏ (contain) nếu quá to */
+        .img-item { max-height: 100%; max-width: 100%; object-fit: contain; display: block; pointer-events: none; border-radius: 2px; }
+        
         .img-caption { position: absolute; bottom: 0; left: 0; width: 100%; background: rgba(0,0,0,0.7); color: white; font-size: 11px; text-align: center; padding: 2px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; pointer-events: none; }
         
         .dock-container { background: var(--bg-base); padding: 15px; flex: 1; border-top: 1px solid var(--border-color); }
-        
         #dock::-webkit-scrollbar { width: 6px; height: 6px; }
         #dock::-webkit-scrollbar-track { background: transparent; }
         #dock::-webkit-scrollbar-thumb { background: var(--border-hover); border-radius: 10px; }
-        /* TẠO VÙNG TRỐNG Ở ĐÁY KHO ĐỂ CUỘN TRANG */
         #dock { display: flex; flex-wrap: wrap; gap: 6px; padding: 10px 10px 40px 10px; background: var(--bg-surface); min-height: 100px; max-height: 35vh; overflow-y: auto; border: 1px solid var(--border-color); border-radius: var(--radius-sm); box-shadow: inset 0 2px 10px rgba(0,0,0,0.1); }
 
         /* Responsive Bottom Toolbar */
@@ -210,7 +210,7 @@
                     <button class="btn-icon" onclick="toggleZenMode()" aria-label="Full Screen" title="Full Screen">👁️</button>
                 </div>
             </div>
-            <div class="mobile-scroll-hint">💡 Tip: Swipe on the empty black spaces to scroll. Drag row letters to reorder.</div>
+            <div class="mobile-scroll-hint">💡 Tip: Swipe on edges or black gaps to scroll.</div>
             
             <div class="capture-wrapper">
                 <div id="capture-area">
@@ -573,8 +573,13 @@
         }
 
         function createImg(data, type, r, i) {
-            const wrap = document.createElement('div'); wrap.className = 'img-wrap'; wrap.style.height = (type==='tier' ? data.h : 85) + 'px';
-            const img = document.createElement('img'); img.src = data.src; img.className = 'img-item'; img.style.height = (type==='tier' ? data.h : 85) + 'px'; wrap.appendChild(img);
+            const wrap = document.createElement('div'); wrap.className = 'img-wrap'; 
+            wrap.style.height = (type==='tier' ? data.h : 85) + 'px';
+            
+            const img = document.createElement('img'); img.src = data.src; img.className = 'img-item'; 
+            // Removed fixed height here, CSS max-height: 100% handles it now
+            wrap.appendChild(img);
+            
             if (data.caption) { const c = document.createElement('div'); c.className = 'img-caption'; c.innerText = data.caption; wrap.appendChild(c); }
             wrap.onclick = e => { e.stopPropagation(); clickImg(wrap, data, type, r, i); };
             wrap.draggable = true;
@@ -612,7 +617,17 @@
         // 7. EDITING & MEDIA CONTROLS
         function clickImg(dom, data, type, r, i) { if (!selectedImgObj) { selectedImgObj = {dom, data, type, r, i}; dom.classList.add('selected'); document.getElementById('resize-control').classList.remove('hidden'); document.getElementById('size-slider').value = data.h; document.getElementById('size-val').innerText = data.h + 'px'; } else if (selectedImgObj.dom === dom) { deselectImg(); } }
         function deselectImg() { if (selectedImgObj) { selectedImgObj.dom.classList.remove('selected'); selectedImgObj = null; document.getElementById('resize-control').classList.add('hidden'); } }
-        function resizeSelectedImg(h) { if (selectedImgObj) { h = parseInt(h); selectedImgObj.data.h = h; selectedImgObj.dom.style.height = h+'px'; selectedImgObj.dom.querySelector('.img-item').style.height = h+'px'; document.getElementById('size-val').innerText = h+'px'; document.getElementById('size-slider').value = h; } }
+        
+        function resizeSelectedImg(h) { 
+            if (selectedImgObj) { 
+                h = parseInt(h); 
+                selectedImgObj.data.h = h; 
+                selectedImgObj.dom.style.height = h+'px'; 
+                document.getElementById('size-val').innerText = h+'px'; 
+                document.getElementById('size-slider').value = h; 
+            } 
+        }
+        
         function adjustSize(d) { if (selectedImgObj) { let newH = parseInt(document.getElementById('size-slider').value) + d; newH = Math.max(40, Math.min(300, newH)); resizeSelectedImg(newH); } }
         function applyToAll() { const h = selectedImgObj.data.h; currentListData.tiers.forEach(t => t.items.forEach(i => i.h = h)); currentListData.dock.forEach(i => i.h = h); commitChange(); }
         function showLoading(text) { document.getElementById('loading-text').innerText = text; document.getElementById('loading-overlay').style.display='flex'; }
