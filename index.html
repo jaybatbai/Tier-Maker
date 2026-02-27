@@ -91,25 +91,27 @@
 
         .capture-wrapper { padding: 15px 12px; background: var(--bg-base); overflow-x: auto; touch-action: pan-y; } 
         #capture-area { background: #000; display: inline-flex; flex-direction: column; width: 100%; min-width: 100%; border-radius: 4px; overflow: hidden; outline: 1px solid var(--border-color); transition: background 0.3s; }
+        
         .board-header-style { text-align: center; font-size: clamp(1.2rem, 4vw, 1.75rem); font-weight: 800; padding: 20px 10px; background: #000; color: #fff; text-transform: uppercase; border-bottom: 1px solid #000; cursor: pointer; transition: background 0.2s; }
         .board-header-style:hover { background: #1a1a1a; }
+        
         #tier-board { display: flex; flex-direction: column; gap: 4px; background: #000; border-top: 1px solid #000; padding: 4px; transition: background 0.3s; } 
         
         .tier-row { display: flex; align-items: stretch; background: #1a1a1a; border-radius: 2px; overflow: hidden; transition: border-top 0.2s; }
         
-        /* ĐÃ FIX LẠI FONT CỔ ĐIỂN CHUẨN ARIAL / HELVETICA & BỎ CẮT CHỮ GIỮA TỪ */
-        .tier-label-wrap { width: 85px; min-width: 85px; display: flex; align-items: center; justify-content: center; border-right: 1px solid #000; position: relative; cursor: grab; touch-action: none; }
+        .tier-label-wrap { width: 85px; min-width: 85px; display: flex; align-items: center; justify-content: center; position: relative; cursor: grab; touch-action: none; }
         .tier-label-wrap:active { cursor: grabbing; }
+        
+        /* CẬP NHẬT TIER LABEL - Font sẽ được điều khiển bằng JS */
         .tier-label { 
-            font-family: Arial, Helvetica, sans-serif; /* FONT SẠCH NHƯ HÌNH BẠN YÊU CẦU */
             font-size: 13px; 
             font-weight: bold; 
             line-height: 1.3; 
             color: #000; 
             text-align: center; 
             padding: 4px; 
-            word-break: normal; /* KHÔNG cắt chữ giữa từ */
-            overflow-wrap: break-word; /* Rớt nguyên chữ xuống dòng nếu hết chỗ */
+            word-break: normal; 
+            overflow-wrap: break-word; 
             white-space: pre-wrap; 
             width: 100%; 
             pointer-events: none; 
@@ -236,6 +238,8 @@
                 <button onclick="addNewTier()" class="btn-icon" style="flex:1; min-width: 100px;">+ Add Row</button>
                 <button onclick="openBgModal()" class="btn-icon" style="flex:1; min-width: 100px;">🎨 Background</button>
                 <button onclick="toggleImageShape()" id="btn-shape-toggle" class="btn-icon" style="flex:1; min-width: 100px;">🔄 Shape: Original</button>
+                <button onclick="toggleFont()" id="btn-font-toggle" class="btn-icon" style="flex:1; min-width: 100px;">🔤 Font: Arial</button>
+                
                 <button onclick="toggleHeader()" class="btn-icon" style="flex:1; min-width: 100px;">Toggle Header</button>
                 <button onclick="resetBoard()" class="btn-icon" style="color:var(--danger); border-color:var(--danger); flex:1; min-width: 100px;">Reset Board</button>
             </div>
@@ -446,6 +450,10 @@
         let isDirty = false;
         let isDragMode = true;
         
+        // MẢNG QUẢN LÝ FONT CHỮ
+        const fontsArr = ['Arial, Helvetica, sans-serif', "'Comic Sans MS', 'Chalkboard SE', 'Comic Neue', sans-serif", "Impact, Charcoal, sans-serif", "'Courier New', Courier, monospace", "Georgia, serif"];
+        const fontNamesArr = ['Arial', 'Comic', 'Impact', 'Courier', 'Georgia'];
+
         const autoSaveInterval = setInterval(() => { if (isDirty && currentListData) { saveListSilent(currentListData); showToast('💾 Auto-saved'); isDirty = false; } }, 3000);
         function markDirty() { isDirty = true; }
         function escapeHTML(str) { return !str ? '' : str.replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)); }
@@ -528,6 +536,13 @@
                     if(el.classList.contains('img-wrap') || el.classList.contains('tier-label-wrap')) el.style.cursor = 'pointer';
                 });
             }
+        }
+
+        // TÍNH NĂNG ĐỔI FONT CHỮ
+        function toggleFont() {
+            if (typeof currentListData.fontIndex !== 'number') currentListData.fontIndex = 0;
+            currentListData.fontIndex = (currentListData.fontIndex + 1) % fontsArr.length;
+            commitChange();
         }
 
         // TÍNH NĂNG TÌM KIẾM TRONG KHO (DOCK SEARCH)
@@ -613,8 +628,16 @@
                 else if(currentListData.shape === 'circle') { editorScreen.classList.add('shape-circle'); shapeBtn.innerText = '🔄 Shape: Circle'; }
                 else { shapeBtn.innerText = '🔄 Shape: Original'; }
 
+                // XỬ LÝ FONT CHỮ
+                const fIdx = currentListData.fontIndex || 0;
+                const currentFontFamily = fontsArr[fIdx];
+                document.getElementById('btn-font-toggle').innerText = '🔤 Font: ' + fontNamesArr[fIdx];
+
                 const board = document.getElementById('tier-board'); board.innerHTML = '';
                 const hEl = document.getElementById('tier-header'); hEl.innerText = currentListData.name; hEl.style.display = currentListData.headerVisible === false ? 'none' : 'block';
+                
+                // Áp dụng font cho Tiêu đề
+                hEl.style.fontFamily = currentFontFamily;
 
                 const captureArea = document.getElementById('capture-area');
                 if (currentListData.background) {
@@ -647,7 +670,12 @@
 
                     labelWrap.ondragstart = e => { if(!isDragMode) return; draggedRowIdx = i; e.dataTransfer.effectAllowed = 'move'; }; 
                     
-                    const label = document.createElement('div'); label.className = 'tier-label'; label.innerText = t.name; labelWrap.appendChild(label);
+                    const label = document.createElement('div'); label.className = 'tier-label'; label.innerText = t.name; 
+                    
+                    // Áp dụng font cho Label
+                    label.style.fontFamily = currentFontFamily;
+                    
+                    labelWrap.appendChild(label);
 
                     const content = document.createElement('div'); content.className = 'tier-content';
                     content.style.backgroundColor = currentListData.background ? 'rgba(0,0,0,0.6)' : '#1a1a1a';
@@ -857,7 +885,8 @@
                             ], 
                             dock: [],
                             shape: 'auto',
-                            background: null
+                            background: null,
+                            fontIndex: 0
                         }; 
                         saveListSilent(newList); loadMenu(); closeModal('create-modal-overlay'); document.getElementById('new-template-name').value = ''; hideLoading(); 
                     }, 300); 
