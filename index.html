@@ -97,19 +97,18 @@
         
         .tier-row { display: flex; align-items: stretch; background: #1a1a1a; border-radius: 2px; overflow: hidden; transition: border-top 0.2s; }
         
-        /* CHỈNH SỬA FONT CHỮ THEO YÊU CẦU: NORMAL WEIGHT, KHÔNG BỊ CẮT CHỮ */
         .tier-label-wrap { width: 85px; min-width: 85px; display: flex; align-items: center; justify-content: center; position: relative; cursor: grab; touch-action: none; }
         .tier-label-wrap:active { cursor: grabbing; }
         .tier-label { 
             font-family: Arial, Helvetica, sans-serif; 
             font-size: 14px; 
-            font-weight: normal; /* TRẢ VỀ NÉT BÌNH THƯỜNG NHƯ TRONG ẢNH CỦA BẠN */
+            font-weight: normal; 
             line-height: 1.3; 
             color: #000; 
             text-align: center; 
             padding: 6px; 
-            word-break: normal; /* KHÔNG cắt đôi chữ */
-            overflow-wrap: break-word; /* Rớt nguyên chữ xuống dòng nếu hết chỗ */
+            word-break: normal; 
+            overflow-wrap: break-word; 
             white-space: pre-wrap; 
             width: 100%; 
             pointer-events: none; 
@@ -614,6 +613,15 @@
             return null;
         }
 
+        // FIX: ĐÓNG BẢNG EDIT ROW TRƯỚC KHI MỞ BẢNG XÁC NHẬN XÓA
+        function deleteTier() { 
+            closeModal('modal-overlay'); // Ẩn Edit Row ngay lập tức
+            openConfirm("Delete Row", "Delete this row? Images in this row (if any) will also be deleted.", () => { 
+                currentListData.tiers.splice(editingTierIndex, 1); 
+                commitChange(); 
+            }); 
+        }
+
         // 6. BOARD RENDER & DRAG-DROP
         function renderBoard() {
             try {
@@ -896,7 +904,7 @@
         function saveTierEdit() { currentListData.tiers[editingTierIndex].name = document.getElementById('edit-name').value; currentListData.tiers[editingTierIndex].color = document.getElementById('edit-color-picker').value; closeModal('modal-overlay'); commitChange(); }
         function moveTierUp() { if (editingTierIndex > 0) { const tmp = currentListData.tiers[editingTierIndex]; currentListData.tiers[editingTierIndex] = currentListData.tiers[editingTierIndex - 1]; currentListData.tiers[editingTierIndex - 1] = tmp; editingTierIndex--; commitChange(); } }
         function moveTierDown() { if (editingTierIndex < currentListData.tiers.length - 1) { const tmp = currentListData.tiers[editingTierIndex]; currentListData.tiers[editingTierIndex] = currentListData.tiers[editingTierIndex + 1]; currentListData.tiers[editingTierIndex + 1] = tmp; editingTierIndex++; commitChange(); } }
-        function deleteTier() { openConfirm("Delete Row", "Delete this row? Images in this row (if any) will also be deleted.", () => { currentListData.tiers.splice(editingTierIndex, 1); closeModal('modal-overlay'); commitChange(); }); }
+        
         function addNewTier() { currentListData.tiers.push({name:'NEW', color:'#1a1a1a', items:[]}); commitChange(); }
         function toggleHeader() { currentListData.headerVisible = currentListData.headerVisible === false ? true : false; commitChange(); }
         function resetBoard() { openConfirm("Reset", "Return all images to the Dock?", () => { currentListData.tiers.forEach(t => { currentListData.dock.push(...t.items); t.items = []; }); commitChange(); }); }
