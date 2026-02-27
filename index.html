@@ -8,7 +8,7 @@
     <meta name="theme-color" content="#09090b" id="meta-theme-color">
     <title>Tier List Pro</title>
     
-    <link rel="icon" href="./icon.jpg" type="image/jpeg">
+    <link rel="icon" href="./icon.png" type="image/png">
     
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <script src="https://bernardo-castilho.github.io/DragDropTouch/DragDropTouch.js"></script>
@@ -97,12 +97,26 @@
         
         .tier-row { display: flex; align-items: stretch; background: #1a1a1a; border-radius: 2px; overflow: hidden; transition: border-top 0.2s; }
         
+        /* CẬP NHẬT TIER LABEL THEO Ý USER: Font giống hình, nối chữ liền nhau */
         .tier-label-wrap { width: 85px; min-width: 85px; display: flex; align-items: center; justify-content: center; border-right: 1px solid #000; position: relative; cursor: grab; touch-action: none; }
         .tier-label-wrap:active { cursor: grabbing; }
-        .tier-label { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; font-size: 12px; font-weight: 600; line-height: 1.25; color: #000; text-align: center; padding: 4px; word-wrap: break-word; overflow-wrap: break-word; word-break: break-word; hyphens: auto; -webkit-hyphens: auto; width: 100%; pointer-events: none; }
+        .tier-label { 
+            font-family: 'Comic Sans MS', 'Chalkboard SE', 'Comic Neue', sans-serif; /* Font vui nhộn giống hình */
+            font-size: 13px; 
+            font-weight: bold; 
+            line-height: 1.3; 
+            color: #000; 
+            text-align: center; 
+            padding: 4px; 
+            word-break: normal; /* KHÔNG cắt chữ ngang xương */
+            overflow-wrap: break-word; /* Chỉ rớt dòng khi gặp khoảng trắng hoặc quá dài */
+            white-space: pre-wrap; 
+            width: 100%; 
+            pointer-events: none; 
+        }
         @media (min-width: 600px) { 
             .tier-label-wrap { width: 130px; min-width: 130px; } 
-            .tier-label { font-size: 16px; padding: 8px; font-weight: bold; }
+            .tier-label { font-size: 16px; padding: 8px; }
         }
         
         .tier-content { flex: 1; display: flex; flex-wrap: wrap; align-content: flex-start; align-items: flex-start; background: #1a1a1a; padding: 4px; gap: 4px; position: relative; min-height: 85px; transition: background 0.2s; }
@@ -111,14 +125,12 @@
         .img-wrap { display: flex; align-items: center; justify-content: center; position: relative; cursor: grab; transition: transform 0.15s cubic-bezier(0.2, 0.8, 0.2, 1); margin: 0; padding: 0; touch-action: none; max-width: 100%; }
         .img-wrap.selected { outline: 3px solid var(--accent); outline-offset: -3px; z-index: 5; box-shadow: 0 4px 15px rgba(0,0,0,0.5); transform: scale(0.98); }
         .img-wrap:active { transform: scale(0.95); cursor: grabbing;}
-        
-        /* FIX UX KÉO THẢ: Ẩn hoàn toàn ảnh gốc khi đang kéo để bóng mờ tính toán chính xác vị trí thả */
         .img-wrap.dragging { display: none !important; }
         
+        body.scroll-mode .img-wrap, body.scroll-mode .tier-label-wrap { touch-action: auto !important; }
+
         .drag-placeholder { opacity: 0.7; outline: 3px dashed var(--primary); outline-offset: -3px; pointer-events: none !important; transform: scale(0.98); animation: fadeInGhost 0.2s; border-radius: 4px; overflow: hidden; filter: brightness(1.2); }
         @keyframes fadeInGhost { from { opacity: 0; transform: scale(0.8); } to { opacity: 0.7; transform: scale(0.98); } }
-        
-        body.scroll-mode .img-wrap, body.scroll-mode .tier-label-wrap { touch-action: auto !important; }
         
         .img-item { max-height: 100%; max-width: 100%; object-fit: contain; display: block; pointer-events: none; border-radius: 2px; }
         .img-caption { position: absolute; bottom: 0; left: 0; width: 100%; background: rgba(0,0,0,0.7); color: white; font-size: 11px; text-align: center; padding: 2px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; pointer-events: none; }
@@ -151,8 +163,6 @@
         
         @media (min-width: 768px) {
             .board-header-style { font-size: 2rem; padding: 30px; }
-            .tier-label-wrap { width: 140px; min-width: 140px; }
-            .tier-label { font-size: 16px; }
             .bottom-toolbar { padding: 15px 40px; gap: 20px; }
             .btn-bottom { font-size: 1.05rem; }
             #dock { max-height: 40vh; gap: 8px; padding: 15px; }
@@ -414,7 +424,7 @@
         // 1. INLINE PWA
         (function initPWA() {
             try {
-                const manifestData = { name: "Tier List Pro", short_name: "TierMaker", display: "standalone", background_color: "#09090b", theme_color: "#10b981", start_url: location.href, icons: [ { src: "./icon.jpg", sizes: "192x192", type: "image/jpeg" }, { src: "./icon.jpg", sizes: "512x512", type: "image/jpeg" } ] };
+                const manifestData = { name: "Tier List Pro", short_name: "TierMaker", display: "standalone", background_color: "#09090b", theme_color: "#10b981", start_url: location.href, icons: [ { src: "./icon.png", sizes: "192x192", type: "image/png" }, { src: "./icon.png", sizes: "512x512", type: "image/png" } ] };
                 const manifestBlob = new Blob([JSON.stringify(manifestData)], {type: 'application/manifest+json'});
                 document.head.insertAdjacentHTML('beforeend', `<link rel="manifest" href="${URL.createObjectURL(manifestBlob)}">`);
                 if ('serviceWorker' in navigator) {
