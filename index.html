@@ -97,7 +97,7 @@
         
         .tier-row { display: flex; align-items: stretch; background: #1a1a1a; border-radius: 2px; overflow: hidden; transition: border-top 0.2s; }
         
-        .tier-label-wrap { width: 85px; min-width: 85px; display: flex; align-items: center; justify-content: center; position: relative; cursor: grab; touch-action: none; }
+        .tier-label-wrap { width: 85px; min-width: 85px; display: flex; align-items: center; justify-content: center; border-right: 1px solid #000; position: relative; cursor: grab; touch-action: none; }
         .tier-label-wrap:active { cursor: grabbing; }
         .tier-label { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; font-size: 12px; font-weight: 600; line-height: 1.25; color: #000; text-align: center; padding: 4px; word-wrap: break-word; overflow-wrap: break-word; word-break: break-word; hyphens: auto; -webkit-hyphens: auto; width: 100%; pointer-events: none; }
         @media (min-width: 600px) { 
@@ -108,15 +108,17 @@
         .tier-content { flex: 1; display: flex; flex-wrap: wrap; align-content: flex-start; align-items: flex-start; background: #1a1a1a; padding: 4px; gap: 4px; position: relative; min-height: 85px; transition: background 0.2s; }
         
         /* IMAGE SHAPES & EFFECTS */
-        .img-wrap { display: flex; align-items: center; justify-content: center; position: relative; cursor: grab; transition: transform 0.15s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.2s; margin: 0; padding: 0; touch-action: none; max-width: 100%; }
+        .img-wrap { display: flex; align-items: center; justify-content: center; position: relative; cursor: grab; transition: transform 0.15s cubic-bezier(0.2, 0.8, 0.2, 1); margin: 0; padding: 0; touch-action: none; max-width: 100%; }
         .img-wrap.selected { outline: 3px solid var(--accent); outline-offset: -3px; z-index: 5; box-shadow: 0 4px 15px rgba(0,0,0,0.5); transform: scale(0.98); }
         .img-wrap:active { transform: scale(0.95); cursor: grabbing;}
-        .img-wrap.dragging { opacity: 0.2; transform: scale(0.85); }
         
-        body.scroll-mode .img-wrap, body.scroll-mode .tier-label-wrap { touch-action: auto !important; }
-
+        /* FIX UX KÉO THẢ: Ẩn hoàn toàn ảnh gốc khi đang kéo để bóng mờ tính toán chính xác vị trí thả */
+        .img-wrap.dragging { display: none !important; }
+        
         .drag-placeholder { opacity: 0.7; outline: 3px dashed var(--primary); outline-offset: -3px; pointer-events: none !important; transform: scale(0.98); animation: fadeInGhost 0.2s; border-radius: 4px; overflow: hidden; filter: brightness(1.2); }
         @keyframes fadeInGhost { from { opacity: 0; transform: scale(0.8); } to { opacity: 0.7; transform: scale(0.98); } }
+        
+        body.scroll-mode .img-wrap, body.scroll-mode .tier-label-wrap { touch-action: auto !important; }
         
         .img-item { max-height: 100%; max-width: 100%; object-fit: contain; display: block; pointer-events: none; border-radius: 2px; }
         .img-caption { position: absolute; bottom: 0; left: 0; width: 100%; background: rgba(0,0,0,0.7); color: white; font-size: 11px; text-align: center; padding: 2px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; pointer-events: none; }
@@ -822,7 +824,6 @@
         function openCreateModal() { document.getElementById('create-modal-overlay').style.display='flex'; document.getElementById('new-template-name').focus(); }
         function openHelpModal() { document.getElementById('help-modal').style.display='flex'; }
         
-        // TỰ ĐỘNG TẠO BẢNG CHUẨN (S, A, B, C, D, F)
         function confirmCreateList() { 
             const name = document.getElementById('new-template-name').value.trim() || 'New Board'; 
             try { 
