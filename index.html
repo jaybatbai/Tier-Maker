@@ -105,7 +105,8 @@
             .tier-label { font-size: 16px; padding: 8px; }
         }
         
-        .tier-content { flex: 1; display: flex; flex-wrap: wrap; align-content: flex-start; align-items: flex-start; background: #1a1a1a; padding: 4px; gap: 4px; position: relative; min-height: 85px; transition: background 0.2s; cursor: pointer; }
+        /* CHỐNG GIẬT LAG: Tăng padding-bottom lên 20px để tạo vùng hứng ảnh rộng hơn */
+        .tier-content { flex: 1; display: flex; flex-wrap: wrap; align-content: flex-start; align-items: flex-start; background: #1a1a1a; padding: 6px 6px 20px 6px; gap: 4px; position: relative; min-height: 85px; transition: background 0.2s; }
         
         /* IMAGE SHAPES & EFFECTS */
         .img-wrap { display: flex; align-items: center; justify-content: center; position: relative; cursor: grab; transition: transform 0.15s cubic-bezier(0.2, 0.8, 0.2, 1); margin: 0; padding: 0; touch-action: none; max-width: 100%; }
@@ -456,7 +457,7 @@
         function execConfirm() { if (confirmAction) confirmAction(); closeModal('confirm-modal'); }
         function execCancel() { if (confirmCancelAction) confirmCancelAction(); closeModal('confirm-modal'); }
 
-        // 3. EVENT LISTENERS & FIXES: ĐÃ FIX CƠ CHẾ CLICK 2 BƯỚC ĐỂ ĐỔI CHỖ ẢNH HOẶC CHÈN ẢNH
+        // CƠ CHẾ CHẠM MỚI: CHẠM ĐỂ DI CHUYỂN (CLICK-TO-MOVE) & KÉO THẢ TƯƠNG THÍCH NHAU
         function initGlobalClickAndDrop() {
             const handleOutsideClick = (e) => { 
                 if (selectedImgObj) { 
@@ -466,7 +467,6 @@
                     const clickedImageWrap = e.target.closest('.img-wrap');
                     if (clickedImageWrap === selectedImgObj.dom) return; 
 
-                    // Tìm xem user vừa click vào vùng trống của Hàng hay Kho
                     const targetTier = e.target.closest('.tier-content');
                     const targetDock = e.target.closest('.dock-container'); 
 
@@ -498,8 +498,8 @@
                 } 
             };
             
-            document.addEventListener('mousedown', handleOutsideClick); 
-            document.addEventListener('touchstart', handleOutsideClick, {passive: true});
+            document.addEventListener('mousedown', handleOutsideClick, true); 
+            document.addEventListener('touchstart', handleOutsideClick, {passive: false, capture: true});
 
             const dockContainer = document.getElementById('dock-container-box');
             dockContainer.ondragover = e => { 
@@ -778,33 +778,6 @@
             } catch (err) {}
         }
 
-        // HÀM CLICK ẢNH - ĐÃ TÍCH HỢP TÍNH NĂNG HOÁN ĐỔI (SWAP)
-        function clickImg(wrap, data, type, r, i) { 
-            if (!selectedImgObj) { 
-                selectedImgObj = {dom: wrap, data, type, r, i}; 
-                wrap.classList.add('selected'); 
-                document.getElementById('resize-control').classList.remove('hidden'); 
-                document.getElementById('size-slider').value = data.h; 
-                document.getElementById('size-val').innerText = data.h + 'px'; 
-            } else if (selectedImgObj.dom === wrap) { 
-                deselectImg(); 
-            } else {
-                // Nếu đang chọn 1 ảnh mà lại bấm vào ảnh khác -> ĐỔI CHỖ (SWAP)
-                let sourceArray = (selectedImgObj.type === 'tier') ? currentListData.tiers[selectedImgObj.r].items : currentListData.dock;
-                let targetArray = (type === 'tier') ? currentListData.tiers[r].items : currentListData.dock;
-                
-                let sourceData = sourceArray[selectedImgObj.i];
-                let targetData = targetArray[i];
-
-                // Thực hiện hoán đổi dữ liệu
-                sourceArray[selectedImgObj.i] = targetData;
-                targetArray[i] = sourceData;
-
-                deselectImg();
-                commitChange();
-            }
-        }
-
         function createImg(data, type, r, i) {
             const wrap = document.createElement('div'); wrap.className = 'img-wrap'; 
             wrap.style.height = (type==='tier' ? data.h : 85) + 'px';
@@ -818,10 +791,33 @@
             
             if (data.caption) { const c = document.createElement('div'); c.className = 'img-caption'; c.innerText = data.caption; wrap.appendChild(c); }
             
-            // Xử lý click chọn ảnh / hoán đổi ảnh
+            // XỬ LÝ CLICK ĐỂ ĐỔI CHỖ
             wrap.onclick = e => { 
                 e.stopPropagation(); 
-                clickImg(wrap, data, type, r, i); 
+                if (!selectedImgObj) { 
+                    // Chạm lần 1: Đánh dấu đang chọn
+                    selectedImgObj = {dom: wrap, data, type, r, i}; 
+                    wrap.classList.add('selected'); 
+                    document.getElementById('resize-control').classList.remove('hidden'); 
+                    document.getElementById('size-slider').value = data.h; 
+                    document.getElementById('size-val').innerText = data.h + 'px'; 
+                } else if (selectedImgObj.dom === wrap) { 
+                    // Chạm lại vào chính nó: Bỏ chọn
+                    deselectImg(); 
+                } else {
+                    // Chạm vào 1 ảnh khác: THỰC HIỆN HOÁN ĐỔI (SWAP)
+                    let sourceArray = (selectedImgObj.type === 'tier') ? currentListData.tiers[selectedImgObj.r].items : currentListData.dock;
+                    let targetArray = (type === 'tier') ? currentListData.tiers[r].items : currentListData.dock;
+                    
+                    let sourceData = sourceArray[selectedImgObj.i];
+                    let targetData = targetArray[i];
+
+                    sourceArray[selectedImgObj.i] = targetData;
+                    targetArray[i] = sourceData;
+
+                    deselectImg();
+                    commitChange();
+                }
             };
             
             wrap.ondragstart = e => { 
@@ -831,11 +827,13 @@
                 e.dataTransfer.effectAllowed = 'move'; 
                 const tz = document.getElementById('trash-zone'); tz.style.display='flex'; tz.classList.remove('hover');
                 
+                // GIỮ LẠI VỊ TRÍ BẰNG PLACEHOLDER TRƯỚC KHI ẢNH BIẾN MẤT ĐỂ CHỐNG GIẬT LAG
                 setTimeout(() => {
                     wrap.classList.add('dragging'); 
                     currentPlaceholder = wrap.cloneNode(true);
                     currentPlaceholder.classList.remove('dragging', 'selected');
                     currentPlaceholder.classList.add('drag-placeholder');
+                    wrap.parentNode.insertBefore(currentPlaceholder, wrap); 
                 }, 0); 
             };
             
@@ -956,7 +954,7 @@
         function saveTierEdit() { currentListData.tiers[editingTierIndex].name = document.getElementById('edit-name').value; currentListData.tiers[editingTierIndex].color = document.getElementById('edit-color-picker').value; closeModal('modal-overlay'); commitChange(); }
         function moveTierUp() { if (editingTierIndex > 0) { const tmp = currentListData.tiers[editingTierIndex]; currentListData.tiers[editingTierIndex] = currentListData.tiers[editingTierIndex - 1]; currentListData.tiers[editingTierIndex - 1] = tmp; editingTierIndex--; commitChange(); } }
         function moveTierDown() { if (editingTierIndex < currentListData.tiers.length - 1) { const tmp = currentListData.tiers[editingTierIndex]; currentListData.tiers[editingTierIndex] = currentListData.tiers[editingTierIndex + 1]; currentListData.tiers[editingTierIndex + 1] = tmp; editingTierIndex++; commitChange(); } }
-        
+        function deleteTier() { openConfirm("Delete Row", "Delete this row? Images in this row (if any) will also be deleted.", () => { currentListData.tiers.splice(editingTierIndex, 1); closeModal('modal-overlay'); commitChange(); }); }
         function addNewTier() { currentListData.tiers.push({name:'NEW', color:'#1a1a1a', items:[]}); commitChange(); }
         function toggleHeader() { currentListData.headerVisible = currentListData.headerVisible === false ? true : false; commitChange(); }
         function resetBoard() { openConfirm("Reset", "Return all images to the Dock?", () => { currentListData.tiers.forEach(t => { currentListData.dock.push(...t.items); t.items = []; }); commitChange(); }); }
