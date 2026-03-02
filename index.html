@@ -91,8 +91,10 @@
 
         .capture-wrapper { padding: 15px 12px; background: var(--bg-base); overflow-x: auto; touch-action: pan-y; } 
         #capture-area { background: #000; display: inline-flex; flex-direction: column; width: 100%; min-width: 100%; border-radius: 4px; overflow: hidden; outline: 1px solid var(--border-color); transition: background 0.3s; }
+        
         .board-header-style { text-align: center; font-size: clamp(1.2rem, 4vw, 1.75rem); font-weight: 800; padding: 20px 10px; background: #000; color: #fff; text-transform: uppercase; border-bottom: 1px solid #000; cursor: pointer; transition: background 0.2s; }
         .board-header-style:hover { background: #1a1a1a; }
+        
         #tier-board { display: flex; flex-direction: column; gap: 4px; background: #000; border-top: 1px solid #000; padding: 4px; transition: background 0.3s; } 
         
         .tier-row { display: flex; align-items: stretch; background: #1a1a1a; border-radius: 2px; overflow: hidden; transition: border-top 0.2s; }
@@ -469,17 +471,42 @@
         function execConfirm() { if (confirmAction) confirmAction(); closeModal('confirm-modal'); }
         function execCancel() { if (confirmCancelAction) confirmCancelAction(); closeModal('confirm-modal'); }
 
-        // 3. EVENT LISTENERS & FIXES
+        // CƠ CHẾ CHẠM MỚI: CHẠM ĐỂ DI CHUYỂN (CLICK-TO-MOVE) & KÉO THẢ TƯƠNG THÍCH NHAU
         function initGlobalClickAndDrop() {
             const handleOutsideClick = (e) => { 
                 if (selectedImgObj) { 
-                    const isClickInsideImage = e.target.closest('.img-wrap'); 
                     const isClickInsideControl = e.target.closest('#resize-control'); 
-                    if (!isClickInsideImage && !isClickInsideControl) deselectImg(); 
+                    if (isClickInsideControl) return; 
+
+                    const clickedImageWrap = e.target.closest('.img-wrap');
+                    // Nếu click vào chính bức ảnh đang chọn thì để hàm clickImg xử lý việc Bỏ Chọn
+                    if (clickedImageWrap === selectedImgObj.dom) return; 
+
+                    // Tìm xem user vừa click vào Hàng (Tier) nào hoặc Kho (Dock) nào
+                    const targetTier = e.target.closest('.tier-content');
+                    const targetDock = e.target.closest('.dock-container'); 
+
+                    if (targetTier && targetTier.dataset.tierIndex !== undefined) {
+                        e.preventDefault(); 
+                        e.stopPropagation();
+                        moveSelectedToZone('tier', parseInt(targetTier.dataset.tierIndex));
+                        return;
+                    }
+
+                    if (targetDock) {
+                        e.preventDefault(); 
+                        e.stopPropagation();
+                        moveSelectedToZone('dock', null);
+                        return;
+                    }
+
+                    deselectImg(); 
                 } 
             };
-            document.addEventListener('mousedown', handleOutsideClick); 
-            document.addEventListener('touchstart', handleOutsideClick, {passive: true});
+            
+            // Sử dụng capture true để chặn các sự kiện click khác rác nếu đã bắt trúng
+            document.addEventListener('mousedown', handleOutsideClick, true); 
+            document.addEventListener('touchstart', handleOutsideClick, {passive: false, capture: true});
 
             const dockContainer = document.getElementById('dock-container-box');
             dockContainer.ondragover = e => { 
@@ -495,6 +522,27 @@
                     commitChange();
                 }
             };
+        }
+
+        // HÀM DỊCH CHUYỂN TỨC THỜI BỨC ẢNH ĐANG CHỌN VÀO Ô ĐÍCH
+        function moveSelectedToZone(targetType, targetTierIndex) {
+            if (!selectedImgObj) return;
+
+            let oldArray = (selectedImgObj.type === 'tier') ? currentListData.tiers[selectedImgObj.r].items : currentListData.dock;
+            const dataToMove = selectedImgObj.data;
+            
+            // Xóa khỏi vị trí cũ
+            oldArray.splice(selectedImgObj.i, 1);
+
+            // Bắn vào vị trí mới
+            if (targetType === 'tier') {
+                currentListData.tiers[targetTierIndex].items.push(dataToMove);
+            } else {
+                currentListData.dock.push(dataToMove);
+            }
+
+            deselectImg(); // Dọn dẹp trạng thái select
+            commitChange(); // Lưu và vẽ lại bảng ngay lập tức
         }
 
         function initGlobalFileDrop() { 
@@ -613,9 +661,9 @@
             return null;
         }
 
-        // FIX: ĐÓNG BẢNG EDIT ROW TRƯỚC KHI MỞ BẢNG XÁC NHẬN XÓA
+        // ĐÃ FIX: HÀM NÀY SẼ ĐÓNG BẢNG EDIT TRƯỚC KHI MỞ BẢNG XÁC NHẬN
         function deleteTier() { 
-            closeModal('modal-overlay'); // Ẩn Edit Row ngay lập tức
+            closeModal('modal-overlay'); 
             openConfirm("Delete Row", "Delete this row? Images in this row (if any) will also be deleted.", () => { 
                 currentListData.tiers.splice(editingTierIndex, 1); 
                 commitChange(); 
@@ -683,6 +731,7 @@
                     labelWrap.appendChild(label);
 
                     const content = document.createElement('div'); content.className = 'tier-content';
+                    content.dataset.tierIndex = i; // Gắn data index cho Click-to-Move
                     content.style.backgroundColor = currentListData.background ? 'rgba(0,0,0,0.6)' : '#1a1a1a';
                     
                     content.ondragover = e => { 
