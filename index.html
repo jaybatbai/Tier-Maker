@@ -91,36 +91,21 @@
 
         .capture-wrapper { padding: 15px 12px; background: var(--bg-base); overflow-x: auto; touch-action: pan-y; } 
         #capture-area { background: #000; display: inline-flex; flex-direction: column; width: 100%; min-width: 100%; border-radius: 4px; overflow: hidden; outline: 1px solid var(--border-color); transition: background 0.3s; }
-        
         .board-header-style { text-align: center; font-size: clamp(1.2rem, 4vw, 1.75rem); font-weight: 800; padding: 20px 10px; background: #000; color: #fff; text-transform: uppercase; border-bottom: 1px solid #000; cursor: pointer; transition: background 0.2s; }
         .board-header-style:hover { background: #1a1a1a; }
-        
         #tier-board { display: flex; flex-direction: column; gap: 4px; background: #000; border-top: 1px solid #000; padding: 4px; transition: background 0.3s; } 
         
         .tier-row { display: flex; align-items: stretch; background: #1a1a1a; border-radius: 2px; overflow: hidden; transition: border-top 0.2s; }
         
         .tier-label-wrap { width: 85px; min-width: 85px; display: flex; align-items: center; justify-content: center; position: relative; cursor: grab; touch-action: none; }
         .tier-label-wrap:active { cursor: grabbing; }
-        .tier-label { 
-            font-family: Arial, Helvetica, sans-serif; 
-            font-size: 14px; 
-            font-weight: normal; 
-            line-height: 1.3; 
-            color: #000; 
-            text-align: center; 
-            padding: 6px; 
-            word-break: normal; 
-            overflow-wrap: break-word; 
-            white-space: pre-wrap; 
-            width: 100%; 
-            pointer-events: none; 
-        }
+        .tier-label { font-family: Arial, Helvetica, sans-serif; font-size: 14px; font-weight: normal; line-height: 1.3; color: #000; text-align: center; padding: 6px; word-break: normal; overflow-wrap: break-word; white-space: pre-wrap; width: 100%; pointer-events: none; }
         @media (min-width: 600px) { 
             .tier-label-wrap { width: 130px; min-width: 130px; } 
             .tier-label { font-size: 16px; padding: 8px; }
         }
         
-        .tier-content { flex: 1; display: flex; flex-wrap: wrap; align-content: flex-start; align-items: flex-start; background: #1a1a1a; padding: 4px; gap: 4px; position: relative; min-height: 85px; transition: background 0.2s; }
+        .tier-content { flex: 1; display: flex; flex-wrap: wrap; align-content: flex-start; align-items: flex-start; background: #1a1a1a; padding: 4px; gap: 4px; position: relative; min-height: 85px; transition: background 0.2s; cursor: pointer; }
         
         /* IMAGE SHAPES & EFFECTS */
         .img-wrap { display: flex; align-items: center; justify-content: center; position: relative; cursor: grab; transition: transform 0.15s cubic-bezier(0.2, 0.8, 0.2, 1); margin: 0; padding: 0; touch-action: none; max-width: 100%; }
@@ -142,7 +127,7 @@
         .shape-circle .img-wrap { border-radius: 50%; }
         .shape-circle .img-item { border-radius: 50%; }
 
-        .dock-container { background: var(--bg-base); padding: 15px 12px; flex: 1; border-top: 1px solid var(--border-color); touch-action: pan-y; }
+        .dock-container { background: var(--bg-base); padding: 15px 12px; flex: 1; border-top: 1px solid var(--border-color); touch-action: pan-y; cursor: pointer;}
         #dock::-webkit-scrollbar { width: 6px; height: 6px; }
         #dock::-webkit-scrollbar-track { background: transparent; }
         #dock::-webkit-scrollbar-thumb { background: var(--border-hover); border-radius: 10px; }
@@ -471,7 +456,7 @@
         function execConfirm() { if (confirmAction) confirmAction(); closeModal('confirm-modal'); }
         function execCancel() { if (confirmCancelAction) confirmCancelAction(); closeModal('confirm-modal'); }
 
-        // CƠ CHẾ CHẠM MỚI: CHẠM ĐỂ DI CHUYỂN (CLICK-TO-MOVE) & KÉO THẢ TƯƠNG THÍCH NHAU
+        // 3. EVENT LISTENERS & FIXES: ĐÃ FIX CƠ CHẾ CLICK 2 BƯỚC ĐỂ ĐỔI CHỖ ẢNH HOẶC CHÈN ẢNH
         function initGlobalClickAndDrop() {
             const handleOutsideClick = (e) => { 
                 if (selectedImgObj) { 
@@ -479,34 +464,42 @@
                     if (isClickInsideControl) return; 
 
                     const clickedImageWrap = e.target.closest('.img-wrap');
-                    // Nếu click vào chính bức ảnh đang chọn thì để hàm clickImg xử lý việc Bỏ Chọn
                     if (clickedImageWrap === selectedImgObj.dom) return; 
 
-                    // Tìm xem user vừa click vào Hàng (Tier) nào hoặc Kho (Dock) nào
+                    // Tìm xem user vừa click vào vùng trống của Hàng hay Kho
                     const targetTier = e.target.closest('.tier-content');
                     const targetDock = e.target.closest('.dock-container'); 
 
-                    if (targetTier && targetTier.dataset.tierIndex !== undefined) {
+                    if (targetTier && targetTier.dataset.tierIndex !== undefined && !clickedImageWrap) {
                         e.preventDefault(); 
                         e.stopPropagation();
-                        moveSelectedToZone('tier', parseInt(targetTier.dataset.tierIndex));
+                        let sourceArray = (selectedImgObj.type === 'tier') ? currentListData.tiers[selectedImgObj.r].items : currentListData.dock;
+                        sourceArray.splice(selectedImgObj.i, 1);
+                        currentListData.tiers[parseInt(targetTier.dataset.tierIndex)].items.push(selectedImgObj.data);
+                        deselectImg();
+                        commitChange();
                         return;
                     }
 
-                    if (targetDock) {
+                    if (targetDock && !clickedImageWrap) {
                         e.preventDefault(); 
                         e.stopPropagation();
-                        moveSelectedToZone('dock', null);
+                        let sourceArray = (selectedImgObj.type === 'tier') ? currentListData.tiers[selectedImgObj.r].items : currentListData.dock;
+                        sourceArray.splice(selectedImgObj.i, 1);
+                        currentListData.dock.push(selectedImgObj.data);
+                        deselectImg();
+                        commitChange();
                         return;
                     }
 
-                    deselectImg(); 
+                    if (!clickedImageWrap) {
+                        deselectImg(); 
+                    }
                 } 
             };
             
-            // Sử dụng capture true để chặn các sự kiện click khác rác nếu đã bắt trúng
-            document.addEventListener('mousedown', handleOutsideClick, true); 
-            document.addEventListener('touchstart', handleOutsideClick, {passive: false, capture: true});
+            document.addEventListener('mousedown', handleOutsideClick); 
+            document.addEventListener('touchstart', handleOutsideClick, {passive: true});
 
             const dockContainer = document.getElementById('dock-container-box');
             dockContainer.ondragover = e => { 
@@ -522,27 +515,6 @@
                     commitChange();
                 }
             };
-        }
-
-        // HÀM DỊCH CHUYỂN TỨC THỜI BỨC ẢNH ĐANG CHỌN VÀO Ô ĐÍCH
-        function moveSelectedToZone(targetType, targetTierIndex) {
-            if (!selectedImgObj) return;
-
-            let oldArray = (selectedImgObj.type === 'tier') ? currentListData.tiers[selectedImgObj.r].items : currentListData.dock;
-            const dataToMove = selectedImgObj.data;
-            
-            // Xóa khỏi vị trí cũ
-            oldArray.splice(selectedImgObj.i, 1);
-
-            // Bắn vào vị trí mới
-            if (targetType === 'tier') {
-                currentListData.tiers[targetTierIndex].items.push(dataToMove);
-            } else {
-                currentListData.dock.push(dataToMove);
-            }
-
-            deselectImg(); // Dọn dẹp trạng thái select
-            commitChange(); // Lưu và vẽ lại bảng ngay lập tức
         }
 
         function initGlobalFileDrop() { 
@@ -661,7 +633,7 @@
             return null;
         }
 
-        // ĐÃ FIX: HÀM NÀY SẼ ĐÓNG BẢNG EDIT TRƯỚC KHI MỞ BẢNG XÁC NHẬN
+        // ĐÓNG BẢNG EDIT TRƯỚC KHI MỞ BẢNG XÁC NHẬN
         function deleteTier() { 
             closeModal('modal-overlay'); 
             openConfirm("Delete Row", "Delete this row? Images in this row (if any) will also be deleted.", () => { 
@@ -731,7 +703,7 @@
                     labelWrap.appendChild(label);
 
                     const content = document.createElement('div'); content.className = 'tier-content';
-                    content.dataset.tierIndex = i; // Gắn data index cho Click-to-Move
+                    content.dataset.tierIndex = i; // Đánh dấu ID cho hàm click to move
                     content.style.backgroundColor = currentListData.background ? 'rgba(0,0,0,0.6)' : '#1a1a1a';
                     
                     content.ondragover = e => { 
@@ -806,6 +778,33 @@
             } catch (err) {}
         }
 
+        // HÀM CLICK ẢNH - ĐÃ TÍCH HỢP TÍNH NĂNG HOÁN ĐỔI (SWAP)
+        function clickImg(wrap, data, type, r, i) { 
+            if (!selectedImgObj) { 
+                selectedImgObj = {dom: wrap, data, type, r, i}; 
+                wrap.classList.add('selected'); 
+                document.getElementById('resize-control').classList.remove('hidden'); 
+                document.getElementById('size-slider').value = data.h; 
+                document.getElementById('size-val').innerText = data.h + 'px'; 
+            } else if (selectedImgObj.dom === wrap) { 
+                deselectImg(); 
+            } else {
+                // Nếu đang chọn 1 ảnh mà lại bấm vào ảnh khác -> ĐỔI CHỖ (SWAP)
+                let sourceArray = (selectedImgObj.type === 'tier') ? currentListData.tiers[selectedImgObj.r].items : currentListData.dock;
+                let targetArray = (type === 'tier') ? currentListData.tiers[r].items : currentListData.dock;
+                
+                let sourceData = sourceArray[selectedImgObj.i];
+                let targetData = targetArray[i];
+
+                // Thực hiện hoán đổi dữ liệu
+                sourceArray[selectedImgObj.i] = targetData;
+                targetArray[i] = sourceData;
+
+                deselectImg();
+                commitChange();
+            }
+        }
+
         function createImg(data, type, r, i) {
             const wrap = document.createElement('div'); wrap.className = 'img-wrap'; 
             wrap.style.height = (type==='tier' ? data.h : 85) + 'px';
@@ -818,7 +817,12 @@
             wrap.appendChild(img);
             
             if (data.caption) { const c = document.createElement('div'); c.className = 'img-caption'; c.innerText = data.caption; wrap.appendChild(c); }
-            wrap.onclick = e => { e.stopPropagation(); clickImg(wrap, data, type, r, i); };
+            
+            // Xử lý click chọn ảnh / hoán đổi ảnh
+            wrap.onclick = e => { 
+                e.stopPropagation(); 
+                clickImg(wrap, data, type, r, i); 
+            };
             
             wrap.ondragstart = e => { 
                 if(!isDragMode) return;
@@ -852,7 +856,6 @@
         tz.ondrop = () => { if (isDragMode && draggedItem) { let oldArray = (draggedItem.type === 'tier') ? currentListData.tiers[draggedItem.r].items : currentListData.dock; oldArray.splice(draggedItem.i, 1); commitChange(); tz.classList.remove('hover'); } };
 
         // 7. EDITING & MEDIA CONTROLS
-        function clickImg(dom, data, type, r, i) { if (!selectedImgObj) { selectedImgObj = {dom, data, type, r, i}; dom.classList.add('selected'); document.getElementById('resize-control').classList.remove('hidden'); document.getElementById('size-slider').value = data.h; document.getElementById('size-val').innerText = data.h + 'px'; } else if (selectedImgObj.dom === dom) { deselectImg(); } }
         function deselectImg() { if (selectedImgObj) { selectedImgObj.dom.classList.remove('selected'); selectedImgObj = null; document.getElementById('resize-control').classList.add('hidden'); } }
         function resizeSelectedImg(h) { if (selectedImgObj) { h = parseInt(h); selectedImgObj.data.h = h; selectedImgObj.dom.style.height = h+'px'; document.getElementById('size-val').innerText = h+'px'; document.getElementById('size-slider').value = h; } }
         function adjustSize(d) { if (selectedImgObj) { let newH = parseInt(document.getElementById('size-slider').value) + d; newH = Math.max(40, Math.min(300, newH)); resizeSelectedImg(newH); } }
