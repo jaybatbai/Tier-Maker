@@ -85,7 +85,7 @@
         .btn-back { background: transparent; color: var(--text-main); border: none; cursor: pointer; font-weight: bold; font-size: 1.1rem; padding: 5px 0; }
         .list-name-input { flex: 1; min-width: 100px; background: transparent; border: none; color: var(--text-main); font-size: 1.1rem; font-weight: 600; outline: none; text-overflow: ellipsis; padding: 0 5px; }
         .top-actions { display: flex; gap: 6px; flex-wrap: nowrap; }
-        .btn-icon { background: var(--bg-elevated); color: var(--text-main); border: 1px solid var(--border-color); padding: 6px 10px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; }
+        .btn-icon { background: var(--bg-elevated); color: var(--text-main); border: 1px solid var(--border-color); padding: 6px 10px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; transition: all 0.2s;}
         
         #btn-drag-toggle { background: var(--bg-surface); color: var(--primary); font-weight: 800; border: 1px solid var(--border-color); border-radius: 6px; padding: 6px 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; width: max-content; transition: all 0.2s;}
 
@@ -95,7 +95,7 @@
         .board-header-style:hover { background: #1a1a1a; }
         #tier-board { display: flex; flex-direction: column; gap: 4px; background: #000; border-top: 1px solid #000; padding: 4px; transition: background 0.3s; } 
         
-        .tier-row { display: flex; align-items: stretch; background: #1a1a1a; border-radius: 2px; overflow: hidden; transition: border-top 0.2s; }
+        .tier-row { display: flex; align-items: stretch; background: #1a1a1a; border-radius: 2px; transition: border-top 0.2s; }
         
         .tier-label-wrap { width: 85px; min-width: 85px; display: flex; align-items: center; justify-content: center; position: relative; cursor: grab; touch-action: none; }
         .tier-label-wrap:active { cursor: grabbing; }
@@ -105,8 +105,7 @@
             .tier-label { font-size: 16px; padding: 8px; }
         }
         
-        /* CHỐNG GIẬT LAG: Tăng padding-bottom lên 20px để tạo vùng hứng ảnh rộng hơn */
-        .tier-content { flex: 1; display: flex; flex-wrap: wrap; align-content: flex-start; align-items: flex-start; background: #1a1a1a; padding: 6px 6px 20px 6px; gap: 4px; position: relative; min-height: 85px; transition: background 0.2s; }
+        .tier-content { flex: 1; display: flex; flex-wrap: wrap; align-content: flex-start; align-items: flex-start; background: #1a1a1a; padding: 4px; gap: 4px; position: relative; min-height: 85px; transition: background 0.2s; cursor: pointer; }
         
         /* IMAGE SHAPES & EFFECTS */
         .img-wrap { display: flex; align-items: center; justify-content: center; position: relative; cursor: grab; transition: transform 0.15s cubic-bezier(0.2, 0.8, 0.2, 1); margin: 0; padding: 0; touch-action: none; max-width: 100%; }
@@ -114,6 +113,32 @@
         .img-wrap:active { transform: scale(0.95); cursor: grabbing;}
         .img-wrap.dragging { display: none !important; }
         
+        /* CSS CHO TOOLTIP HIỆN TÊN FILE (KHI BẬT TÍNH NĂNG NAME: ON) */
+        body.show-filename-on-click .img-wrap.selected::after {
+            content: attr(data-raw-name);
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.85);
+            color: #fff;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-size: 13px;
+            font-weight: bold;
+            white-space: nowrap;
+            max-width: 90%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            pointer-events: none;
+            z-index: 100;
+            border: 1px solid rgba(255,255,255,0.2);
+            backdrop-filter: blur(4px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+        body.show-filename-on-click .img-wrap.selected[data-raw-name=""]::after { display: none; }
+
         body.scroll-mode .img-wrap, body.scroll-mode .tier-label-wrap { touch-action: auto !important; }
 
         .drag-placeholder { opacity: 0.7; outline: 3px dashed var(--primary); outline-offset: -3px; pointer-events: none !important; transform: scale(0.98); animation: fadeInGhost 0.2s; border-radius: 4px; overflow: hidden; filter: brightness(1.2); }
@@ -224,6 +249,7 @@
                 <button onclick="openBgModal()" class="btn-icon" style="flex:1; min-width: 100px;">🎨 Background</button>
                 <button onclick="toggleImageShape()" id="btn-shape-toggle" class="btn-icon" style="flex:1; min-width: 100px;">🔄 Shape: Original</button>
                 <button onclick="toggleFont()" id="btn-font-toggle" class="btn-icon" style="flex:1; min-width: 100px;">🔤 Font: Arial</button>
+                <button onclick="toggleFilename()" id="btn-filename-toggle" class="btn-icon" style="flex:1; min-width: 100px;">🏷️ Name: OFF</button>
                 <button onclick="toggleHeader()" class="btn-icon" style="flex:1; min-width: 100px;">Toggle Header</button>
                 <button onclick="resetBoard()" class="btn-icon" style="color:var(--danger); border-color:var(--danger); flex:1; min-width: 100px;">Reset Board</button>
             </div>
@@ -434,7 +460,7 @@
         let isDirty = false;
         let isDragMode = true;
         
-        // MẢNG QUẢN LÝ FONT CHỮ (ARIAL LÀ MẶC ĐỊNH SỐ 0)
+        // MẢNG QUẢN LÝ FONT CHỮ
         const fontsArr = ['Arial, Helvetica, sans-serif', "'Comic Sans MS', 'Chalkboard SE', 'Comic Neue', sans-serif", "Impact, Charcoal, sans-serif", "'Courier New', Courier, monospace", "Georgia, serif"];
         const fontNamesArr = ['Arial', 'Comic', 'Impact', 'Courier', 'Georgia'];
 
@@ -457,7 +483,7 @@
         function execConfirm() { if (confirmAction) confirmAction(); closeModal('confirm-modal'); }
         function execCancel() { if (confirmCancelAction) confirmCancelAction(); closeModal('confirm-modal'); }
 
-        // CƠ CHẾ CHẠM MỚI: CHẠM ĐỂ DI CHUYỂN (CLICK-TO-MOVE) & KÉO THẢ TƯƠNG THÍCH NHAU
+        // 3. EVENT LISTENERS & FIXES
         function initGlobalClickAndDrop() {
             const handleOutsideClick = (e) => { 
                 if (selectedImgObj) { 
@@ -554,6 +580,13 @@
             }
         }
 
+        // TÍNH NĂNG TÊN FILE (TOOLTIP) MỚI
+        function toggleFilename() {
+            if (currentListData.showFilename === undefined) currentListData.showFilename = false;
+            currentListData.showFilename = !currentListData.showFilename;
+            commitChange();
+        }
+
         // TÍNH NĂNG ĐỔI FONT CHỮ
         function toggleFont() {
             if (typeof currentListData.fontIndex !== 'number') currentListData.fontIndex = 0;
@@ -645,6 +678,20 @@
         // 6. BOARD RENDER & DRAG-DROP
         function renderBoard() {
             try {
+                // Xử lý nút hiển thị Name (Tooltip)
+                const filenameBtn = document.getElementById('btn-filename-toggle');
+                if(currentListData.showFilename) {
+                    document.body.classList.add('show-filename-on-click');
+                    filenameBtn.innerText = '🏷️ Name: ON';
+                    filenameBtn.style.color = 'var(--primary)';
+                    filenameBtn.style.borderColor = 'var(--primary)';
+                } else {
+                    document.body.classList.remove('show-filename-on-click');
+                    filenameBtn.innerText = '🏷️ Name: OFF';
+                    filenameBtn.style.color = 'var(--text-main)';
+                    filenameBtn.style.borderColor = 'var(--border-color)';
+                }
+
                 // Xử lý nút Shape
                 const editorScreen = document.getElementById('editor-screen');
                 editorScreen.classList.remove('shape-square', 'shape-circle');
@@ -783,6 +830,10 @@
             wrap.style.height = (type==='tier' ? data.h : 85) + 'px';
             wrap.dataset.name = (data.name || '').toLowerCase();
             
+            // Xóa đuôi file để hiển thị tooltip đẹp (Ví dụ: hero.png -> hero)
+            let rawName = data.name ? data.name.replace(/\.[^/.]+$/, "") : "";
+            wrap.setAttribute('data-raw-name', rawName);
+            
             if(isDragMode) wrap.draggable = true;
             else wrap.style.cursor = 'pointer';
             
@@ -791,21 +842,18 @@
             
             if (data.caption) { const c = document.createElement('div'); c.className = 'img-caption'; c.innerText = data.caption; wrap.appendChild(c); }
             
-            // XỬ LÝ CLICK ĐỂ ĐỔI CHỖ
+            // XỬ LÝ CLICK ĐỂ ĐỔI CHỖ / CHỌN
             wrap.onclick = e => { 
                 e.stopPropagation(); 
                 if (!selectedImgObj) { 
-                    // Chạm lần 1: Đánh dấu đang chọn
                     selectedImgObj = {dom: wrap, data, type, r, i}; 
                     wrap.classList.add('selected'); 
                     document.getElementById('resize-control').classList.remove('hidden'); 
                     document.getElementById('size-slider').value = data.h; 
                     document.getElementById('size-val').innerText = data.h + 'px'; 
                 } else if (selectedImgObj.dom === wrap) { 
-                    // Chạm lại vào chính nó: Bỏ chọn
                     deselectImg(); 
                 } else {
-                    // Chạm vào 1 ảnh khác: THỰC HIỆN HOÁN ĐỔI (SWAP)
                     let sourceArray = (selectedImgObj.type === 'tier') ? currentListData.tiers[selectedImgObj.r].items : currentListData.dock;
                     let targetArray = (type === 'tier') ? currentListData.tiers[r].items : currentListData.dock;
                     
@@ -827,7 +875,6 @@
                 e.dataTransfer.effectAllowed = 'move'; 
                 const tz = document.getElementById('trash-zone'); tz.style.display='flex'; tz.classList.remove('hover');
                 
-                // GIỮ LẠI VỊ TRÍ BẰNG PLACEHOLDER TRƯỚC KHI ẢNH BIẾN MẤT ĐỂ CHỐNG GIẬT LAG
                 setTimeout(() => {
                     wrap.classList.add('dragging'); 
                     currentPlaceholder = wrap.cloneNode(true);
@@ -854,6 +901,7 @@
         tz.ondrop = () => { if (isDragMode && draggedItem) { let oldArray = (draggedItem.type === 'tier') ? currentListData.tiers[draggedItem.r].items : currentListData.dock; oldArray.splice(draggedItem.i, 1); commitChange(); tz.classList.remove('hover'); } };
 
         // 7. EDITING & MEDIA CONTROLS
+        function clickImg(dom, data, type, r, i) { if (!selectedImgObj) { selectedImgObj = {dom, data, type, r, i}; dom.classList.add('selected'); document.getElementById('resize-control').classList.remove('hidden'); document.getElementById('size-slider').value = data.h; document.getElementById('size-val').innerText = data.h + 'px'; } else if (selectedImgObj.dom === dom) { deselectImg(); } }
         function deselectImg() { if (selectedImgObj) { selectedImgObj.dom.classList.remove('selected'); selectedImgObj = null; document.getElementById('resize-control').classList.add('hidden'); } }
         function resizeSelectedImg(h) { if (selectedImgObj) { h = parseInt(h); selectedImgObj.data.h = h; selectedImgObj.dom.style.height = h+'px'; document.getElementById('size-val').innerText = h+'px'; document.getElementById('size-slider').value = h; } }
         function adjustSize(d) { if (selectedImgObj) { let newH = parseInt(document.getElementById('size-slider').value) + d; newH = Math.max(40, Math.min(300, newH)); resizeSelectedImg(newH); } }
@@ -941,7 +989,8 @@
                             dock: [],
                             shape: 'auto',
                             background: null,
-                            fontIndex: 0
+                            fontIndex: 0,
+                            showFilename: false
                         }; 
                         saveListSilent(newList); loadMenu(); closeModal('create-modal-overlay'); document.getElementById('new-template-name').value = ''; hideLoading(); 
                     }, 300); 
