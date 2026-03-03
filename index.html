@@ -12,8 +12,6 @@
     
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <script src="https://bernardo-castilho.github.io/DragDropTouch/DragDropTouch.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.2/peerjs.min.js"></script>
-
     <style>
         /* THEME VARIABLES */
         :root[data-theme="dark"] {
@@ -68,10 +66,7 @@
 
         .menu-actions { display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 380px; margin-bottom: 50px; }
         .btn-create { width: 100%; padding: 16px; background: var(--primary); color: #fff; font-weight: 600; border: none; border-radius: var(--radius-md); font-size: 1.05rem; cursor: pointer; transition: all 0.2s; }
-        
-        /* Đã nâng cấp UI khu vực nút ở Menu */
-        .btn-data { width: 100%; padding: 14px; background: var(--bg-surface); color: var(--text-main); border: 1px solid var(--border-color); border-radius: var(--radius-md); font-weight: 600; cursor: pointer; transition: 0.2s; font-size: 0.95rem; }
-        .btn-sync { width: 100%; padding: 14px; background: var(--accent); color: #fff; border: none; border-radius: var(--radius-md); font-weight: 600; cursor: pointer; transition: 0.2s; font-size: 0.95rem; }
+        .btn-data { width: 100%; padding: 14px; background: var(--bg-surface); color: var(--text-main); border: 1px solid var(--border-color); border-radius: var(--radius-md); font-weight: 500; cursor: pointer; transition: 0.2s; font-size: 0.95rem; }
         button:active { transform: scale(0.97); }
 
         #list-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; width: 100%; }
@@ -110,7 +105,7 @@
             .tier-label { font-size: 16px; padding: 8px; }
         }
         
-        .tier-content { flex: 1; display: flex; flex-wrap: wrap; align-content: flex-start; align-items: flex-start; background: #1a1a1a; padding: 6px 6px 20px 6px; gap: 4px; position: relative; min-height: 85px; transition: background 0.2s; cursor: pointer; }
+        .tier-content { flex: 1; display: flex; flex-wrap: wrap; align-content: flex-start; align-items: flex-start; background: #1a1a1a; padding: 4px; gap: 4px; position: relative; min-height: 85px; transition: background 0.2s; cursor: pointer; }
         
         /* IMAGE SHAPES & EFFECTS */
         .img-wrap { display: flex; align-items: center; justify-content: center; position: relative; cursor: grab; transition: transform 0.15s cubic-bezier(0.2, 0.8, 0.2, 1); margin: 0; padding: 0; touch-action: none; max-width: 100%; }
@@ -118,7 +113,7 @@
         .img-wrap:active { transform: scale(0.95); cursor: grabbing;}
         .img-wrap.dragging { display: none !important; }
         
-        /* CSS TOOLTIP HIỆN TÊN FILE */
+        /* CSS CHO TOOLTIP HIỆN TÊN FILE (KHI BẬT TÍNH NĂNG NAME: ON) */
         body.show-filename-on-click .img-wrap.selected::after {
             content: attr(data-raw-name);
             position: absolute;
@@ -204,9 +199,6 @@
         .shortcut-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border-color); color: var(--text-main); font-size: 0.9rem;}
         kbd { background: var(--bg-elevated); border: 1px solid var(--border-color); padding: 2px 6px; border-radius: 4px; font-family: monospace; font-size: 0.85rem; color: var(--text-main); }
 
-        /* P2P SYNC CSS */
-        .sync-box { background: var(--bg-elevated); padding: 20px; border-radius: 12px; margin-bottom: 15px; border: 1px solid var(--border-color); }
-        .sync-box h3 { margin-top:0; margin-bottom: 15px; font-size: 1.1rem; color: var(--text-main); display: flex; align-items: center; gap: 8px;}
     </style>
 </head>
 <body>
@@ -216,7 +208,7 @@
     
     <div id="loading-overlay">
         <div class="spinner"></div>
-        <p id="loading-text" style="margin-top: 20px; text-align: center;">Processing...</p>
+        <p id="loading-text" style="margin-top: 20px;">Processing...</p>
     </div>
 
     <div id="app-container">
@@ -228,8 +220,7 @@
             
             <div class="menu-actions">
                 <button class="btn-create" onclick="openCreateModal()">+ Create New Template</button>
-                <button class="btn-sync" onclick="openSyncModal()">🚀 P2P Sync (AirDrop) - Fast</button>
-                <button class="btn-data" onclick="openBackupMenu()">📦 Files & Local Backup</button>
+                <button class="btn-data" onclick="openBackupMenu()">📦 Data & Backup</button>
             </div>
             <div id="list-container" role="list">Loading...</div>
         </div>
@@ -304,28 +295,6 @@
                 <button style="background:transparent; color:var(--text-main); border: 1px solid var(--border-color);" onclick="execCancel()">Cancel</button>
                 <button style="background:var(--danger); color:white;" onclick="execConfirm()">Confirm</button>
             </div>
-        </div>
-    </div>
-
-    <div id="sync-modal-overlay" class="modal-overlay">
-        <div class="modal">
-            <h2 style="margin-bottom: 5px;">🚀 P2P Sync (AirDrop)</h2>
-            <p style="color:var(--text-muted); font-size:0.85rem; margin-bottom: 20px; line-height: 1.4;">Transfer all your tier lists directly between PC and Phone using local network. No cloud, no quality loss.</p>
-            
-            <div class="sync-box">
-                <h3><span style="font-size: 1.5rem;">📤</span> Step 1: Send Data (From Old Device)</h3>
-                <button onclick="generateSyncCode()" style="width:100%; padding:12px; background:var(--primary); color:#fff; border:none; border-radius:8px; cursor:pointer; font-weight:bold; font-size: 1rem;">Generate 4-Digit PIN</button>
-                <div style="text-align:center; margin-top:15px; font-size:2.2rem; font-weight:900; letter-spacing: 8px; color:var(--accent);" id="sync-code-display">----</div>
-                <p id="sync-wait-msg" style="display:none; text-align:center; color:var(--primary); font-size:0.85rem; font-weight:bold; margin-top: 10px;">⏳ Waiting for receiver to connect...</p>
-            </div>
-
-            <div class="sync-box">
-                <h3><span style="font-size: 1.5rem;">📥</span> Step 2: Receive Data (To New Device)</h3>
-                <input type="text" id="sync-code-input" placeholder="Enter PIN from old device" style="width:100%; padding:12px; text-align:center; font-size:1.1rem; letter-spacing: 2px; margin-bottom:12px; font-weight:bold; background: var(--bg-base);" maxlength="4">
-                <button onclick="receiveSyncData()" style="width:100%; padding:12px; background:var(--accent); color:#fff; border:none; border-radius:8px; cursor:pointer; font-weight:bold; font-size: 1rem;">Connect & Sync</button>
-            </div>
-
-            <button style="width:100%; background:transparent; color:var(--text-main); border: 1px solid var(--border-color); padding:12px; border-radius:8px; font-weight: bold; cursor: pointer;" onclick="closeSyncModal()">Close</button>
         </div>
     </div>
 
@@ -442,14 +411,28 @@
     <div id="backup-modal-overlay" class="modal-overlay">
         <div class="modal">
             <h2>Data & Backup</h2>
-            <p style="color:var(--text-muted); font-size:0.9rem; margin-bottom: 20px;">Use files for long-term safe backup.</p>
+            <p style="color:var(--text-muted); font-size:0.9rem; margin-bottom: 20px;">Backup via file or direct Copy/Paste to transfer to another device.</p>
             <div class="modal-btns">
-                <button style="background:var(--primary); color:#fff;" onclick="exportData()">⬇️ Export Data (Download File)</button>
-                <button style="background:var(--accent); color:#fff;" onclick="document.getElementById('importInput').click()">⬆️ Import Data (Restore File)</button>
+                <button style="background:var(--primary); color:#fff;" onclick="exportData()">⬇️ Export Data (Download file)</button>
+                <button style="background:var(--accent); color:#fff;" onclick="document.getElementById('importInput').click()">⬆️ Import Data (Restore)</button>
+                <button style="background:#f59e0b; color:#fff; margin-top:10px;" onclick="copyDataToClipboard()">📋 Copy Code (Paste to another device)</button>
+                <button style="background:#8b5cf6; color:#fff; margin-top:5px;" onclick="pasteDataFromClipboard()">📝 Paste Code (Get from another device)</button>
                 <button style="background:var(--danger); color:#fff; margin-top:15px;" onclick="wipeAllData()">🗑️ Wipe all data (Reset)</button>
                 <button style="background:transparent; color:var(--text-main); margin-top:5px;" onclick="closeModal('backup-modal-overlay')">Close</button>
             </div>
             <input type="file" id="importInput" accept=".json" onchange="importData(event)" style="display:none" aria-label="Import data file">
+        </div>
+    </div>
+
+    <div id="manual-paste-modal" class="modal-overlay">
+        <div class="modal">
+            <h2>Paste Data Code</h2>
+            <p style="color:var(--text-muted); font-size:0.85rem;">Browser blocks auto-paste. Click the box below and press <kbd>Ctrl+V</kbd>.</p>
+            <textarea id="manual-paste-textarea" rows="4" placeholder="Paste code here..."></textarea>
+            <div class="modal-btns">
+                <button style="background:#8b5cf6; color:#fff;" onclick="processManualPaste()">Restore Data</button>
+                <button style="background:transparent; color:var(--text-main);" onclick="closeModal('manual-paste-modal')">Cancel</button>
+            </div>
         </div>
     </div>
 
@@ -477,6 +460,7 @@
         let isDirty = false;
         let isDragMode = true;
         
+        // MẢNG QUẢN LÝ FONT CHỮ
         const fontsArr = ['Arial, Helvetica, sans-serif', "'Comic Sans MS', 'Chalkboard SE', 'Comic Neue', sans-serif", "Impact, Charcoal, sans-serif", "'Courier New', Courier, monospace", "Georgia, serif"];
         const fontNamesArr = ['Arial', 'Comic', 'Impact', 'Courier', 'Georgia'];
 
@@ -499,109 +483,7 @@
         function execConfirm() { if (confirmAction) confirmAction(); closeModal('confirm-modal'); }
         function execCancel() { if (confirmCancelAction) confirmCancelAction(); closeModal('confirm-modal'); }
 
-        // ======================= P2P SYNC ENGINE (MỚI) =======================
-        let peer = null;
-
-        function openSyncModal() {
-            document.getElementById('sync-modal-overlay').style.display = 'flex';
-        }
-
-        function closeSyncModal() {
-            if (peer) { peer.destroy(); peer = null; }
-            document.getElementById('sync-modal-overlay').style.display = 'none';
-            document.getElementById('sync-code-display').innerText = '----';
-            document.getElementById('sync-wait-msg').style.display = 'none';
-            document.getElementById('sync-code-input').value = '';
-        }
-
-        function generateSyncCode() {
-            if (peer) peer.destroy();
-            showLoading("Generating PIN...");
-            const pin = Math.floor(1000 + Math.random() * 9000).toString();
-            const hostId = 'tm_sync_' + pin;
-            
-            peer = new Peer(hostId);
-            
-            peer.on('open', (id) => {
-                hideLoading();
-                document.getElementById('sync-code-display').innerText = pin;
-                document.getElementById('sync-wait-msg').style.display = 'block';
-            });
-
-            peer.on('connection', (conn) => {
-                conn.on('open', () => {
-                    showLoading("Transferring 4K Data...\nPlease do not close the browser.");
-                    // Lấy toàn bộ data từ IndexedDB để gửi đi
-                    db.transaction(['lists']).objectStore('lists').getAll().onsuccess = e => {
-                        const allData = e.target.result;
-                        // Chia nhỏ hoặc gửi thẳng tùy thư viện (PeerJS tự chia nhỏ chunk nội bộ)
-                        conn.send(JSON.stringify(allData));
-                        
-                        setTimeout(() => {
-                            hideLoading();
-                            alert("✅ Data sent successfully to the other device!");
-                            closeSyncModal();
-                        }, 1000);
-                    };
-                });
-            });
-
-            peer.on('error', (err) => { 
-                hideLoading(); 
-                alert("Network Error: Make sure you have internet access to establish the local connection."); 
-                closeSyncModal();
-            });
-        }
-
-        function receiveSyncData() {
-            const pin = document.getElementById('sync-code-input').value.trim();
-            if(pin.length !== 4) { alert("Please enter a valid 4-digit PIN."); return; }
-            
-            if (peer) peer.destroy();
-            showLoading("Connecting to Host...");
-            
-            peer = new Peer();
-            peer.on('open', () => {
-                const targetId = 'tm_sync_' + pin;
-                const conn = peer.connect(targetId, { reliable: true });
-                
-                conn.on('open', () => {
-                    showLoading("Receiving Data...\nThis might take a few seconds depending on image sizes.");
-                });
-                
-                conn.on('data', (dataStr) => {
-                    try {
-                        const parsedData = JSON.parse(dataStr);
-                        if (!isValidTierData(parsedData)) throw new Error("Invalid format");
-                        
-                        const tx = db.transaction(['lists'], 'readwrite');
-                        const store = tx.objectStore('lists');
-                        
-                        // Ghi đè hoặc thêm mới data
-                        parsedData.forEach(item => store.put(item));
-                        
-                        tx.oncomplete = () => {
-                            hideLoading();
-                            alert('🎉 Sync Complete! Your devices are now updated.');
-                            closeSyncModal();
-                            loadMenu(); // Refresh lại giao diện Menu
-                        };
-                    } catch(e) {
-                        hideLoading();
-                        alert("❌ Failed to process received data.");
-                    }
-                });
-
-                conn.on('error', () => { hideLoading(); alert("Lost connection to host."); });
-            });
-
-            peer.on('error', (err) => { 
-                hideLoading(); 
-                alert("Connection failed. Make sure the Host is waiting on the PIN screen."); 
-            });
-        }
-        // ======================================================================
-
+        // 3. EVENT LISTENERS & FIXES
         function initGlobalClickAndDrop() {
             const handleOutsideClick = (e) => { 
                 if (selectedImgObj) { 
@@ -698,18 +580,21 @@
             }
         }
 
+        // TÍNH NĂNG TÊN FILE (TOOLTIP) MỚI
         function toggleFilename() {
             if (currentListData.showFilename === undefined) currentListData.showFilename = false;
             currentListData.showFilename = !currentListData.showFilename;
             commitChange();
         }
 
+        // TÍNH NĂNG ĐỔI FONT CHỮ
         function toggleFont() {
             if (typeof currentListData.fontIndex !== 'number') currentListData.fontIndex = 0;
             currentListData.fontIndex = (currentListData.fontIndex + 1) % fontsArr.length;
             commitChange();
         }
 
+        // TÍNH NĂNG TÌM KIẾM TRONG KHO (DOCK SEARCH)
         function filterDock() {
             const query = document.getElementById('dock-search').value.toLowerCase();
             const dockItems = document.getElementById('dock').querySelectorAll('.img-wrap');
@@ -720,6 +605,7 @@
             });
         }
 
+        // TÍNH NĂNG CHUYỂN HÌNH DÁNG ẢNH (SHAPE TOGGLE)
         function toggleImageShape() {
             if(!currentListData.shape || currentListData.shape === 'auto') currentListData.shape = 'square';
             else if(currentListData.shape === 'square') currentListData.shape = 'circle';
@@ -727,6 +613,7 @@
             commitChange();
         }
 
+        // TÍNH NĂNG ĐỔI NỀN BẢNG (CUSTOM BACKGROUND)
         function openBgModal() { document.getElementById('bg-modal-overlay').style.display='flex'; }
         function setBgColor(val) { currentListData.background = val; closeModal('bg-modal-overlay'); commitChange(); }
         function resetBackground() { currentListData.background = null; closeModal('bg-modal-overlay'); commitChange(); }
@@ -751,6 +638,35 @@
             }; r.readAsDataURL(file);
         }
 
+        // 5. MENU & LIST MANAGEMENT
+        function loadMenu() { 
+            try { db.transaction(['lists']).objectStore('lists').getAll().onsuccess = e => { 
+                const list = e.target.result; const container = document.getElementById('list-container'); 
+                if (list.length === 0) { container.innerHTML = '<div style="text-align:center; padding: 60px 20px; color: var(--text-muted); grid-column: 1/-1; font-size: 1.1rem;">📁<br><br>You don\'t have any tier lists yet.<br>Click <b>+ Create New Template</b> above!</div>'; return; }
+                let html = ''; list.forEach((l, index) => { const safeName = escapeHTML(l.name); const delay = index * 0.05; html += `<div class="list-item" style="animation-delay: ${delay}s" tabindex="0" aria-label="Board ${safeName}" onclick="openList('${l.id}')" onkeypress="if(event.key==='Enter') openList('${l.id}')"><button class="btn-delete-list" aria-label="Delete board" title="Delete board" onclick="deleteSingleList(event, '${l.id}', '${safeName}')">🗑️</button><img src="${l.thumbnail || ''}" alt="Thumbnail" style="width:100%; height:180px; object-fit:cover; object-position:top; background:#000;"><div class="list-info-wrap"><h3 style="margin:0; font-size:1rem; flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${safeName}</h3></div></div>`; }); container.innerHTML = html; }; 
+            } catch (err) {} 
+        }
+        function deleteSingleList(e, id, name) { e.stopPropagation(); openConfirm("Delete Board", `Are you sure you want to delete the board "${name}"?`, () => { try { const tx = db.transaction(['lists'], 'readwrite'); tx.objectStore('lists').delete(id); tx.oncomplete = () => loadMenu(); } catch (err) {} }); }
+        function saveListSilent(d) { try { d.updatedAt = new Date().toISOString(); db.transaction(['lists'], 'readwrite').objectStore('lists').put(d); } catch(e) {} }
+        function commitChange() { pushHistory(); renderBoard(); markDirty(); }
+        function commitChangeSilent() { pushHistory(); markDirty(); }
+        function pushHistory() { const s = JSON.stringify(currentListData); if (stateHistory[historyIndex] !== s) { stateHistory = stateHistory.slice(0, historyIndex+1); stateHistory.push(s); historyIndex++; if (stateHistory.length > 15) { stateHistory.shift(); historyIndex--; } } }
+        function undo() { if (historyIndex > 0) { historyIndex--; currentListData = JSON.parse(stateHistory[historyIndex]); renderBoard(); markDirty(); showToast("↩️ Undone"); } }
+        function redo() { if (historyIndex < stateHistory.length-1) { historyIndex++; currentListData = JSON.parse(stateHistory[historyIndex]); renderBoard(); markDirty(); showToast("↪️ Redone"); } }
+        function openList(id) { showLoading('Opening...'); try { db.transaction(['lists']).objectStore('lists').get(id).onsuccess = e => { currentListData = e.target.result; stateHistory = [JSON.stringify(currentListData)]; historyIndex = 0; isDirty = false; document.getElementById('menu-screen').classList.add('hidden'); document.getElementById('editor-screen').classList.remove('hidden'); document.getElementById('list-name').value = currentListData.name; renderBoard(); hideLoading(); }; } catch (err) { hideLoading(); } }
+        
+        function getInsertionNode(container, clientX, clientY) {
+            const elements = [...container.querySelectorAll('.img-wrap:not(.dragging):not(.drag-placeholder)')];
+            for (let i = 0; i < elements.length; i++) {
+                const box = elements[i].getBoundingClientRect();
+                if (clientY >= box.top && clientY <= box.bottom) {
+                    if (clientX < box.left + box.width / 2) return elements[i];
+                } else if (clientY < box.top) { return elements[i]; }
+            }
+            return null;
+        }
+
+        // ĐÓNG BẢNG EDIT TRƯỚC KHI MỞ BẢNG XÁC NHẬN
         function deleteTier() { 
             closeModal('modal-overlay'); 
             openConfirm("Delete Row", "Delete this row? Images in this row (if any) will also be deleted.", () => { 
@@ -759,8 +675,10 @@
             }); 
         }
 
+        // 6. BOARD RENDER & DRAG-DROP
         function renderBoard() {
             try {
+                // Xử lý nút hiển thị Name (Tooltip)
                 const filenameBtn = document.getElementById('btn-filename-toggle');
                 if(currentListData.showFilename) {
                     document.body.classList.add('show-filename-on-click');
@@ -774,6 +692,7 @@
                     filenameBtn.style.borderColor = 'var(--border-color)';
                 }
 
+                // Xử lý nút Shape
                 const editorScreen = document.getElementById('editor-screen');
                 editorScreen.classList.remove('shape-square', 'shape-circle');
                 const shapeBtn = document.getElementById('btn-shape-toggle');
@@ -781,6 +700,7 @@
                 else if(currentListData.shape === 'circle') { editorScreen.classList.add('shape-circle'); shapeBtn.innerText = '🔄 Shape: Circle'; }
                 else { shapeBtn.innerText = '🔄 Shape: Original'; }
 
+                // XỬ LÝ FONT CHỮ
                 const fIdx = currentListData.fontIndex || 0;
                 const currentFontFamily = fontsArr[fIdx];
                 document.getElementById('btn-font-toggle').innerText = '🔤 Font: ' + fontNamesArr[fIdx];
@@ -788,6 +708,7 @@
                 const board = document.getElementById('tier-board'); board.innerHTML = '';
                 const hEl = document.getElementById('tier-header'); hEl.innerText = currentListData.name; hEl.style.display = currentListData.headerVisible === false ? 'none' : 'block';
                 
+                // Áp dụng font cho Tiêu đề
                 hEl.style.fontFamily = currentFontFamily;
 
                 const captureArea = document.getElementById('capture-area');
@@ -822,11 +743,14 @@
                     labelWrap.ondragstart = e => { if(!isDragMode) return; draggedRowIdx = i; e.dataTransfer.effectAllowed = 'move'; }; 
                     
                     const label = document.createElement('div'); label.className = 'tier-label'; label.innerText = t.name; 
+                    
+                    // Áp dụng font cho Label
                     label.style.fontFamily = currentFontFamily;
+                    
                     labelWrap.appendChild(label);
 
                     const content = document.createElement('div'); content.className = 'tier-content';
-                    content.dataset.tierIndex = i; 
+                    content.dataset.tierIndex = i; // Đánh dấu ID cho hàm click to move
                     content.style.backgroundColor = currentListData.background ? 'rgba(0,0,0,0.6)' : '#1a1a1a';
                     
                     content.ondragover = e => { 
@@ -906,6 +830,7 @@
             wrap.style.height = (type==='tier' ? data.h : 85) + 'px';
             wrap.dataset.name = (data.name || '').toLowerCase();
             
+            // Xóa đuôi file để hiển thị tooltip đẹp (Ví dụ: hero.png -> hero)
             let rawName = data.name ? data.name.replace(/\.[^/.]+$/, "") : "";
             wrap.setAttribute('data-raw-name', rawName);
             
@@ -917,6 +842,7 @@
             
             if (data.caption) { const c = document.createElement('div'); c.className = 'img-caption'; c.innerText = data.caption; wrap.appendChild(c); }
             
+            // XỬ LÝ CLICK ĐỂ ĐỔI CHỖ / CHỌN
             wrap.onclick = e => { 
                 e.stopPropagation(); 
                 if (!selectedImgObj) { 
@@ -974,6 +900,7 @@
         tz.ondragleave = () => tz.classList.remove('hover');
         tz.ondrop = () => { if (isDragMode && draggedItem) { let oldArray = (draggedItem.type === 'tier') ? currentListData.tiers[draggedItem.r].items : currentListData.dock; oldArray.splice(draggedItem.i, 1); commitChange(); tz.classList.remove('hover'); } };
 
+        // 7. EDITING & MEDIA CONTROLS
         function clickImg(dom, data, type, r, i) { if (!selectedImgObj) { selectedImgObj = {dom, data, type, r, i}; dom.classList.add('selected'); document.getElementById('resize-control').classList.remove('hidden'); document.getElementById('size-slider').value = data.h; document.getElementById('size-val').innerText = data.h + 'px'; } else if (selectedImgObj.dom === dom) { deselectImg(); } }
         function deselectImg() { if (selectedImgObj) { selectedImgObj.dom.classList.remove('selected'); selectedImgObj = null; document.getElementById('resize-control').classList.add('hidden'); } }
         function resizeSelectedImg(h) { if (selectedImgObj) { h = parseInt(h); selectedImgObj.data.h = h; selectedImgObj.dom.style.height = h+'px'; document.getElementById('size-val').innerText = h+'px'; document.getElementById('size-slider').value = h; } }
@@ -1076,7 +1003,7 @@
         function saveTierEdit() { currentListData.tiers[editingTierIndex].name = document.getElementById('edit-name').value; currentListData.tiers[editingTierIndex].color = document.getElementById('edit-color-picker').value; closeModal('modal-overlay'); commitChange(); }
         function moveTierUp() { if (editingTierIndex > 0) { const tmp = currentListData.tiers[editingTierIndex]; currentListData.tiers[editingTierIndex] = currentListData.tiers[editingTierIndex - 1]; currentListData.tiers[editingTierIndex - 1] = tmp; editingTierIndex--; commitChange(); } }
         function moveTierDown() { if (editingTierIndex < currentListData.tiers.length - 1) { const tmp = currentListData.tiers[editingTierIndex]; currentListData.tiers[editingTierIndex] = currentListData.tiers[editingTierIndex + 1]; currentListData.tiers[editingTierIndex + 1] = tmp; editingTierIndex++; commitChange(); } }
-        
+        function deleteTier() { openConfirm("Delete Row", "Delete this row? Images in this row (if any) will also be deleted.", () => { currentListData.tiers.splice(editingTierIndex, 1); closeModal('modal-overlay'); commitChange(); }); }
         function addNewTier() { currentListData.tiers.push({name:'NEW', color:'#1a1a1a', items:[]}); commitChange(); }
         function toggleHeader() { currentListData.headerVisible = currentListData.headerVisible === false ? true : false; commitChange(); }
         function resetBoard() { openConfirm("Reset", "Return all images to the Dock?", () => { currentListData.tiers.forEach(t => { currentListData.dock.push(...t.items); t.items = []; }); commitChange(); }); }
