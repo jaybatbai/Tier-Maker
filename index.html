@@ -68,8 +68,6 @@
 
         .menu-actions { display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 380px; margin-bottom: 50px; }
         .btn-create { width: 100%; padding: 16px; background: var(--primary); color: #fff; font-weight: 600; border: none; border-radius: var(--radius-md); font-size: 1.05rem; cursor: pointer; transition: all 0.2s; }
-        
-        /* Đã nâng cấp UI khu vực nút ở Menu */
         .btn-data { width: 100%; padding: 14px; background: var(--bg-surface); color: var(--text-main); border: 1px solid var(--border-color); border-radius: var(--radius-md); font-weight: 600; cursor: pointer; transition: 0.2s; font-size: 0.95rem; }
         .btn-sync { width: 100%; padding: 14px; background: var(--accent); color: #fff; border: none; border-radius: var(--radius-md); font-weight: 600; cursor: pointer; transition: 0.2s; font-size: 0.95rem; }
         button:active { transform: scale(0.97); }
@@ -118,7 +116,6 @@
         .img-wrap:active { transform: scale(0.95); cursor: grabbing;}
         .img-wrap.dragging { display: none !important; }
         
-        /* CSS TOOLTIP HIỆN TÊN FILE */
         body.show-filename-on-click .img-wrap.selected::after {
             content: attr(data-raw-name);
             position: absolute;
@@ -482,16 +479,33 @@
 
         const autoSaveInterval = setInterval(() => { if (isDirty && currentListData) { saveListSilent(currentListData); showToast('💾 Auto-saved'); isDirty = false; } }, 3000);
         function markDirty() { isDirty = true; }
-        function escapeHTML(str) { return !str ? '' : str.replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)); }
+        
+        // FIX LỖI SILENT CRASH KHI TÊN BẢNG LÀ CHỮ SỐ
+        function escapeHTML(str) { 
+            if (!str && str !== 0) return ''; 
+            return String(str).replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)); 
+        }
+        
         function initTheme() { const savedTheme = localStorage.getItem('theme') || 'dark'; document.documentElement.setAttribute('data-theme', savedTheme); updateThemeIcon(savedTheme); }
         function toggleTheme() { const current = document.documentElement.getAttribute('data-theme'); const target = current === 'dark' ? 'light' : 'dark'; document.documentElement.setAttribute('data-theme', target); localStorage.setItem('theme', target); updateThemeIcon(target); }
         function updateThemeIcon(theme) { const btn = document.querySelector('.theme-toggle'); if (btn) btn.innerText = theme === 'dark' ? '🌙' : '☀️'; document.getElementById('meta-theme-color').content = theme === 'dark' ? '#09090b' : '#f4f4f5'; }
 
+        // BỌC THÉP DATABASE KHỞI TẠO
         window.onload = () => { 
             initTheme();
             const req = indexedDB.open(DB_NAME, 1); 
             req.onupgradeneeded = e => { e.target.result.createObjectStore('lists', {keyPath:'id'}); };
-            req.onsuccess = e => { db = e.target.result; loadMenu(); initGlobalFileDrop(); initKeyboardShortcuts(); initGlobalClickAndDrop(); };
+            req.onsuccess = e => { 
+                db = e.target.result; 
+                loadMenu(); 
+                initGlobalFileDrop(); 
+                initKeyboardShortcuts(); 
+                initGlobalClickAndDrop(); 
+            };
+            req.onerror = e => {
+                document.getElementById('list-container').innerHTML = `<div style="text-align:center; color:var(--danger); padding:40px;"><b>Lỗi Trình Duyệt:</b> Hệ thống chặn bộ nhớ Offline. Hãy tắt tab ẩn danh hoặc cho phép lưu trữ Cookie nhé!</div>`;
+                hideLoading();
+            }
         };
         
         function showToast(msg) { const toast = document.getElementById('toast'); toast.innerText = msg; toast.classList.add('show'); clearTimeout(toastTimeout); toastTimeout = setTimeout(() => toast.classList.remove('show'), 2000); }
@@ -499,7 +513,7 @@
         function execConfirm() { if (confirmAction) confirmAction(); closeModal('confirm-modal'); }
         function execCancel() { if (confirmCancelAction) confirmCancelAction(); closeModal('confirm-modal'); }
 
-        // ======================= P2P SYNC ENGINE (MỚI) =======================
+        // ======================= P2P SYNC ENGINE =======================
         let peer = null;
 
         function openSyncModal() {
@@ -531,12 +545,9 @@
             peer.on('connection', (conn) => {
                 conn.on('open', () => {
                     showLoading("Transferring 4K Data...\nPlease do not close the browser.");
-                    // Lấy toàn bộ data từ IndexedDB để gửi đi
                     db.transaction(['lists']).objectStore('lists').getAll().onsuccess = e => {
                         const allData = e.target.result;
-                        // Chia nhỏ hoặc gửi thẳng tùy thư viện (PeerJS tự chia nhỏ chunk nội bộ)
                         conn.send(JSON.stringify(allData));
-                        
                         setTimeout(() => {
                             hideLoading();
                             alert("✅ Data sent successfully to the other device!");
@@ -577,14 +588,13 @@
                         const tx = db.transaction(['lists'], 'readwrite');
                         const store = tx.objectStore('lists');
                         
-                        // Ghi đè hoặc thêm mới data
                         parsedData.forEach(item => store.put(item));
                         
                         tx.oncomplete = () => {
                             hideLoading();
                             alert('🎉 Sync Complete! Your devices are now updated.');
                             closeSyncModal();
-                            loadMenu(); // Refresh lại giao diện Menu
+                            loadMenu(); 
                         };
                     } catch(e) {
                         hideLoading();
@@ -749,6 +759,57 @@
                     } catch(err) {} finally { hideLoading(); closeModal('bg-modal-overlay'); document.getElementById('bg-img-input').value = ''; }
                 }; i.onerror = () => { hideLoading(); document.getElementById('bg-img-input').value = ''; }
             }; r.readAsDataURL(file);
+        }
+
+        // ĐÃ BỌC THÉP HÀM LOAD MENU, NẾU LỖI SẼ HIỆN CHỮ LỖI CHỨ KHÔNG BỊ KẸT LOADING
+        function loadMenu() { 
+            const container = document.getElementById('list-container');
+            try { 
+                const req = db.transaction(['lists']).objectStore('lists').getAll();
+                req.onsuccess = e => { 
+                    try {
+                        const list = e.target.result; 
+                        if (!list || list.length === 0) { 
+                            container.innerHTML = '<div style="text-align:center; padding: 60px 20px; color: var(--text-muted); grid-column: 1/-1; font-size: 1.1rem;">📁<br><br>You don\'t have any tier lists yet.<br>Click <b>+ Create New Template</b> above!</div>'; 
+                            return; 
+                        }
+                        let html = ''; 
+                        list.forEach((l, index) => { 
+                            const safeName = escapeHTML(l.name || 'Untitled'); 
+                            const delay = index * 0.05; 
+                            html += `<div class="list-item" style="animation-delay: ${delay}s" tabindex="0" aria-label="Board ${safeName}" onclick="openList('${l.id}')" onkeypress="if(event.key==='Enter') openList('${l.id}')"><button class="btn-delete-list" aria-label="Delete board" title="Delete board" onclick="deleteSingleList(event, '${l.id}', '${safeName}')">🗑️</button><img src="${l.thumbnail || ''}" alt="Thumbnail" style="width:100%; height:180px; object-fit:cover; object-position:top; background:#000;"><div class="list-info-wrap"><h3 style="margin:0; font-size:1rem; flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${safeName}</h3></div></div>`; 
+                        }); 
+                        container.innerHTML = html; 
+                    } catch (err) {
+                        container.innerHTML = `<div style="text-align:center; color:var(--danger); padding:40px;"><b>Render Error:</b> Dữ liệu bị kẹt!<br><br><button onclick="wipeAllData()" style="padding:10px; background:red; color:white; border:none; border-radius:5px;">Reset Data</button></div>`;
+                    }
+                }; 
+                req.onerror = e => {
+                    container.innerHTML = `<div style="text-align:center; color:var(--danger); padding:40px;"><b>Database Error</b><br>Cannot fetch from storage.</div>`;
+                }
+            } catch (err) { 
+                container.innerHTML = `<div style="text-align:center; color:var(--danger); padding:40px;"><b>System Error</b><br>Please refresh or clear cache.</div>`;
+            } 
+        }
+
+        function deleteSingleList(e, id, name) { e.stopPropagation(); openConfirm("Delete Board", `Are you sure you want to delete the board "${name}"?`, () => { try { const tx = db.transaction(['lists'], 'readwrite'); tx.objectStore('lists').delete(id); tx.oncomplete = () => loadMenu(); } catch (err) {} }); }
+        function saveListSilent(d) { try { d.updatedAt = new Date().toISOString(); db.transaction(['lists'], 'readwrite').objectStore('lists').put(d); } catch(e) {} }
+        function commitChange() { pushHistory(); renderBoard(); markDirty(); }
+        function commitChangeSilent() { pushHistory(); markDirty(); }
+        function pushHistory() { const s = JSON.stringify(currentListData); if (stateHistory[historyIndex] !== s) { stateHistory = stateHistory.slice(0, historyIndex+1); stateHistory.push(s); historyIndex++; if (stateHistory.length > 15) { stateHistory.shift(); historyIndex--; } } }
+        function undo() { if (historyIndex > 0) { historyIndex--; currentListData = JSON.parse(stateHistory[historyIndex]); renderBoard(); markDirty(); showToast("↩️ Undone"); } }
+        function redo() { if (historyIndex < stateHistory.length-1) { historyIndex++; currentListData = JSON.parse(stateHistory[historyIndex]); renderBoard(); markDirty(); showToast("↪️ Redone"); } }
+        function openList(id) { showLoading('Opening...'); try { db.transaction(['lists']).objectStore('lists').get(id).onsuccess = e => { currentListData = e.target.result; stateHistory = [JSON.stringify(currentListData)]; historyIndex = 0; isDirty = false; document.getElementById('menu-screen').classList.add('hidden'); document.getElementById('editor-screen').classList.remove('hidden'); document.getElementById('list-name').value = currentListData.name; renderBoard(); hideLoading(); }; } catch (err) { hideLoading(); } }
+        
+        function getInsertionNode(container, clientX, clientY) {
+            const elements = [...container.querySelectorAll('.img-wrap:not(.dragging):not(.drag-placeholder)')];
+            for (let i = 0; i < elements.length; i++) {
+                const box = elements[i].getBoundingClientRect();
+                if (clientY >= box.top && clientY <= box.bottom) {
+                    if (clientX < box.left + box.width / 2) return elements[i];
+                } else if (clientY < box.top) { return elements[i]; }
+            }
+            return null;
         }
 
         function deleteTier() { 
