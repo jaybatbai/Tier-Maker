@@ -48,7 +48,7 @@
         /* OVERLAYS & TOASTS */
         #drop-overlay { position: fixed; inset: 0; background: rgba(16, 185, 129, 0.9); z-index: 10000; display: none; align-items: center; justify-content: center; color: white; font-size: clamp(1.2rem, 4vw, 2rem); font-weight: 700; backdrop-filter: blur(8px); border: 8px dashed rgba(255,255,255,0.5); pointer-events: none; text-align: center; padding: 20px;}
         #loading-overlay { z-index: 10002; flex-direction: column; color: white; font-weight: 600; font-size: 1.2rem; display: none; align-items: center; justify-content: center; position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); }
-        .spinner { width: 50px; height: 50px; border: 5px solid rgba(255,255,255,0.3); border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
+        .spinner { width: 50px; height: 50px; border: 5px solid rgba(255,255,255,0.3); border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
         @keyframes spin { to { transform: rotate(360deg); } }
         
         #toast { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%) translateY(50px); background: var(--text-main); color: var(--bg-base); padding: 10px 24px; border-radius: 30px; font-weight: 600; opacity: 0; transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55); z-index: 10000; pointer-events: none; box-shadow: var(--shadow-float); white-space: nowrap; }
@@ -116,6 +116,7 @@
         .img-wrap:active { transform: scale(0.95); cursor: grabbing;}
         .img-wrap.dragging { display: none !important; }
         
+        /* CSS TOOLTIP HIỆN TÊN FILE */
         body.show-filename-on-click .img-wrap.selected::after {
             content: attr(data-raw-name);
             position: absolute;
@@ -213,7 +214,7 @@
     
     <div id="loading-overlay">
         <div class="spinner"></div>
-        <p id="loading-text" style="margin-top: 20px; text-align: center;">Processing...</p>
+        <p id="loading-text" style="margin-top: 20px; text-align: center; line-height: 1.5;">Processing...</p>
     </div>
 
     <div id="app-container">
@@ -480,7 +481,6 @@
         const autoSaveInterval = setInterval(() => { if (isDirty && currentListData) { saveListSilent(currentListData); showToast('💾 Auto-saved'); isDirty = false; } }, 3000);
         function markDirty() { isDirty = true; }
         
-        // FIX LỖI SILENT CRASH KHI TÊN BẢNG LÀ CHỮ SỐ
         function escapeHTML(str) { 
             if (!str && str !== 0) return ''; 
             return String(str).replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)); 
@@ -490,7 +490,6 @@
         function toggleTheme() { const current = document.documentElement.getAttribute('data-theme'); const target = current === 'dark' ? 'light' : 'dark'; document.documentElement.setAttribute('data-theme', target); localStorage.setItem('theme', target); updateThemeIcon(target); }
         function updateThemeIcon(theme) { const btn = document.querySelector('.theme-toggle'); if (btn) btn.innerText = theme === 'dark' ? '🌙' : '☀️'; document.getElementById('meta-theme-color').content = theme === 'dark' ? '#09090b' : '#f4f4f5'; }
 
-        // BỌC THÉP DATABASE KHỞI TẠO
         window.onload = () => { 
             initTheme();
             const req = indexedDB.open(DB_NAME, 1); 
@@ -513,14 +512,16 @@
         function execConfirm() { if (confirmAction) confirmAction(); closeModal('confirm-modal'); }
         function execCancel() { if (confirmCancelAction) confirmCancelAction(); closeModal('confirm-modal'); }
 
-        // ======================= P2P SYNC ENGINE =======================
+        // ======================= P2P SYNC ENGINE (DATA CHUNKING - CHỐNG NGHẼN) =======================
         let peer = null;
+        let syncConnection = null;
 
         function openSyncModal() {
             document.getElementById('sync-modal-overlay').style.display = 'flex';
         }
 
         function closeSyncModal() {
+            if (syncConnection) { syncConnection.close(); syncConnection = null; }
             if (peer) { peer.destroy(); peer = null; }
             document.getElementById('sync-modal-overlay').style.display = 'none';
             document.getElementById('sync-code-display').innerText = '----';
@@ -528,6 +529,7 @@
             document.getElementById('sync-code-input').value = '';
         }
 
+        // BÊN GỬI: BĂM NHỎ DỮ LIỆU THÀNH NHIỀU GÓI 256KB ĐỂ TRÁNH TRÀN BỘ NHỚ
         function generateSyncCode() {
             if (peer) peer.destroy();
             showLoading("Generating PIN...");
@@ -539,31 +541,62 @@
             peer.on('open', (id) => {
                 hideLoading();
                 document.getElementById('sync-code-display').innerText = pin;
+                document.getElementById('sync-wait-msg').innerText = "⏳ Waiting for receiver to connect...";
                 document.getElementById('sync-wait-msg').style.display = 'block';
             });
 
             peer.on('connection', (conn) => {
+                syncConnection = conn;
                 conn.on('open', () => {
-                    showLoading("Transferring 4K Data...\nPlease do not close the browser.");
                     db.transaction(['lists']).objectStore('lists').getAll().onsuccess = e => {
                         const allData = e.target.result;
-                        conn.send(JSON.stringify(allData));
-                        setTimeout(() => {
-                            hideLoading();
-                            alert("✅ Data sent successfully to the other device!");
-                            closeSyncModal();
-                        }, 1000);
+                        const strData = JSON.stringify(allData);
+                        
+                        const chunkSize = 256 * 1024; // 256KB mỗi gói
+                        const totalChunks = Math.ceil(strData.length / chunkSize);
+                        
+                        // Báo cho máy nhận biết sẽ có bao nhiêu gói
+                        conn.send({ type: 'header', total: totalChunks });
+                        
+                        let currentChunk = 0;
+                        const msgUI = document.getElementById('sync-wait-msg');
+                        msgUI.style.color = "var(--primary)";
+                        
+                        // Hàm đệ quy gửi từng gói với khoảng trễ 10ms để mạng không bị nghẽn
+                        function sendNextChunk() {
+                            if (currentChunk >= totalChunks) {
+                                msgUI.innerText = "✅ Sent successfully!";
+                                setTimeout(() => closeSyncModal(), 2000);
+                                return;
+                            }
+                            
+                            const start = currentChunk * chunkSize;
+                            const end = Math.min(start + chunkSize, strData.length);
+                            const chunkData = strData.slice(start, end);
+                            
+                            conn.send({ type: 'chunk', index: currentChunk, data: chunkData });
+                            currentChunk++;
+                            
+                            let percent = Math.round((currentChunk / totalChunks) * 100);
+                            msgUI.innerText = `🚀 Sending: ${percent}% ...`;
+                            
+                            setTimeout(sendNextChunk, 10);
+                        }
+                        
+                        // Bắt đầu gửi sau 0.5s để máy nhận chuẩn bị bộ nhớ
+                        setTimeout(sendNextChunk, 500); 
                     };
                 });
             });
 
             peer.on('error', (err) => { 
                 hideLoading(); 
-                alert("Network Error: Make sure you have internet access to establish the local connection."); 
+                alert("Network Error: Connection failed."); 
                 closeSyncModal();
             });
         }
 
+        // BÊN NHẬN: GOM CÁC GÓI NHỎ LẠI VÀ LƯU VÀO MÁY
         function receiveSyncData() {
             const pin = document.getElementById('sync-code-input').value.trim();
             if(pin.length !== 4) { alert("Please enter a valid 4-digit PIN."); return; }
@@ -571,34 +604,58 @@
             if (peer) peer.destroy();
             showLoading("Connecting to Host...");
             
+            let receivedChunks = [];
+            let expectedTotal = 0;
+            let chunksCount = 0;
+            
             peer = new Peer();
             peer.on('open', () => {
                 const targetId = 'tm_sync_' + pin;
                 const conn = peer.connect(targetId, { reliable: true });
+                syncConnection = conn;
                 
                 conn.on('open', () => {
-                    showLoading("Receiving Data...\nThis might take a few seconds depending on image sizes.");
+                    showLoading("Connected! Waiting for data...");
                 });
                 
-                conn.on('data', (dataStr) => {
-                    try {
-                        const parsedData = JSON.parse(dataStr);
-                        if (!isValidTierData(parsedData)) throw new Error("Invalid format");
+                conn.on('data', (msg) => {
+                    if (msg.type === 'header') {
+                        expectedTotal = msg.total;
+                        receivedChunks = new Array(expectedTotal);
+                        showLoading("Receiving Data: 0%");
+                    } 
+                    else if (msg.type === 'chunk') {
+                        receivedChunks[msg.index] = msg.data;
+                        chunksCount++;
                         
-                        const tx = db.transaction(['lists'], 'readwrite');
-                        const store = tx.objectStore('lists');
+                        let percent = Math.round((chunksCount / expectedTotal) * 100);
+                        showLoading(`Receiving Data: ${percent}%`);
                         
-                        parsedData.forEach(item => store.put(item));
-                        
-                        tx.oncomplete = () => {
-                            hideLoading();
-                            alert('🎉 Sync Complete! Your devices are now updated.');
-                            closeSyncModal();
-                            loadMenu(); 
-                        };
-                    } catch(e) {
-                        hideLoading();
-                        alert("❌ Failed to process received data.");
+                        // Nếu nhận đủ toàn bộ các gói
+                        if (chunksCount === expectedTotal) {
+                            showLoading("Processing Data... Please wait.");
+                            setTimeout(() => {
+                                try {
+                                    const fullStr = receivedChunks.join('');
+                                    const parsedData = JSON.parse(fullStr);
+                                    if (!isValidTierData(parsedData)) throw new Error("Invalid format");
+                                    
+                                    const tx = db.transaction(['lists'], 'readwrite');
+                                    const store = tx.objectStore('lists');
+                                    parsedData.forEach(item => store.put(item));
+                                    
+                                    tx.oncomplete = () => {
+                                        hideLoading();
+                                        alert('🎉 Sync Complete! Your devices are now updated.');
+                                        closeSyncModal();
+                                        loadMenu(); 
+                                    };
+                                } catch(e) {
+                                    hideLoading();
+                                    alert("❌ Failed to process received data.");
+                                }
+                            }, 500); // Trễ 0.5s để không bị đơ UI khi ghép chuỗi 50MB
+                        }
                     }
                 });
 
@@ -1149,7 +1206,7 @@
         function debounceSaveName() { clearTimeout(saveTimeout); saveTimeout = setTimeout(() => { currentListData.name = document.getElementById('list-name').value; commitChangeSilent(); document.getElementById('tier-header').innerText = currentListData.name; }, 500); }
         async function backToMenu() { document.getElementById('dock-search').value = ''; deselectImg(); showLoading('Saving board...'); try { if (isDirty) saveListSilent(currentListData); const canvas = await html2canvas(document.getElementById('capture-area'), { scale: 1, backgroundColor: '#000', useCORS: true }); currentListData.thumbnail = canvas.toDataURL('image/jpeg', 0.6); saveListSilent(currentListData); } catch (err) {} finally { currentListData = null; selectedImgObj = null; } hideLoading(); document.getElementById('editor-screen').classList.add('hidden'); document.getElementById('menu-screen').classList.remove('hidden'); loadMenu(); }
 
-        // 8. BACKUP & EXPORT ENGINE (LOCAL ONLY)
+        // 8. BACKUP & EXPORT ENGINE
         function openBackupMenu() { document.getElementById('backup-modal-overlay').style.display='flex'; }
         function exportData() { try { db.transaction(['lists']).objectStore('lists').getAll().onsuccess = e => { const data = JSON.stringify(e.target.result); const blob = new Blob([data], {type: "application/json"}); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `TierMaker_Backup_${Date.now()}.json`; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000); }; } catch (err) { alert("Error exporting data!"); } }
         
