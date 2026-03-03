@@ -481,7 +481,6 @@
         const autoSaveInterval = setInterval(() => { if (isDirty && currentListData) { saveListSilent(currentListData); showToast('💾 Auto-saved'); isDirty = false; } }, 3000);
         function markDirty() { isDirty = true; }
         
-        // FIX LỖI SILENT CRASH KHI TÊN BẢNG LÀ CHỮ SỐ
         function escapeHTML(str) { 
             if (!str && str !== 0) return ''; 
             return String(str).replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)); 
@@ -491,7 +490,6 @@
         function toggleTheme() { const current = document.documentElement.getAttribute('data-theme'); const target = current === 'dark' ? 'light' : 'dark'; document.documentElement.setAttribute('data-theme', target); localStorage.setItem('theme', target); updateThemeIcon(target); }
         function updateThemeIcon(theme) { const btn = document.querySelector('.theme-toggle'); if (btn) btn.innerText = theme === 'dark' ? '🌙' : '☀️'; document.getElementById('meta-theme-color').content = theme === 'dark' ? '#09090b' : '#f4f4f5'; }
 
-        // BỌC THÉP DATABASE KHỞI TẠO
         window.onload = () => { 
             initTheme();
             const req = indexedDB.open(DB_NAME, 1); 
@@ -531,7 +529,6 @@
             document.getElementById('sync-code-input').value = '';
         }
 
-        // BÊN GỬI: BĂM NHỎ DỮ LIỆU VÀ GỬI TỪ TỪ
         function generateSyncCode() {
             if (peer) peer.destroy();
             showLoading("Generating PIN...");
@@ -554,7 +551,6 @@
                         const allData = e.target.result;
                         const strData = JSON.stringify(allData);
                         
-                        // CHIA NHỎ: 64KB MỘT GÓI (cực kỳ an toàn cho mạng yếu)
                         const chunkSize = 64 * 1024; 
                         const totalChunks = Math.ceil(strData.length / chunkSize);
                         
@@ -581,7 +577,6 @@
                             let percent = Math.round((currentChunk / totalChunks) * 100);
                             msgUI.innerText = `🚀 Sending: ${percent}% ...`;
                             
-                            // DELAY: Bắn từng gói cách nhau 25ms để chống nghẽn
                             setTimeout(sendNextChunk, 25);
                         }
                         
@@ -597,7 +592,6 @@
             });
         }
 
-        // BÊN NHẬN: GOM DATA TỪ TỪ
         function receiveSyncData() {
             const pin = document.getElementById('sync-code-input').value.trim();
             if(pin.length !== 4) { alert("Please enter a valid 4-digit PIN."); return; }
@@ -673,7 +667,8 @@
             const handleOutsideClick = (e) => { 
                 if (selectedImgObj) { 
                     const isClickInsideControl = e.target.closest('#resize-control'); 
-                    if (isClickInsideControl) return; 
+                    const isClickInsideModal = e.target.closest('.modal-overlay'); // CHẶN LỖI TEXT MODAL
+                    if (isClickInsideControl || isClickInsideModal) return; 
 
                     const clickedImageWrap = e.target.closest('.img-wrap');
                     if (clickedImageWrap === selectedImgObj.dom) return; 
@@ -1095,7 +1090,14 @@
         function deselectImg() { if (selectedImgObj) { selectedImgObj.dom.classList.remove('selected'); selectedImgObj = null; document.getElementById('resize-control').classList.add('hidden'); } }
         function resizeSelectedImg(h) { if (selectedImgObj) { h = parseInt(h); selectedImgObj.data.h = h; selectedImgObj.dom.style.height = h+'px'; document.getElementById('size-val').innerText = h+'px'; document.getElementById('size-slider').value = h; } }
         function adjustSize(d) { if (selectedImgObj) { let newH = parseInt(document.getElementById('size-slider').value) + d; newH = Math.max(40, Math.min(300, newH)); resizeSelectedImg(newH); } }
-        function applyToAll() { const h = selectedImgObj.data.h; currentListData.tiers.forEach(t => t.items.forEach(i => i.h = h)); currentListData.dock.forEach(i => i.h = h); commitChange(); }
+        function applyToAll() { 
+            if (!selectedImgObj) return;
+            const h = selectedImgObj.data.h; 
+            currentListData.tiers.forEach(t => t.items.forEach(i => i.h = h)); 
+            currentListData.dock.forEach(i => i.h = h); 
+            deselectImg(); // Fix dọn dẹp panel
+            commitChange(); 
+        }
         function showLoading(text) { document.getElementById('loading-text').innerText = text; document.getElementById('loading-overlay').style.display='flex'; }
         function hideLoading() { document.getElementById('loading-overlay').style.display='none'; }
 
@@ -1197,8 +1199,23 @@
         function addNewTier() { currentListData.tiers.push({name:'NEW', color:'#1a1a1a', items:[]}); commitChange(); }
         function toggleHeader() { currentListData.headerVisible = currentListData.headerVisible === false ? true : false; commitChange(); }
         function resetBoard() { openConfirm("Reset", "Return all images to the Dock?", () => { currentListData.tiers.forEach(t => { currentListData.dock.push(...t.items); t.items = []; }); commitChange(); }); }
-        function openCaptionModal() { if (selectedImgObj) { document.getElementById('caption-input').value = selectedImgObj.data.caption || ''; document.getElementById('caption-modal-overlay').style.display='flex'; document.getElementById('caption-input').focus(); } }
-        function saveCaption() { selectedImgObj.data.caption = document.getElementById('caption-input').value; closeModal('caption-modal-overlay'); commitChange(); }
+        
+        // ĐÃ SỬA LỖI LƯU CHÚ THÍCH (TEXT)
+        function openCaptionModal() { 
+            if (selectedImgObj) { 
+                document.getElementById('caption-input').value = selectedImgObj.data.caption || ''; 
+                document.getElementById('caption-modal-overlay').style.display='flex'; 
+                document.getElementById('caption-input').focus(); 
+            } 
+        }
+        function saveCaption() { 
+            if (!selectedImgObj) return;
+            selectedImgObj.data.caption = document.getElementById('caption-input').value; 
+            closeModal('caption-modal-overlay'); 
+            deselectImg(); // Fix dọn dẹp panel
+            commitChange(); 
+        }
+        
         function deleteSelected() { let oldArray = (selectedImgObj.type === 'tier') ? currentListData.tiers[selectedImgObj.r].items : currentListData.dock; oldArray.splice(selectedImgObj.i, 1); commitChange(); deselectImg(); }
         function moveToDock() { let oldArray = (selectedImgObj.type === 'tier') ? currentListData.tiers[selectedImgObj.r].items : currentListData.dock; oldArray.splice(selectedImgObj.i, 1); currentListData.dock.push(selectedImgObj.data); commitChange(); deselectImg(); }
         function closeModal(id) { document.getElementById(id).style.display='none'; }
