@@ -108,7 +108,8 @@
             .tier-label { font-size: 16px; padding: 8px; }
         }
         
-        .tier-content { flex: 1; display: flex; flex-wrap: wrap; align-content: flex-start; align-items: flex-start; background: #1a1a1a; padding: 6px 6px 20px 6px; gap: 4px; position: relative; min-height: 85px; transition: background 0.2s; cursor: pointer; }
+        /* FIX LỖI KHOẢNG TRỐNG: Đưa padding về 4px đều các cạnh */
+        .tier-content { flex: 1; display: flex; flex-wrap: wrap; align-content: flex-start; align-items: flex-start; background: #1a1a1a; padding: 4px; gap: 4px; position: relative; min-height: 85px; transition: background 0.2s; cursor: pointer; }
         
         /* IMAGE SHAPES & EFFECTS */
         .img-wrap { display: flex; align-items: center; justify-content: center; position: relative; cursor: grab; transition: transform 0.15s cubic-bezier(0.2, 0.8, 0.2, 1); margin: 0; padding: 0; touch-action: none; max-width: 100%; }
@@ -723,7 +724,6 @@
             };
         }
 
-        // ĐÃ VÁ LỖI TREO MÀN HÌNH KÉO THẢ TRONG HÀM NÀY
         function initGlobalFileDrop() { 
             const overlay = document.getElementById('drop-overlay'); 
             
@@ -752,12 +752,11 @@
                 e.dataTransfer.dropEffect = 'copy'; 
             });
             
-            // SỬ DỤNG EVENT CAPTURING CHẶN LỖI DROP
             window.addEventListener('drop', e => { 
                 if (draggedItem) return; 
                 
                 e.preventDefault(); 
-                e.stopPropagation(); // Ép hệ thống ưu tiên việc thả File
+                e.stopPropagation(); 
                 overlay.style.display = 'none'; 
                 
                 if (e.dataTransfer.files && e.dataTransfer.files.length > 0) { 
