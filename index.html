@@ -93,14 +93,18 @@
         #btn-drag-toggle { background: var(--bg-surface); color: var(--primary); font-weight: 800; border: 1px solid var(--border-color); border-radius: 6px; padding: 6px 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; width: max-content; transition: all 0.2s;}
 
         .capture-wrapper { padding: 15px 12px; background: var(--bg-base); overflow-x: auto; touch-action: pan-y; } 
-        #capture-area { background: #000; display: inline-flex; flex-direction: column; width: 100%; min-width: 100%; border-radius: 4px; overflow: hidden; outline: 1px solid var(--border-color); transition: background 0.3s; }
+        
+        /* BẢNG TIER LIST: Fix gap = 0, viền liền mạch */
+        #capture-area { background: #000; display: inline-flex; flex-direction: column; width: 100%; min-width: 100%; border-radius: 4px; overflow: hidden; outline: 1px solid #000; transition: background 0.3s; }
         .board-header-style { text-align: center; font-size: clamp(1.2rem, 4vw, 1.75rem); font-weight: 800; padding: 20px 10px; background: #000; color: #fff; text-transform: uppercase; border-bottom: 1px solid #000; cursor: pointer; transition: background 0.2s; }
         .board-header-style:hover { background: #1a1a1a; }
-        #tier-board { display: flex; flex-direction: column; gap: 4px; background: #000; border-top: 1px solid #000; padding: 4px; transition: background 0.3s; } 
         
-        .tier-row { display: flex; align-items: stretch; background: #1a1a1a; border-radius: 2px; transition: border-top 0.2s; }
+        #tier-board { display: flex; flex-direction: column; gap: 0px; background: #000; padding: 0px; transition: background 0.3s; } 
         
-        .tier-label-wrap { width: 85px; min-width: 85px; display: flex; align-items: center; justify-content: center; position: relative; cursor: grab; touch-action: none; }
+        .tier-row { display: flex; align-items: stretch; background: #1a1a1a; border-radius: 0px; border-bottom: 1px solid #000; transition: border-top 0.2s; }
+        .tier-row:last-child { border-bottom: none; }
+        
+        .tier-label-wrap { width: 85px; min-width: 85px; display: flex; align-items: center; justify-content: center; position: relative; cursor: grab; touch-action: none; border-right: 1px solid #000;}
         .tier-label-wrap:active { cursor: grabbing; }
         .tier-label { font-family: Arial, Helvetica, sans-serif; font-size: 14px; font-weight: normal; line-height: 1.3; color: #000; text-align: center; padding: 6px; word-break: normal; overflow-wrap: break-word; white-space: pre-wrap; width: 100%; pointer-events: none; }
         @media (min-width: 600px) { 
@@ -193,7 +197,7 @@
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 300; display: none; align-items: center; justify-content: center; backdrop-filter: blur(8px); padding: 20px; animation: overlayFadeIn 0.2s ease-out forwards; }
         .modal { background: var(--bg-surface); padding: 28px; border-radius: var(--radius-lg); width: 100%; max-width: 400px; border: 1px solid var(--border-color); box-shadow: var(--shadow-float); animation: modalPopUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; max-height: 90vh; overflow-y: auto; }
         .modal h2 { margin-top: 0; color: var(--text-main); }
-        .modal input[type="text"], .modal textarea { width: 100%; padding: 14px; background: var(--bg-base); color: var(--text-main); border: 1px solid var(--border-color); border-radius: var(--radius-md); outline: none; font-family: inherit; }
+        .modal input[type="text"], .modal textarea, .modal select { width: 100%; padding: 14px; background: var(--bg-base); color: var(--text-main); border: 1px solid var(--border-color); border-radius: var(--radius-md); outline: none; font-family: inherit; }
         .modal-btns { display: flex; flex-direction: column; gap: 10px; margin-top: 28px; }
         .modal-btns button { width: 100%; padding: 14px; border-radius: var(--radius-md); font-weight: 600; cursor: pointer; border: none; font-size: 1rem; }
         
@@ -206,6 +210,17 @@
         /* P2P SYNC CSS */
         .sync-box { background: var(--bg-elevated); padding: 20px; border-radius: 12px; margin-bottom: 15px; border: 1px solid var(--border-color); }
         .sync-box h3 { margin-top:0; margin-bottom: 15px; font-size: 1.1rem; color: var(--text-main); display: flex; align-items: center; gap: 8px;}
+        
+        /* SETTINGS MODAL UI */
+        .setting-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border-color); }
+        .setting-row:last-child { border-bottom: none; }
+        .setting-label { font-weight: 600; font-size: 0.95rem; color: var(--text-main); }
+        .toggle-switch { position: relative; width: 50px; height: 26px; }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--bg-elevated); transition: .3s; border-radius: 34px; border: 1px solid var(--border-color); }
+        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: var(--text-muted); transition: .3s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--primary); border-color: var(--primary); }
+        input:checked + .slider:before { transform: translateX(24px); background-color: white; }
     </style>
 </head>
 <body>
@@ -252,14 +267,10 @@
                 </div>
             </div>
             
-            <div class="board-footer-actions" style="padding: 0 20px 20px 20px; display:flex; flex-wrap: wrap; gap:10px;">
-                <button onclick="addNewTier()" class="btn-icon" style="flex:1; min-width: 100px;">+ Add Row</button>
-                <button onclick="openBgModal()" class="btn-icon" style="flex:1; min-width: 100px;">🎨 Background</button>
-                <button onclick="toggleImageShape()" id="btn-shape-toggle" class="btn-icon" style="flex:1; min-width: 100px;">🔄 Shape: Original</button>
-                <button onclick="toggleFont()" id="btn-font-toggle" class="btn-icon" style="flex:1; min-width: 100px;">🔤 Font: Arial</button>
-                <button onclick="toggleFilename()" id="btn-filename-toggle" class="btn-icon" style="flex:1; min-width: 100px;">🏷️ Name: OFF</button>
-                <button onclick="toggleHeader()" class="btn-icon" style="flex:1; min-width: 100px;">Toggle Header</button>
-                <button onclick="resetBoard()" class="btn-icon" style="color:var(--danger); border-color:var(--danger); flex:1; min-width: 100px;">Reset Board</button>
+            <div class="board-footer-actions" style="padding: 0 20px 20px 20px; display:flex; gap:12px;">
+                <button onclick="addNewTier()" class="btn-icon" style="flex:1; background: var(--primary); color: white; border: none;">+ Add Row</button>
+                <button onclick="openSettingsModal()" class="btn-icon" style="flex:1;">⚙️ Settings</button>
+                <button onclick="resetBoard()" class="btn-icon" style="color:var(--danger); border-color:var(--danger); flex:1;">🗑️ Reset</button>
             </div>
             
             <div id="dock-container-box" class="dock-container">
@@ -308,6 +319,76 @@
         </div>
     </div>
 
+    <div id="settings-modal-overlay" class="modal-overlay">
+        <div class="modal">
+            <h2 style="margin-bottom: 20px;">⚙️ Board Settings</h2>
+            
+            <div style="background: var(--bg-elevated); padding: 15px; border-radius: 12px; margin-bottom: 20px; border: 1px solid var(--border-color);">
+                <div class="setting-row">
+                    <span class="setting-label">Show Header</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="setting-header-toggle" onchange="toggleHeaderSetting(this.checked)">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="setting-row">
+                    <span class="setting-label">Show Image Names</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="setting-name-toggle" onchange="toggleFilenameSetting(this.checked)">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="setting-row">
+                    <span class="setting-label">Image Shape</span>
+                    <select id="setting-shape-select" style="width: 120px; padding: 8px;" onchange="changeImageShapeSetting(this.value)">
+                        <option value="auto">Original</option>
+                        <option value="square">Square</option>
+                        <option value="circle">Circle</option>
+                    </select>
+                </div>
+                <div class="setting-row">
+                    <span class="setting-label">Board Font</span>
+                    <select id="setting-font-select" style="width: 120px; padding: 8px;" onchange="changeFontSetting(this.value)">
+                        <option value="0">Arial</option>
+                        <option value="1">Comic</option>
+                        <option value="2">Impact</option>
+                        <option value="3">Courier</option>
+                        <option value="4">Georgia</option>
+                    </select>
+                </div>
+            </div>
+
+            <div style="background: var(--bg-elevated); padding: 15px; border-radius: 12px; border: 1px solid var(--border-color);">
+                <h3 style="margin-top:0; font-size: 1rem;">🎨 Background</h3>
+                <label style="display:block; margin-bottom:8px; font-weight:bold; color:var(--text-main); font-size: 0.9rem;">Solid Color:</label>
+                <input type="color" id="bg-color-picker" style="cursor:pointer; width: 100%; height: 40px; border:none; background:transparent; border-radius: 8px;" onchange="setBgColor(this.value)">
+
+                <label style="display:block; margin-top:15px; margin-bottom:8px; font-weight:bold; color:var(--text-main); font-size: 0.9rem;">Gradient Presets:</label>
+                <div style="display:flex; flex-wrap:wrap; gap:8px;">
+                    <div class="color-preset-btn" style="background: linear-gradient(45deg, #ff9a9e, #fecfef);" onclick="setBgColor('linear-gradient(45deg, #ff9a9e, #fecfef)')"></div>
+                    <div class="color-preset-btn" style="background: linear-gradient(45deg, #a18cd1, #fbc2eb);" onclick="setBgColor('linear-gradient(45deg, #a18cd1, #fbc2eb)')"></div>
+                    <div class="color-preset-btn" style="background: linear-gradient(45deg, #84fab0, #8fd3f4);" onclick="setBgColor('linear-gradient(45deg, #84fab0, #8fd3f4)')"></div>
+                    <div class="color-preset-btn" style="background: linear-gradient(45deg, #fccb90, #d57eeb);" onclick="setBgColor('linear-gradient(45deg, #fccb90, #d57eeb)')"></div>
+                    <div class="color-preset-btn" style="background: linear-gradient(45deg, #e0c3fc, #8ec5fc);" onclick="setBgColor('linear-gradient(45deg, #e0c3fc, #8ec5fc)')"></div>
+                    <div class="color-preset-btn" style="background: linear-gradient(45deg, #4facfe, #00f2fe);" onclick="setBgColor('linear-gradient(45deg, #4facfe, #00f2fe)')"></div>
+                    <div class="color-preset-btn" style="background: linear-gradient(45deg, #43e97b, #38f9d7);" onclick="setBgColor('linear-gradient(45deg, #43e97b, #38f9d7)')"></div>
+                    <div class="color-preset-btn" style="background: linear-gradient(45deg, #fa709a, #fee140);" onclick="setBgColor('linear-gradient(45deg, #fa709a, #fee140)')"></div>
+                    <div class="color-preset-btn" style="background: linear-gradient(45deg, #30cfd0, #330867);" onclick="setBgColor('linear-gradient(45deg, #30cfd0, #330867)')"></div>
+                    <div class="color-preset-btn" style="background: linear-gradient(to right, #434343 0%, black 100%);" onclick="setBgColor('linear-gradient(to right, #434343 0%, black 100%)')"></div>
+                </div>
+
+                <label style="display:block; margin-top:15px; margin-bottom:8px; font-weight:bold; color:var(--text-main); font-size: 0.9rem;">Custom Image:</label>
+                <input type="file" id="bg-img-input" accept="image/*" onchange="handleBgImage(event)" style="display:none">
+                <button onclick="document.getElementById('bg-img-input').click()" style="width:100%; padding:10px; background:var(--bg-surface); color:var(--text-main); border:1px solid var(--border-color); border-radius:var(--radius-md); font-weight:bold; cursor:pointer;">📁 Upload Image</button>
+            </div>
+            
+            <div class="modal-btns">
+                <button style="background:var(--danger); color:white; border:none;" onclick="resetBackground()">Reset Background to Black</button>
+                <button style="background:transparent; color:var(--text-main); border: 1px solid var(--border-color);" onclick="closeModal('settings-modal-overlay')">Close</button>
+            </div>
+        </div>
+    </div>
+
     <div id="rename-modal-overlay" class="modal-overlay">
         <div class="modal">
             <h2>Rename Image</h2>
@@ -338,39 +419,6 @@
             </div>
 
             <button style="width:100%; background:transparent; color:var(--text-main); border: 1px solid var(--border-color); padding:12px; border-radius:8px; font-weight: bold; cursor: pointer;" onclick="closeSyncModal()">Close</button>
-        </div>
-    </div>
-
-    <div id="bg-modal-overlay" class="modal-overlay">
-        <div class="modal">
-            <h2>Custom Background</h2>
-            <div style="margin-top:20px;">
-                <label style="display:block; margin-bottom:8px; font-weight:bold; color:var(--text-main);">Solid Color:</label>
-                <input type="color" id="bg-color-picker" style="cursor:pointer; width: 100%; height: 40px; border:none; background:transparent; border-radius: 8px;" onchange="setBgColor(this.value)">
-
-                <label style="display:block; margin-top:20px; margin-bottom:8px; font-weight:bold; color:var(--text-main);">Gradient Presets:</label>
-                <div style="display:flex; flex-wrap:wrap; gap:8px;">
-                    <div class="color-preset-btn" style="background: linear-gradient(45deg, #ff9a9e, #fecfef);" onclick="setBgColor('linear-gradient(45deg, #ff9a9e, #fecfef)')"></div>
-                    <div class="color-preset-btn" style="background: linear-gradient(45deg, #a18cd1, #fbc2eb);" onclick="setBgColor('linear-gradient(45deg, #a18cd1, #fbc2eb)')"></div>
-                    <div class="color-preset-btn" style="background: linear-gradient(45deg, #84fab0, #8fd3f4);" onclick="setBgColor('linear-gradient(45deg, #84fab0, #8fd3f4)')"></div>
-                    <div class="color-preset-btn" style="background: linear-gradient(45deg, #fccb90, #d57eeb);" onclick="setBgColor('linear-gradient(45deg, #fccb90, #d57eeb)')"></div>
-                    <div class="color-preset-btn" style="background: linear-gradient(45deg, #e0c3fc, #8ec5fc);" onclick="setBgColor('linear-gradient(45deg, #e0c3fc, #8ec5fc)')"></div>
-                    <div class="color-preset-btn" style="background: linear-gradient(45deg, #4facfe, #00f2fe);" onclick="setBgColor('linear-gradient(45deg, #4facfe, #00f2fe)')"></div>
-                    <div class="color-preset-btn" style="background: linear-gradient(45deg, #43e97b, #38f9d7);" onclick="setBgColor('linear-gradient(45deg, #43e97b, #38f9d7)')"></div>
-                    <div class="color-preset-btn" style="background: linear-gradient(45deg, #fa709a, #fee140);" onclick="setBgColor('linear-gradient(45deg, #fa709a, #fee140)')"></div>
-                    <div class="color-preset-btn" style="background: linear-gradient(45deg, #30cfd0, #330867);" onclick="setBgColor('linear-gradient(45deg, #30cfd0, #330867)')"></div>
-                    <div class="color-preset-btn" style="background: linear-gradient(to right, #434343 0%, black 100%);" onclick="setBgColor('linear-gradient(to right, #434343 0%, black 100%)')"></div>
-                </div>
-
-                <label style="display:block; margin-top:20px; margin-bottom:8px; font-weight:bold; color:var(--text-main);">Custom Image:</label>
-                <input type="file" id="bg-img-input" accept="image/*" onchange="handleBgImage(event)" style="display:none">
-                <button onclick="document.getElementById('bg-img-input').click()" style="width:100%; padding:12px; background:var(--bg-elevated); color:var(--text-main); border:1px solid var(--border-color); border-radius:var(--radius-md); font-weight:bold; cursor:pointer;">📁 Upload Background Image</button>
-            </div>
-            
-            <div class="modal-btns">
-                <button style="background:var(--danger); color:white; border:none;" onclick="resetBackground()">Reset to Default</button>
-                <button style="background:transparent; color:var(--text-main); border: 1px solid var(--border-color);" onclick="closeModal('bg-modal-overlay')">Close</button>
-            </div>
         </div>
     </div>
 
@@ -490,7 +538,6 @@
         let isDragMode = true;
         
         const fontsArr = ['Arial, Helvetica, sans-serif', "'Comic Sans MS', 'Chalkboard SE', 'Comic Neue', sans-serif", "Impact, Charcoal, sans-serif", "'Courier New', Courier, monospace", "Georgia, serif"];
-        const fontNamesArr = ['Arial', 'Comic', 'Impact', 'Courier', 'Georgia'];
 
         const autoSaveInterval = setInterval(() => { if (isDirty && currentListData) { saveListSilent(currentListData); showToast('💾 Auto-saved'); isDirty = false; } }, 3000);
         function markDirty() { isDirty = true; }
@@ -811,38 +858,46 @@
             }
         }
 
-        function toggleFilename() {
-            if (currentListData.showFilename === undefined) currentListData.showFilename = false;
-            currentListData.showFilename = !currentListData.showFilename;
+        // ======================= QUẢN LÝ SETTINGS =======================
+        function openSettingsModal() { 
+            // Cập nhật trạng thái các nút gạt, chọn dropdown trước khi mở
+            document.getElementById('setting-header-toggle').checked = (currentListData.headerVisible !== false);
+            document.getElementById('setting-name-toggle').checked = !!currentListData.showFilename;
+            document.getElementById('setting-shape-select').value = currentListData.shape || 'auto';
+            document.getElementById('setting-font-select').value = currentListData.fontIndex || 0;
+            
+            document.getElementById('settings-modal-overlay').style.display='flex'; 
+        }
+
+        function toggleHeaderSetting(isChecked) {
+            currentListData.headerVisible = isChecked;
             commitChange();
         }
 
-        function toggleFont() {
-            if (typeof currentListData.fontIndex !== 'number') currentListData.fontIndex = 0;
-            currentListData.fontIndex = (currentListData.fontIndex + 1) % fontsArr.length;
+        function toggleFilenameSetting(isChecked) {
+            currentListData.showFilename = isChecked;
             commitChange();
         }
 
-        function filterDock() {
-            const query = document.getElementById('dock-search').value.toLowerCase();
-            const dockItems = document.getElementById('dock').querySelectorAll('.img-wrap');
-            dockItems.forEach(wrap => {
-                const name = wrap.dataset.name || '';
-                if (name.includes(query)) wrap.style.display = 'flex';
-                else wrap.style.display = 'none';
-            });
-        }
-
-        function toggleImageShape() {
-            if(!currentListData.shape || currentListData.shape === 'auto') currentListData.shape = 'square';
-            else if(currentListData.shape === 'square') currentListData.shape = 'circle';
-            else currentListData.shape = 'auto';
+        function changeImageShapeSetting(val) {
+            currentListData.shape = val;
             commitChange();
         }
 
-        function openBgModal() { document.getElementById('bg-modal-overlay').style.display='flex'; }
-        function setBgColor(val) { currentListData.background = val; closeModal('bg-modal-overlay'); commitChange(); }
-        function resetBackground() { currentListData.background = null; closeModal('bg-modal-overlay'); commitChange(); }
+        function changeFontSetting(val) {
+            currentListData.fontIndex = parseInt(val);
+            commitChange();
+        }
+
+        function setBgColor(val) { 
+            currentListData.background = val; 
+            commitChange(); 
+        }
+        
+        function resetBackground() { 
+            currentListData.background = null; 
+            commitChange(); 
+        }
         
         function handleBgImage(e) {
             const file = e.target.files[0];
@@ -859,9 +914,19 @@
                         c.width = w; c.height = h; x.drawImage(i, 0, 0, w, h);
                         currentListData.background = `url(${c.toDataURL('image/jpeg', 0.8)})`;
                         commitChange();
-                    } catch(err) {} finally { hideLoading(); closeModal('bg-modal-overlay'); document.getElementById('bg-img-input').value = ''; }
+                    } catch(err) {} finally { hideLoading(); document.getElementById('bg-img-input').value = ''; }
                 }; i.onerror = () => { hideLoading(); document.getElementById('bg-img-input').value = ''; }
             }; r.readAsDataURL(file);
+        }
+
+        function filterDock() {
+            const query = document.getElementById('dock-search').value.toLowerCase();
+            const dockItems = document.getElementById('dock').querySelectorAll('.img-wrap');
+            dockItems.forEach(wrap => {
+                const name = wrap.dataset.name || '';
+                if (name.includes(query)) wrap.style.display = 'flex';
+                else wrap.style.display = 'none';
+            });
         }
 
         function loadMenu() { 
@@ -924,29 +989,19 @@
 
         function renderBoard() {
             try {
-                const filenameBtn = document.getElementById('btn-filename-toggle');
                 if(currentListData.showFilename) {
                     document.body.classList.add('show-filename-on-click');
-                    filenameBtn.innerText = '🏷️ Name: ON';
-                    filenameBtn.style.color = 'var(--primary)';
-                    filenameBtn.style.borderColor = 'var(--primary)';
                 } else {
                     document.body.classList.remove('show-filename-on-click');
-                    filenameBtn.innerText = '🏷️ Name: OFF';
-                    filenameBtn.style.color = 'var(--text-main)';
-                    filenameBtn.style.borderColor = 'var(--border-color)';
                 }
 
                 const editorScreen = document.getElementById('editor-screen');
                 editorScreen.classList.remove('shape-square', 'shape-circle');
-                const shapeBtn = document.getElementById('btn-shape-toggle');
-                if(currentListData.shape === 'square') { editorScreen.classList.add('shape-square'); shapeBtn.innerText = '🔄 Shape: Square'; }
-                else if(currentListData.shape === 'circle') { editorScreen.classList.add('shape-circle'); shapeBtn.innerText = '🔄 Shape: Circle'; }
-                else { shapeBtn.innerText = '🔄 Shape: Original'; }
+                if(currentListData.shape === 'square') { editorScreen.classList.add('shape-square'); }
+                else if(currentListData.shape === 'circle') { editorScreen.classList.add('shape-circle'); }
 
                 const fIdx = currentListData.fontIndex || 0;
                 const currentFontFamily = fontsArr[fIdx];
-                document.getElementById('btn-font-toggle').innerText = '🔤 Font: ' + fontNamesArr[fIdx];
 
                 const board = document.getElementById('tier-board'); board.innerHTML = '';
                 const hEl = document.getElementById('tier-header'); hEl.innerText = currentListData.name; hEl.style.display = currentListData.headerVisible === false ? 'none' : 'block';
@@ -1069,11 +1124,7 @@
             wrap.style.height = (type==='tier' ? data.h : 85) + 'px';
             wrap.dataset.name = (data.name || '').toLowerCase();
             
-            // Lấy tên từ data, nếu có chứa đuôi file ảnh thì xóa cho đẹp, nếu do người dùng đặt lại thì giữ nguyên
-            let rawName = data.name || '';
-            if (/\.(png|jpe?g|webp|gif|svg)$/i.test(rawName)) {
-                rawName = rawName.replace(/\.[^/.]+$/, "");
-            }
+            let rawName = data.name ? data.name.replace(/\.[^/.]+$/, "") : "";
             wrap.setAttribute('data-raw-name', rawName);
             
             if(isDragMode) wrap.draggable = true;
@@ -1154,24 +1205,21 @@
             commitChange(); 
         }
 
-        // ======================= TẢI ẢNH RIÊNG LẺ =======================
+        // TẢI ẢNH LẺ
         function downloadSelectedImage() {
             if (!selectedImgObj) return;
             const data = selectedImgObj.data;
             const a = document.createElement('a');
             a.href = data.src;
-            
-            // Xử lý tên file khi tải về
             let fileName = data.name || 'tiermaker_image';
-            if (!fileName.includes('.')) fileName += '.png'; // Thêm đuôi .png nếu tên chưa có định dạng
-            
+            if (!fileName.includes('.')) fileName += '.png'; 
             a.download = fileName;
             a.click();
             showToast("📥 Downloading...");
             deselectImg(); 
         }
 
-        // ======================= ĐỔI TÊN ẢNH =======================
+        // ĐỔI TÊN ẢNH
         function openRenameModal() {
             if (!selectedImgObj) return;
             let currentRawName = selectedImgObj.dom.getAttribute('data-raw-name') || '';
@@ -1183,10 +1231,9 @@
         function saveRename() {
             if (!selectedImgObj) return;
             const newName = document.getElementById('rename-input').value.trim();
-            selectedImgObj.data.name = newName; // Cập nhật tên vào dữ liệu DB
-            
+            selectedImgObj.data.name = newName; 
             closeModal('rename-modal-overlay');
-            commitChange(); // Lưu và vẽ lại giao diện
+            commitChange(); 
         }
 
         function showLoading(text) { document.getElementById('loading-text').innerText = text; document.getElementById('loading-overlay').style.display='flex'; }
@@ -1221,7 +1268,6 @@
                             if (w > M) { h *= (M/w); w = M; } 
                             c.width = w; c.height = h; x.drawImage(i, 0, 0, w, h); 
                             
-                            // Lọc luôn phần mở rộng file (ví dụ .png) ngay lúc mới tải lên
                             let cleanName = f.name.replace(/\.[^/.]+$/, "");
                             currentListData.dock.push({ src: c.toDataURL('image/jpeg', 0.8), h: 85, name: cleanName }); 
                         } catch(err) { } 
@@ -1270,7 +1316,7 @@
                                 {name:'B', color:'#FFDF7F', items:[]},
                                 {name:'C', color:'#FFFF7F', items:[]},
                                 {name:'D', color:'#BFFF7F', items:[]},
-                                {name:'F', color:'#7F7FFF', items:[]}
+                                {name:'F', color:'#7FBFFF', items:[]}
                             ], 
                             dock: [],
                             shape: 'auto',
@@ -1291,7 +1337,6 @@
         function moveTierDown() { if (editingTierIndex < currentListData.tiers.length - 1) { const tmp = currentListData.tiers[editingTierIndex]; currentListData.tiers[editingTierIndex] = currentListData.tiers[editingTierIndex + 1]; currentListData.tiers[editingTierIndex + 1] = tmp; editingTierIndex++; commitChange(); } }
         
         function addNewTier() { currentListData.tiers.push({name:'NEW', color:'#1a1a1a', items:[]}); commitChange(); }
-        function toggleHeader() { currentListData.headerVisible = currentListData.headerVisible === false ? true : false; commitChange(); }
         function resetBoard() { openConfirm("Reset", "Return all images to the Dock?", () => { currentListData.tiers.forEach(t => { currentListData.dock.push(...t.items); t.items = []; }); commitChange(); }); }
         
         function openCaptionModal() { 
