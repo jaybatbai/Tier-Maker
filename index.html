@@ -108,7 +108,6 @@
             .tier-label { font-size: 16px; padding: 8px; }
         }
         
-        /* FIX LỖI KHOẢNG TRỐNG: Đưa padding về 4px đều các cạnh */
         .tier-content { flex: 1; display: flex; flex-wrap: wrap; align-content: flex-start; align-items: flex-start; background: #1a1a1a; padding: 4px; gap: 4px; position: relative; min-height: 85px; transition: background 0.2s; cursor: pointer; }
         
         /* IMAGE SHAPES & EFFECTS */
@@ -117,24 +116,25 @@
         .img-wrap:active { transform: scale(0.95); cursor: grabbing;}
         .img-wrap.dragging { display: none !important; }
         
-        /* CSS TOOLTIP HIỆN TÊN FILE */
+        /* CSS TOOLTIP HIỆN TÊN FILE - ĐÃ ĐƯỢC FIX HIỆN FULL TÊN */
         body.show-filename-on-click .img-wrap.selected::after {
             content: attr(data-raw-name);
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background: rgba(0, 0, 0, 0.85);
+            background: rgba(0, 0, 0, 0.9);
             color: #fff;
             padding: 6px 12px;
             border-radius: 8px;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             font-size: 13px;
             font-weight: bold;
-            white-space: nowrap;
-            max-width: 90%;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            text-align: center;
+            white-space: normal;      /* Cho phép xuống dòng */
+            word-wrap: break-word;    /* Đảm bảo chữ dài không bị tràn */
+            width: max-content;       /* Tự động kéo rộng theo độ dài chữ */
+            max-width: 250px;         /* Giới hạn độ rộng an toàn để không tràn màn hình */
             pointer-events: none;
             z-index: 100;
             border: 1px solid rgba(255,255,255,0.2);
