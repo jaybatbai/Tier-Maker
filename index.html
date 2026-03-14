@@ -667,7 +667,7 @@
             const handleOutsideClick = (e) => { 
                 if (selectedImgObj) { 
                     const isClickInsideControl = e.target.closest('#resize-control'); 
-                    const isClickInsideModal = e.target.closest('.modal-overlay'); // CHẶN LỖI TEXT MODAL
+                    const isClickInsideModal = e.target.closest('.modal-overlay'); 
                     if (isClickInsideControl || isClickInsideModal) return; 
 
                     const clickedImageWrap = e.target.closest('.img-wrap');
@@ -723,12 +723,51 @@
             };
         }
 
+        // ĐÃ VÁ LỖI TREO MÀN HÌNH KÉO THẢ TRONG HÀM NÀY
         function initGlobalFileDrop() { 
             const overlay = document.getElementById('drop-overlay'); 
-            window.addEventListener('dragenter', e => { e.preventDefault(); if (draggedItem) return; if (e.dataTransfer.types && e.dataTransfer.types.includes("Files")) { e.dataTransfer.dropEffect = 'copy'; overlay.style.display = 'flex'; } }); 
-            overlay.addEventListener('dragleave', e => { e.preventDefault(); overlay.style.display = 'none'; }); 
-            window.addEventListener('dragover', e => { e.preventDefault(); if (draggedItem) { e.dataTransfer.dropEffect = 'move'; return; } e.dataTransfer.dropEffect = 'copy'; });
-            window.addEventListener('drop', e => { e.preventDefault(); if (draggedItem) return; overlay.style.display = 'none'; if (e.dataTransfer.files && e.dataTransfer.files.length > 0) { if (!currentListData) { alert("Please open a tier list before adding images!"); return; } handleFiles({target: {files: e.dataTransfer.files}}); } }); 
+            
+            window.addEventListener('dragenter', e => { 
+                if (draggedItem) return; 
+                if (e.dataTransfer.types && Array.from(e.dataTransfer.types).includes("Files")) { 
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = 'copy'; 
+                    overlay.style.display = 'flex'; 
+                } 
+            }); 
+            
+            window.addEventListener('dragleave', e => { 
+                if (draggedItem) return;
+                if (!e.relatedTarget) {
+                    overlay.style.display = 'none'; 
+                }
+            }); 
+            
+            window.addEventListener('dragover', e => { 
+                e.preventDefault(); 
+                if (draggedItem) { 
+                    e.dataTransfer.dropEffect = 'move'; 
+                    return; 
+                } 
+                e.dataTransfer.dropEffect = 'copy'; 
+            });
+            
+            // SỬ DỤNG EVENT CAPTURING CHẶN LỖI DROP
+            window.addEventListener('drop', e => { 
+                if (draggedItem) return; 
+                
+                e.preventDefault(); 
+                e.stopPropagation(); // Ép hệ thống ưu tiên việc thả File
+                overlay.style.display = 'none'; 
+                
+                if (e.dataTransfer.files && e.dataTransfer.files.length > 0) { 
+                    if (!currentListData) { 
+                        alert("Please open a tier list before adding images!"); 
+                        return; 
+                    } 
+                    handleFiles({target: {files: e.dataTransfer.files}}); 
+                } 
+            }, true); 
         }
 
         function initKeyboardShortcuts() { window.addEventListener('keydown', e => { if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return; if (e.ctrlKey || e.metaKey) { if (e.key.toLowerCase() === 'z') { e.preventDefault(); undo(); } if (e.key.toLowerCase() === 'y') { e.preventDefault(); redo(); } if (e.key.toLowerCase() === 's') { e.preventDefault(); if (currentListData) { saveListSilent(currentListData); showToast('💾 Auto-saved'); isDirty = false; } } } if (e.key === 'Delete' || e.key === 'Backspace') { if (selectedImgObj) { e.preventDefault(); deleteSelected(); } } if (e.key === 'Escape') { if (selectedImgObj) deselectImg(); document.querySelectorAll('.modal-overlay').forEach(m => m.style.display = 'none'); } }); }
@@ -1095,7 +1134,7 @@
             const h = selectedImgObj.data.h; 
             currentListData.tiers.forEach(t => t.items.forEach(i => i.h = h)); 
             currentListData.dock.forEach(i => i.h = h); 
-            deselectImg(); // Fix dọn dẹp panel
+            deselectImg(); 
             commitChange(); 
         }
         function showLoading(text) { document.getElementById('loading-text').innerText = text; document.getElementById('loading-overlay').style.display='flex'; }
@@ -1200,7 +1239,6 @@
         function toggleHeader() { currentListData.headerVisible = currentListData.headerVisible === false ? true : false; commitChange(); }
         function resetBoard() { openConfirm("Reset", "Return all images to the Dock?", () => { currentListData.tiers.forEach(t => { currentListData.dock.push(...t.items); t.items = []; }); commitChange(); }); }
         
-        // ĐÃ SỬA LỖI LƯU CHÚ THÍCH (TEXT)
         function openCaptionModal() { 
             if (selectedImgObj) { 
                 document.getElementById('caption-input').value = selectedImgObj.data.caption || ''; 
@@ -1212,7 +1250,7 @@
             if (!selectedImgObj) return;
             selectedImgObj.data.caption = document.getElementById('caption-input').value; 
             closeModal('caption-modal-overlay'); 
-            deselectImg(); // Fix dọn dẹp panel
+            deselectImg(); 
             commitChange(); 
         }
         
