@@ -116,7 +116,7 @@
         .img-wrap:active { transform: scale(0.95); cursor: grabbing;}
         .img-wrap.dragging { display: none !important; }
         
-        /* CSS TOOLTIP HIỆN TÊN FILE - ĐÃ ĐƯỢC FIX HIỆN FULL TÊN */
+        /* CSS TOOLTIP HIỆN TÊN FILE */
         body.show-filename-on-click .img-wrap.selected::after {
             content: attr(data-raw-name);
             position: absolute;
@@ -131,10 +131,10 @@
             font-size: 13px;
             font-weight: bold;
             text-align: center;
-            white-space: normal;      /* Cho phép xuống dòng */
-            word-wrap: break-word;    /* Đảm bảo chữ dài không bị tràn */
-            width: max-content;       /* Tự động kéo rộng theo độ dài chữ */
-            max-width: 250px;         /* Giới hạn độ rộng an toàn để không tràn màn hình */
+            white-space: normal;      
+            word-wrap: break-word;    
+            width: max-content;       
+            max-width: 250px;         
             pointer-events: none;
             z-index: 100;
             border: 1px solid rgba(255,255,255,0.2);
@@ -287,8 +287,10 @@
             </div>
             <div class="control-actions">
                 <button class="btn-pill" onclick="moveToDock()">↓ To Dock</button>
+                <button class="btn-pill" onclick="openRenameModal()">✏️ Rename</button>
                 <button class="btn-pill" onclick="openCaptionModal()">✍️ Text</button>
                 <button class="btn-pill" onclick="applyToAll()" style="background:var(--text-main); color:var(--bg-base);">✦ Match Size</button>
+                <button class="btn-pill" onclick="downloadSelectedImage()" style="background:var(--primary); color:white; border:none;">📥 Download</button>
                 <button class="btn-pill" onclick="deleteSelected()" style="background:var(--danger); color:white; border:none;">✕ Delete (Del)</button>
             </div>
             <button onclick="deselectImg()" style="width:100%; margin-top:10px; background:transparent; border:1px solid var(--border-color); color:var(--text-main); padding:10px; border-radius:8px; cursor:pointer;">Done (Esc)</button>
@@ -302,6 +304,17 @@
             <div class="modal-btns" style="flex-direction: row;">
                 <button style="background:transparent; color:var(--text-main); border: 1px solid var(--border-color);" onclick="execCancel()">Cancel</button>
                 <button style="background:var(--danger); color:white;" onclick="execConfirm()">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="rename-modal-overlay" class="modal-overlay">
+        <div class="modal">
+            <h2>Rename Image</h2>
+            <input type="text" id="rename-input" placeholder="Enter new name..." onkeypress="if(event.key==='Enter') saveRename()">
+            <div class="modal-btns">
+                <button style="background:var(--primary); color:white; border:none;" onclick="saveRename()">Save Name</button>
+                <button style="background:transparent; color:var(--text-main);" onclick="closeModal('rename-modal-overlay')">Cancel</button>
             </div>
         </div>
     </div>
@@ -1056,7 +1069,11 @@
             wrap.style.height = (type==='tier' ? data.h : 85) + 'px';
             wrap.dataset.name = (data.name || '').toLowerCase();
             
-            let rawName = data.name ? data.name.replace(/\.[^/.]+$/, "") : "";
+            // Lấy tên từ data, nếu có chứa đuôi file ảnh thì xóa cho đẹp, nếu do người dùng đặt lại thì giữ nguyên
+            let rawName = data.name || '';
+            if (/\.(png|jpe?g|webp|gif|svg)$/i.test(rawName)) {
+                rawName = rawName.replace(/\.[^/.]+$/, "");
+            }
             wrap.setAttribute('data-raw-name', rawName);
             
             if(isDragMode) wrap.draggable = true;
@@ -1136,6 +1153,42 @@
             deselectImg(); 
             commitChange(); 
         }
+
+        // ======================= TẢI ẢNH RIÊNG LẺ =======================
+        function downloadSelectedImage() {
+            if (!selectedImgObj) return;
+            const data = selectedImgObj.data;
+            const a = document.createElement('a');
+            a.href = data.src;
+            
+            // Xử lý tên file khi tải về
+            let fileName = data.name || 'tiermaker_image';
+            if (!fileName.includes('.')) fileName += '.png'; // Thêm đuôi .png nếu tên chưa có định dạng
+            
+            a.download = fileName;
+            a.click();
+            showToast("📥 Downloading...");
+            deselectImg(); 
+        }
+
+        // ======================= ĐỔI TÊN ẢNH =======================
+        function openRenameModal() {
+            if (!selectedImgObj) return;
+            let currentRawName = selectedImgObj.dom.getAttribute('data-raw-name') || '';
+            document.getElementById('rename-input').value = currentRawName;
+            document.getElementById('rename-modal-overlay').style.display='flex';
+            document.getElementById('rename-input').focus();
+        }
+
+        function saveRename() {
+            if (!selectedImgObj) return;
+            const newName = document.getElementById('rename-input').value.trim();
+            selectedImgObj.data.name = newName; // Cập nhật tên vào dữ liệu DB
+            
+            closeModal('rename-modal-overlay');
+            commitChange(); // Lưu và vẽ lại giao diện
+        }
+
         function showLoading(text) { document.getElementById('loading-text').innerText = text; document.getElementById('loading-overlay').style.display='flex'; }
         function hideLoading() { document.getElementById('loading-overlay').style.display='none'; }
 
@@ -1167,7 +1220,10 @@
                             let w = i.width; let h = i.height; 
                             if (w > M) { h *= (M/w); w = M; } 
                             c.width = w; c.height = h; x.drawImage(i, 0, 0, w, h); 
-                            currentListData.dock.push({ src: c.toDataURL('image/jpeg', 0.8), h: 85, name: f.name }); 
+                            
+                            // Lọc luôn phần mở rộng file (ví dụ .png) ngay lúc mới tải lên
+                            let cleanName = f.name.replace(/\.[^/.]+$/, "");
+                            currentListData.dock.push({ src: c.toDataURL('image/jpeg', 0.8), h: 85, name: cleanName }); 
                         } catch(err) { } 
                         finally { processed++; if (processed === filesToProcess.length) { commitChange(); hideLoading(); } } 
                     }; 
@@ -1185,7 +1241,7 @@
                 currentListData.tiers.forEach(t => { t.items.forEach(img => { if(img.name) existingNames.add(img.name); }); }); 
             } 
             const newFiles = []; const duplicateFiles = []; 
-            files.forEach(f => { if (existingNames.has(f.name)) duplicateFiles.push(f); else newFiles.push(f); }); 
+            files.forEach(f => { if (existingNames.has(f.name.replace(/\.[^/.]+$/, ""))) duplicateFiles.push(f); else newFiles.push(f); }); 
             if (duplicateFiles.length > 0) { 
                 const dupNames = duplicateFiles.map(f => escapeHTML(f.name)).slice(0, 3).join(', '); const extraDup = duplicateFiles.length > 3 ? ` and ${duplicateFiles.length - 3} other files` : ''; 
                 const msg = `Detected ${duplicateFiles.length} duplicate images (e.g., ${dupNames}${extraDup}).\n\nDo you want to upload these DUPLICATES?`; 
