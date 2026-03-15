@@ -93,15 +93,12 @@
         #btn-drag-toggle { background: var(--bg-surface); color: var(--primary); font-weight: 800; border: 1px solid var(--border-color); border-radius: 6px; padding: 6px 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; width: max-content; transition: all 0.2s;}
 
         .capture-wrapper { padding: 15px 12px; background: var(--bg-base); overflow-x: auto; touch-action: pan-y; } 
-        
-        /* BẢNG TIER LIST: Fix gap = 0, viền liền mạch */
         #capture-area { background: #000; display: inline-flex; flex-direction: column; width: 100%; min-width: 100%; border-radius: 4px; overflow: hidden; outline: 1px solid #000; transition: background 0.3s; }
         .board-header-style { text-align: center; font-size: clamp(1.2rem, 4vw, 1.75rem); font-weight: 800; padding: 20px 10px; background: #000; color: #fff; text-transform: uppercase; border-bottom: 1px solid #000; cursor: pointer; transition: background 0.2s; }
         .board-header-style:hover { background: #1a1a1a; }
+        #tier-board { display: flex; flex-direction: column; gap: 0px; background: transparent; padding: 0px; transition: background 0.3s; } 
         
-        #tier-board { display: flex; flex-direction: column; gap: 0px; background: #000; padding: 0px; transition: background 0.3s; } 
-        
-        .tier-row { display: flex; align-items: stretch; background: #1a1a1a; border-radius: 0px; border-bottom: 1px solid #000; transition: border-top 0.2s; }
+        .tier-row { display: flex; align-items: stretch; background: transparent; border-radius: 0px; border-bottom: 1px solid #000; transition: border-top 0.2s; }
         .tier-row:last-child { border-bottom: none; }
         
         .tier-label-wrap { width: 85px; min-width: 85px; display: flex; align-items: center; justify-content: center; position: relative; cursor: grab; touch-action: none; border-right: 1px solid #000;}
@@ -112,7 +109,7 @@
             .tier-label { font-size: 16px; padding: 8px; }
         }
         
-        .tier-content { flex: 1; display: flex; flex-wrap: wrap; align-content: flex-start; align-items: flex-start; background: #1a1a1a; padding: 4px; gap: 4px; position: relative; min-height: 85px; transition: background 0.2s; cursor: pointer; }
+        .tier-content { flex: 1; display: flex; flex-wrap: wrap; align-content: flex-start; align-items: flex-start; padding: 4px; gap: 4px; position: relative; min-height: 85px; transition: background 0.2s; cursor: pointer; }
         
         /* IMAGE SHAPES & EFFECTS */
         .img-wrap { display: flex; align-items: center; justify-content: center; position: relative; cursor: grab; transition: transform 0.15s cubic-bezier(0.2, 0.8, 0.2, 1); margin: 0; padding: 0; touch-action: none; max-width: 100%; }
@@ -360,10 +357,12 @@
 
             <div style="background: var(--bg-elevated); padding: 15px; border-radius: 12px; border: 1px solid var(--border-color);">
                 <h3 style="margin-top:0; font-size: 1rem;">🎨 Background</h3>
-                <label style="display:block; margin-bottom:8px; font-weight:bold; color:var(--text-main); font-size: 0.9rem;">Solid Color:</label>
-                <input type="color" id="bg-color-picker" style="cursor:pointer; width: 100%; height: 40px; border:none; background:transparent; border-radius: 8px;" onchange="setBgColor(this.value)">
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+                    <input type="color" id="bg-color-picker" style="cursor:pointer; width: 60px; height: 40px; border:none; background:transparent; border-radius: 8px;" onchange="setBgColor(this.value)">
+                    <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: bold;">Pick a solid color</span>
+                </div>
 
-                <label style="display:block; margin-top:15px; margin-bottom:8px; font-weight:bold; color:var(--text-main); font-size: 0.9rem;">Gradient Presets:</label>
+                <label style="display:block; margin-bottom:8px; font-weight:bold; color:var(--text-main); font-size: 0.9rem;">Gradient Presets:</label>
                 <div style="display:flex; flex-wrap:wrap; gap:8px;">
                     <div class="color-preset-btn" style="background: linear-gradient(45deg, #ff9a9e, #fecfef);" onclick="setBgColor('linear-gradient(45deg, #ff9a9e, #fecfef)')"></div>
                     <div class="color-preset-btn" style="background: linear-gradient(45deg, #a18cd1, #fbc2eb);" onclick="setBgColor('linear-gradient(45deg, #a18cd1, #fbc2eb)')"></div>
@@ -722,8 +721,8 @@
                 alert("Connection failed. Make sure the Host is waiting on the PIN screen."); 
             });
         }
-        // ======================================================================
 
+        // ======================= CLICK & DROP CONTROLS =======================
         function initGlobalClickAndDrop() {
             const handleOutsideClick = (e) => { 
                 if (selectedImgObj) { 
@@ -860,7 +859,6 @@
 
         // ======================= QUẢN LÝ SETTINGS =======================
         function openSettingsModal() { 
-            // Cập nhật trạng thái các nút gạt, chọn dropdown trước khi mở
             document.getElementById('setting-header-toggle').checked = (currentListData.headerVisible !== false);
             document.getElementById('setting-name-toggle').checked = !!currentListData.showFilename;
             document.getElementById('setting-shape-select').value = currentListData.shape || 'auto';
@@ -929,6 +927,7 @@
             });
         }
 
+        // ======================= MENU VÀ TIER BOARD =======================
         function loadMenu() { 
             const container = document.getElementById('list-container');
             try { 
@@ -1019,12 +1018,15 @@
                 } else {
                     captureArea.style.background = '#000';
                     hEl.style.backgroundColor = '#000';
-                    board.style.backgroundColor = '#000';
+                    board.style.backgroundColor = 'transparent';
                     board.style.borderTop = '1px solid #000';
                 }
 
                 currentListData.tiers.forEach((t, i) => {
-                    const row = document.createElement('div'); row.className = 'tier-row'; row.style.backgroundColor = t.color; 
+                    const row = document.createElement('div'); row.className = 'tier-row'; 
+                    // FIX TIER ROW BG: Dành riêng lớp đệm trong suốt để Nền đằng sau xuyên qua được
+                    row.style.backgroundColor = 'transparent'; 
+                    
                     if(isDragMode) row.draggable = true; 
                     
                     row.ondragover = e => { e.preventDefault(); if (isDragMode && draggedRowIdx !== null) { e.dataTransfer.dropEffect = 'move'; e.currentTarget.style.borderTop = "3px solid #10b981"; } };
@@ -1032,6 +1034,9 @@
                     row.ondrop = e => { e.preventDefault(); e.currentTarget.style.borderTop = ""; if (isDragMode && draggedRowIdx !== null) { const tmp = currentListData.tiers.splice(draggedRowIdx, 1)[0]; currentListData.tiers.splice(i, 0, tmp); draggedRowIdx = null; commitChange(); } };
                     
                     const labelWrap = document.createElement('div'); labelWrap.className = 'tier-label-wrap';
+                    // FIX: Tô màu đặc (Solid) trực tiếp vào ô nhãn dán bên trái
+                    labelWrap.style.backgroundColor = t.color; 
+
                     labelWrap.title = "Drag to reorder row. Click to edit.";
                     labelWrap.onclick = () => openEditModal(i);
                     if(isDragMode) labelWrap.draggable = true; 
@@ -1045,7 +1050,9 @@
 
                     const content = document.createElement('div'); content.className = 'tier-content';
                     content.dataset.tierIndex = i; 
-                    content.style.backgroundColor = currentListData.background ? 'rgba(0,0,0,0.6)' : '#1a1a1a';
+                    
+                    // FIX: Phủ lớp kính đen 65% để làm nền cho ảnh, giữ lại 35% độ xuyên thấu
+                    content.style.backgroundColor = currentListData.background ? 'rgba(0,0,0,0.65)' : '#1a1a1a';
                     
                     content.ondragover = e => { 
                         e.preventDefault(); 
@@ -1316,7 +1323,7 @@
                                 {name:'B', color:'#FFDF7F', items:[]},
                                 {name:'C', color:'#FFFF7F', items:[]},
                                 {name:'D', color:'#BFFF7F', items:[]},
-                                {name:'F', color:'#7FBFFF', items:[]}
+                                {name:'F', color:'#7F7FFF', items:[]}
                             ], 
                             dock: [],
                             shape: 'auto',
