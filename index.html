@@ -293,9 +293,12 @@
                 <button class="btn-size-step" aria-label="Increase size" onclick="adjustSize(5); markDirty();">+</button>
                 <span id="size-val" style="min-width:45px; text-align:right; color:var(--text-main);">85px</span>
             </div>
+            
             <div class="control-actions">
                 <button class="btn-pill" onclick="moveToDock()">↓ To Dock</button>
                 <button class="btn-pill" onclick="openRenameModal()">✏️ Rename</button>
+                <button class="btn-pill" onclick="copyImageName()">📋 Copy Name</button>
+                <button class="btn-pill" onclick="clearImageName()">🚫 Clear Name</button>
                 <button class="btn-pill" onclick="openCaptionModal()">✍️ Text</button>
                 <button class="btn-pill" onclick="applyToAll()" style="background:var(--text-main); color:var(--bg-base);">✦ Match Size</button>
                 <button class="btn-pill" onclick="downloadSelectedImage()" style="background:var(--primary); color:white; border:none;">📥 Download</button>
@@ -927,7 +930,6 @@
             });
         }
 
-        // ======================= MENU VÀ TIER BOARD =======================
         function loadMenu() { 
             const container = document.getElementById('list-container');
             try { 
@@ -1024,7 +1026,6 @@
 
                 currentListData.tiers.forEach((t, i) => {
                     const row = document.createElement('div'); row.className = 'tier-row'; 
-                    // FIX TIER ROW BG: Dành riêng lớp đệm trong suốt để Nền đằng sau xuyên qua được
                     row.style.backgroundColor = 'transparent'; 
                     
                     if(isDragMode) row.draggable = true; 
@@ -1034,7 +1035,6 @@
                     row.ondrop = e => { e.preventDefault(); e.currentTarget.style.borderTop = ""; if (isDragMode && draggedRowIdx !== null) { const tmp = currentListData.tiers.splice(draggedRowIdx, 1)[0]; currentListData.tiers.splice(i, 0, tmp); draggedRowIdx = null; commitChange(); } };
                     
                     const labelWrap = document.createElement('div'); labelWrap.className = 'tier-label-wrap';
-                    // FIX: Tô màu đặc (Solid) trực tiếp vào ô nhãn dán bên trái
                     labelWrap.style.backgroundColor = t.color; 
 
                     labelWrap.title = "Drag to reorder row. Click to edit.";
@@ -1050,8 +1050,6 @@
 
                     const content = document.createElement('div'); content.className = 'tier-content';
                     content.dataset.tierIndex = i; 
-                    
-                    // FIX: Phủ lớp kính đen 65% để làm nền cho ảnh, giữ lại 35% độ xuyên thấu
                     content.style.backgroundColor = currentListData.background ? 'rgba(0,0,0,0.65)' : '#1a1a1a';
                     
                     content.ondragover = e => { 
@@ -1131,7 +1129,10 @@
             wrap.style.height = (type==='tier' ? data.h : 85) + 'px';
             wrap.dataset.name = (data.name || '').toLowerCase();
             
-            let rawName = data.name ? data.name.replace(/\.[^/.]+$/, "") : "";
+            let rawName = data.name || '';
+            if (/\.(png|jpe?g|webp|gif|svg)$/i.test(rawName)) {
+                rawName = rawName.replace(/\.[^/.]+$/, "");
+            }
             wrap.setAttribute('data-raw-name', rawName);
             
             if(isDragMode) wrap.draggable = true;
@@ -1240,7 +1241,33 @@
             const newName = document.getElementById('rename-input').value.trim();
             selectedImgObj.data.name = newName; 
             closeModal('rename-modal-overlay');
+            deselectImg(); 
             commitChange(); 
+        }
+
+        // COPY TÊN ẢNH
+        async function copyImageName() {
+            if (!selectedImgObj) return;
+            const nameToCopy = selectedImgObj.data.name || '';
+            if (!nameToCopy) {
+                showToast("⚠️ Image has no name!");
+                return;
+            }
+            try {
+                await navigator.clipboard.writeText(nameToCopy);
+                showToast("📋 Name copied!");
+            } catch (err) {
+                alert("Failed to copy!");
+            }
+        }
+
+        // XÓA TÊN ẢNH
+        function clearImageName() {
+            if (!selectedImgObj) return;
+            selectedImgObj.data.name = ""; 
+            deselectImg(); 
+            commitChange(); 
+            showToast("🚫 Name cleared!");
         }
 
         function showLoading(text) { document.getElementById('loading-text').innerText = text; document.getElementById('loading-overlay').style.display='flex'; }
@@ -1344,6 +1371,7 @@
         function moveTierDown() { if (editingTierIndex < currentListData.tiers.length - 1) { const tmp = currentListData.tiers[editingTierIndex]; currentListData.tiers[editingTierIndex] = currentListData.tiers[editingTierIndex + 1]; currentListData.tiers[editingTierIndex + 1] = tmp; editingTierIndex++; commitChange(); } }
         
         function addNewTier() { currentListData.tiers.push({name:'NEW', color:'#1a1a1a', items:[]}); commitChange(); }
+        function toggleHeader() { currentListData.headerVisible = currentListData.headerVisible === false ? true : false; commitChange(); }
         function resetBoard() { openConfirm("Reset", "Return all images to the Dock?", () => { currentListData.tiers.forEach(t => { currentListData.dock.push(...t.items); t.items = []; }); commitChange(); }); }
         
         function openCaptionModal() { 
