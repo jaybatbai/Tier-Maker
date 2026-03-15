@@ -194,7 +194,7 @@
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 300; display: none; align-items: center; justify-content: center; backdrop-filter: blur(8px); padding: 20px; animation: overlayFadeIn 0.2s ease-out forwards; }
         .modal { background: var(--bg-surface); padding: 28px; border-radius: var(--radius-lg); width: 100%; max-width: 400px; border: 1px solid var(--border-color); box-shadow: var(--shadow-float); animation: modalPopUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; max-height: 90vh; overflow-y: auto; }
         .modal h2 { margin-top: 0; color: var(--text-main); }
-        .modal input[type="text"], .modal textarea, .modal select { width: 100%; padding: 14px; background: var(--bg-base); color: var(--text-main); border: 1px solid var(--border-color); border-radius: var(--radius-md); outline: none; font-family: inherit; }
+        .modal input[type="text"], .modal textarea, .modal select, .modal input[type="number"] { width: 100%; padding: 14px; background: var(--bg-base); color: var(--text-main); border: 1px solid var(--border-color); border-radius: var(--radius-md); outline: none; font-family: inherit; }
         .modal-btns { display: flex; flex-direction: column; gap: 10px; margin-top: 28px; }
         .modal-btns button { width: 100%; padding: 14px; border-radius: var(--radius-md); font-weight: 600; cursor: pointer; border: none; font-size: 1rem; }
         
@@ -450,8 +450,20 @@
     <div id="modal-overlay" class="modal-overlay">
         <div class="modal">
             <h2>Edit Row</h2>
-            <input type="text" id="edit-name" onkeypress="if(event.key==='Enter') saveTierEdit()">
-            <div style="margin-top:20px;">
+            <input type="text" id="edit-name" onkeypress="if(event.key==='Enter') saveTierEdit()" style="margin-bottom: 15px;">
+            
+            <div style="margin-bottom: 20px; display:flex; gap:10px; background: var(--bg-elevated); padding: 15px; border-radius: 8px; border: 1px solid var(--border-color);">
+                <div style="flex:1;">
+                    <label style="display:block; margin-bottom:8px; font-weight:bold; color:var(--text-main); font-size: 0.85rem;">Min Score (1-10):</label>
+                    <input type="number" id="edit-min-score" min="1" max="10" style="padding: 10px; width: 100%; background: var(--bg-base); border: 1px solid var(--border-color); color: var(--text-main); border-radius: 6px;">
+                </div>
+                <div style="flex:1;">
+                    <label style="display:block; margin-bottom:8px; font-weight:bold; color:var(--text-main); font-size: 0.85rem;">Max Score (1-10):</label>
+                    <input type="number" id="edit-max-score" min="1" max="10" style="padding: 10px; width: 100%; background: var(--bg-base); border: 1px solid var(--border-color); color: var(--text-main); border-radius: 6px;">
+                </div>
+            </div>
+
+            <div>
                 <label style="display:block; margin-bottom:8px; font-weight:bold; color:var(--text-main);">Background Color:</label>
                 <div style="display:flex; align-items:center; gap:10px;">
                     <input type="color" id="edit-color-picker" style="cursor:pointer; width: 40px; height: 35px; border:none; background:transparent;" aria-label="Color picker">
@@ -553,7 +565,6 @@
         
         const fontsArr = ['Arial, Helvetica, sans-serif', "'Comic Sans MS', 'Chalkboard SE', 'Comic Neue', sans-serif", "Impact, Charcoal, sans-serif", "'Courier New', Courier, monospace", "Georgia, serif"];
 
-        // BỎ AUTO-SAVE CHẬM CHẠP, CHUYỂN SANG BACKUP NẾU CẦN THIẾT
         const autoSaveInterval = setInterval(() => { if (isDirty && currentListData) { saveListSilent(currentListData); isDirty = false; } }, 5000);
         function markDirty() { isDirty = true; }
         
@@ -738,14 +749,50 @@
             });
         }
 
-        // ======================= THUẬT TOÁN TÍNH ĐIỂM AUTO-RANK =======================
+        // ======================= THUẬT TOÁN AUTO-RANK TÙY CHỈNH ĐIỂM =======================
+        function getTierIndexByScore(score) {
+            if (!currentListData || currentListData.tiers.length === 0) return 0;
+            score = parseInt(score);
+            
+            // 1. Kiểm tra xem điểm số có nằm lọt thỏm trong khoảng Min-Max của Tier nào không
+            for (let i = 0; i < currentListData.tiers.length; i++) {
+                let t = currentListData.tiers[i];
+                if (t.minScore !== undefined && t.maxScore !== undefined) {
+                    if (score >= t.minScore && score <= t.maxScore) {
+                        return i; // Trúng phóc khoảng điểm
+                    }
+                }
+            }
+            
+            // 2. Nếu người dùng nhập thiếu/thủng lỗ khoảng điểm, tự động tìm Tier gần nhất
+            let hasCustomScores = currentListData.tiers.some(t => t.minScore !== undefined);
+            if (!hasCustomScores) {
+                // Nếu chưa cài điểm cho Tier nào, dùng công thức chia đều mặc định
+                let maxIndex = currentListData.tiers.length - 1;
+                let targetIndex = Math.round((10 - score) / 9 * maxIndex);
+                return Math.max(0, Math.min(maxIndex, targetIndex));
+            }
+
+            // Nếu bị thủng lỗ (VD có Tier 1-2, 5-6 nhưng thiếu 3-4), tự map vào Tier có khoảng cách gần nhất
+            let closestIndex = 0;
+            let minDiff = 999;
+            for (let i = 0; i < currentListData.tiers.length; i++) {
+                let t = currentListData.tiers[i];
+                if (t.minScore !== undefined && t.maxScore !== undefined) {
+                    let mid = (t.minScore + t.maxScore) / 2;
+                    let diff = Math.abs(score - mid);
+                    if (diff < minDiff) {
+                        minDiff = diff;
+                        closestIndex = i;
+                    }
+                }
+            }
+            return closestIndex;
+        }
+
         function updateScorePreview(score) {
             if (!currentListData || currentListData.tiers.length === 0) return;
-            score = parseInt(score);
-            let maxIndex = currentListData.tiers.length - 1;
-            
-            let targetIndex = Math.round((10 - score) / 9 * maxIndex);
-            targetIndex = Math.max(0, Math.min(maxIndex, targetIndex));
+            let targetIndex = getTierIndexByScore(score);
             
             let tierName = currentListData.tiers[targetIndex].name;
             let tierColor = currentListData.tiers[targetIndex].color;
@@ -759,11 +806,7 @@
             if (!selectedImgObj) return;
             if (!currentListData || currentListData.tiers.length === 0) return;
 
-            score = parseInt(score);
-            let maxIndex = currentListData.tiers.length - 1;
-            let targetIndex = Math.round((10 - score) / 9 * maxIndex);
-            targetIndex = Math.max(0, Math.min(maxIndex, targetIndex));
-
+            let targetIndex = getTierIndexByScore(score);
             let sourceArray = (selectedImgObj.type === 'tier') ? currentListData.tiers[selectedImgObj.r].items : currentListData.dock;
             let data = selectedImgObj.data;
 
@@ -775,7 +818,7 @@
             deselectImg(); 
             commitChange(); 
         }
-        // ==============================================================================
+        // ===================================================================================
 
         function initGlobalClickAndDrop() {
             const handleOutsideClick = (e) => { 
@@ -1013,20 +1056,19 @@
 
         function deleteSingleList(e, id, name) { e.stopPropagation(); openConfirm("Delete Board", `Are you sure you want to delete the board "${name}"?`, () => { try { const tx = db.transaction(['lists'], 'readwrite'); tx.objectStore('lists').delete(id); tx.oncomplete = () => loadMenu(); } catch (err) {} }); }
         
-        // HỆ THỐNG LƯU TỨC THÌ (INSTANT SAVE)
         function saveListSilent(d) { try { d.updatedAt = new Date().toISOString(); db.transaction(['lists'], 'readwrite').objectStore('lists').put(d); } catch(e) {} }
         
         function commitChange() { 
             pushHistory(); 
             renderBoard(); 
             isDirty = true; 
-            if (currentListData) saveListSilent(currentListData); // LƯU NGAY LẬP TỨC
+            if (currentListData) saveListSilent(currentListData); 
         }
         
         function commitChangeSilent() { 
             pushHistory(); 
             isDirty = true; 
-            if (currentListData) saveListSilent(currentListData); // LƯU NGAY LẬP TỨC
+            if (currentListData) saveListSilent(currentListData); 
         }
 
         function pushHistory() { const s = JSON.stringify(currentListData); if (stateHistory[historyIndex] !== s) { stateHistory = stateHistory.slice(0, historyIndex+1); stateHistory.push(s); historyIndex++; if (stateHistory.length > 15) { stateHistory.shift(); historyIndex--; } } }
@@ -1219,8 +1261,14 @@
                     
                     let initialScore = 5; 
                     if (type === 'tier' && currentListData.tiers.length > 1) {
-                        let maxIndex = currentListData.tiers.length - 1;
-                        initialScore = Math.round(10 - (r / maxIndex) * 9);
+                        // Tính toán thử xem ảnh đang ở Tier nào để set thanh điểm cho phù hợp
+                        let t = currentListData.tiers[r];
+                        if (t.minScore !== undefined && t.maxScore !== undefined) {
+                            initialScore = Math.floor((t.minScore + t.maxScore) / 2);
+                        } else {
+                            let maxIndex = currentListData.tiers.length - 1;
+                            initialScore = Math.round(10 - (r / maxIndex) * 9);
+                        }
                         initialScore = Math.max(1, Math.min(10, initialScore));
                     }
                     document.getElementById('score-slider').value = initialScore;
@@ -1401,6 +1449,7 @@
         }
 
         function openHeaderModal() { const inputName = document.getElementById('list-name'); inputName.focus(); inputName.select(); }
+        
         function openCreateModal() { document.getElementById('create-modal-overlay').style.display='flex'; document.getElementById('new-template-name').focus(); }
         function openHelpModal() { document.getElementById('help-modal').style.display='flex'; }
         
@@ -1412,16 +1461,17 @@
                     if (list.some(l => l.name.toLowerCase() === name.toLowerCase())) { alert('⚠️ Board name already exists! Please choose another name.'); return; } 
                     showLoading("Creating..."); 
                     setTimeout(() => { 
+                        // THÊM MIN/MAX SCORE MẶC ĐỊNH CHO CÁC TIER TẠO MỚI
                         const newList = { 
                             id: 'list_'+Date.now(), 
                             name: name, 
                             tiers: [
-                                {name:'S', color:'#FF7F7F', items:[]},
-                                {name:'A', color:'#FFBF7F', items:[]},
-                                {name:'B', color:'#FFDF7F', items:[]},
-                                {name:'C', color:'#FFFF7F', items:[]},
-                                {name:'D', color:'#BFFF7F', items:[]},
-                                {name:'F', color:'#7F7FFF', items:[]}
+                                {name:'S', color:'#FF7F7F', items:[], minScore: 10, maxScore: 10},
+                                {name:'A', color:'#FFBF7F', items:[], minScore: 9, maxScore: 9},
+                                {name:'B', color:'#FFDF7F', items:[], minScore: 7, maxScore: 8},
+                                {name:'C', color:'#FFFF7F', items:[], minScore: 5, maxScore: 6},
+                                {name:'D', color:'#BFFF7F', items:[], minScore: 3, maxScore: 4},
+                                {name:'F', color:'#7F7FFF', items:[], minScore: 1, maxScore: 2}
                             ], 
                             dock: [],
                             shape: 'auto',
@@ -1435,13 +1485,39 @@
             } catch (err) {} 
         }
         
-        function openEditModal(i) { editingTierIndex = i; const t = currentListData.tiers[i]; document.getElementById('edit-name').value = t.name; document.getElementById('edit-color-picker').value = t.color; document.getElementById('modal-overlay').style.display='flex'; document.getElementById('edit-name').focus(); }
+        function openEditModal(i) { 
+            editingTierIndex = i; 
+            const t = currentListData.tiers[i]; 
+            document.getElementById('edit-name').value = t.name; 
+            document.getElementById('edit-color-picker').value = t.color; 
+            
+            // LOAD MIN/MAX SCORE LÊN BẢNG EDIT
+            document.getElementById('edit-min-score').value = t.minScore !== undefined ? t.minScore : 1;
+            document.getElementById('edit-max-score').value = t.maxScore !== undefined ? t.maxScore : 10;
+            
+            document.getElementById('modal-overlay').style.display='flex'; 
+            document.getElementById('edit-name').focus(); 
+        }
+
         function setTierColor(color) { document.getElementById('edit-color-picker').value = color; }
-        function saveTierEdit() { currentListData.tiers[editingTierIndex].name = document.getElementById('edit-name').value; currentListData.tiers[editingTierIndex].color = document.getElementById('edit-color-picker').value; closeModal('modal-overlay'); commitChange(); }
+        
+        function saveTierEdit() { 
+            currentListData.tiers[editingTierIndex].name = document.getElementById('edit-name').value; 
+            currentListData.tiers[editingTierIndex].color = document.getElementById('edit-color-picker').value; 
+            
+            // LƯU LẠI MIN/MAX SCORE VÀO DỮ LIỆU
+            currentListData.tiers[editingTierIndex].minScore = parseInt(document.getElementById('edit-min-score').value) || 1;
+            currentListData.tiers[editingTierIndex].maxScore = parseInt(document.getElementById('edit-max-score').value) || 10;
+            
+            closeModal('modal-overlay'); 
+            commitChange(); 
+        }
+
         function moveTierUp() { if (editingTierIndex > 0) { const tmp = currentListData.tiers[editingTierIndex]; currentListData.tiers[editingTierIndex] = currentListData.tiers[editingTierIndex - 1]; currentListData.tiers[editingTierIndex - 1] = tmp; editingTierIndex--; commitChange(); } }
         function moveTierDown() { if (editingTierIndex < currentListData.tiers.length - 1) { const tmp = currentListData.tiers[editingTierIndex]; currentListData.tiers[editingTierIndex] = currentListData.tiers[editingTierIndex + 1]; currentListData.tiers[editingTierIndex + 1] = tmp; editingTierIndex++; commitChange(); } }
         
-        function addNewTier() { currentListData.tiers.push({name:'NEW', color:'#1a1a1a', items:[]}); commitChange(); }
+        function addNewTier() { currentListData.tiers.push({name:'NEW', color:'#1a1a1a', items:[], minScore: 1, maxScore: 1}); commitChange(); }
+        function toggleHeader() { currentListData.headerVisible = currentListData.headerVisible === false ? true : false; commitChange(); }
         function resetBoard() { openConfirm("Reset", "Return all images to the Dock?", () => { currentListData.tiers.forEach(t => { currentListData.dock.push(...t.items); t.items = []; }); commitChange(); }); }
         
         function openCaptionModal() { 
