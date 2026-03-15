@@ -553,7 +553,8 @@
         
         const fontsArr = ['Arial, Helvetica, sans-serif', "'Comic Sans MS', 'Chalkboard SE', 'Comic Neue', sans-serif", "Impact, Charcoal, sans-serif", "'Courier New', Courier, monospace", "Georgia, serif"];
 
-        const autoSaveInterval = setInterval(() => { if (isDirty && currentListData) { saveListSilent(currentListData); showToast('💾 Auto-saved'); isDirty = false; } }, 3000);
+        // BỎ AUTO-SAVE CHẬM CHẠP, CHUYỂN SANG BACKUP NẾU CẦN THIẾT
+        const autoSaveInterval = setInterval(() => { if (isDirty && currentListData) { saveListSilent(currentListData); isDirty = false; } }, 5000);
         function markDirty() { isDirty = true; }
         
         function escapeHTML(str) { 
@@ -743,9 +744,8 @@
             score = parseInt(score);
             let maxIndex = currentListData.tiers.length - 1;
             
-            // Công thức: Map điểm (1-10) vào mảng Tier (0 đến maxIndex)
             let targetIndex = Math.round((10 - score) / 9 * maxIndex);
-            targetIndex = Math.max(0, Math.min(maxIndex, targetIndex)); // Đảm bảo an toàn
+            targetIndex = Math.max(0, Math.min(maxIndex, targetIndex));
             
             let tierName = currentListData.tiers[targetIndex].name;
             let tierColor = currentListData.tiers[targetIndex].color;
@@ -767,15 +767,13 @@
             let sourceArray = (selectedImgObj.type === 'tier') ? currentListData.tiers[selectedImgObj.r].items : currentListData.dock;
             let data = selectedImgObj.data;
 
-            // Xóa ảnh ở vị trí hiện tại
             sourceArray.splice(selectedImgObj.i, 1);
-            // Ném ảnh vào vị trí tự động mới
             currentListData.tiers[targetIndex].items.push(data);
 
             showToast(`Moved to ${currentListData.tiers[targetIndex].name}`);
 
-            deselectImg(); // Buông ảnh và đóng bảng điều khiển
-            commitChange(); // Rớt ảnh lập tức
+            deselectImg(); 
+            commitChange(); 
         }
         // ==============================================================================
 
@@ -1014,12 +1012,26 @@
         }
 
         function deleteSingleList(e, id, name) { e.stopPropagation(); openConfirm("Delete Board", `Are you sure you want to delete the board "${name}"?`, () => { try { const tx = db.transaction(['lists'], 'readwrite'); tx.objectStore('lists').delete(id); tx.oncomplete = () => loadMenu(); } catch (err) {} }); }
+        
+        // HỆ THỐNG LƯU TỨC THÌ (INSTANT SAVE)
         function saveListSilent(d) { try { d.updatedAt = new Date().toISOString(); db.transaction(['lists'], 'readwrite').objectStore('lists').put(d); } catch(e) {} }
-        function commitChange() { pushHistory(); renderBoard(); markDirty(); }
-        function commitChangeSilent() { pushHistory(); markDirty(); }
+        
+        function commitChange() { 
+            pushHistory(); 
+            renderBoard(); 
+            isDirty = true; 
+            if (currentListData) saveListSilent(currentListData); // LƯU NGAY LẬP TỨC
+        }
+        
+        function commitChangeSilent() { 
+            pushHistory(); 
+            isDirty = true; 
+            if (currentListData) saveListSilent(currentListData); // LƯU NGAY LẬP TỨC
+        }
+
         function pushHistory() { const s = JSON.stringify(currentListData); if (stateHistory[historyIndex] !== s) { stateHistory = stateHistory.slice(0, historyIndex+1); stateHistory.push(s); historyIndex++; if (stateHistory.length > 15) { stateHistory.shift(); historyIndex--; } } }
-        function undo() { if (historyIndex > 0) { historyIndex--; currentListData = JSON.parse(stateHistory[historyIndex]); renderBoard(); markDirty(); showToast("↩️ Undone"); } }
-        function redo() { if (historyIndex < stateHistory.length-1) { historyIndex++; currentListData = JSON.parse(stateHistory[historyIndex]); renderBoard(); markDirty(); showToast("↪️ Redone"); } }
+        function undo() { if (historyIndex > 0) { historyIndex--; currentListData = JSON.parse(stateHistory[historyIndex]); renderBoard(); isDirty = true; if (currentListData) saveListSilent(currentListData); showToast("↩️ Undone"); } }
+        function redo() { if (historyIndex < stateHistory.length-1) { historyIndex++; currentListData = JSON.parse(stateHistory[historyIndex]); renderBoard(); isDirty = true; if (currentListData) saveListSilent(currentListData); showToast("↪️ Redone"); } }
         function openList(id) { showLoading('Opening...'); try { db.transaction(['lists']).objectStore('lists').get(id).onsuccess = e => { currentListData = e.target.result; stateHistory = [JSON.stringify(currentListData)]; historyIndex = 0; isDirty = false; document.getElementById('menu-screen').classList.add('hidden'); document.getElementById('editor-screen').classList.remove('hidden'); document.getElementById('list-name').value = currentListData.name; renderBoard(); hideLoading(); }; } catch (err) { hideLoading(); } }
         
         function getInsertionNode(container, clientX, clientY) {
@@ -1043,29 +1055,19 @@
 
         function renderBoard() {
             try {
-                const filenameBtn = document.getElementById('btn-filename-toggle');
                 if(currentListData.showFilename) {
                     document.body.classList.add('show-filename-on-click');
-                    filenameBtn.innerText = '🏷️ Name: ON';
-                    filenameBtn.style.color = 'var(--primary)';
-                    filenameBtn.style.borderColor = 'var(--primary)';
                 } else {
                     document.body.classList.remove('show-filename-on-click');
-                    filenameBtn.innerText = '🏷️ Name: OFF';
-                    filenameBtn.style.color = 'var(--text-main)';
-                    filenameBtn.style.borderColor = 'var(--border-color)';
                 }
 
                 const editorScreen = document.getElementById('editor-screen');
                 editorScreen.classList.remove('shape-square', 'shape-circle');
-                const shapeBtn = document.getElementById('btn-shape-toggle');
-                if(currentListData.shape === 'square') { editorScreen.classList.add('shape-square'); shapeBtn.innerText = '🔄 Shape: Square'; }
-                else if(currentListData.shape === 'circle') { editorScreen.classList.add('shape-circle'); shapeBtn.innerText = '🔄 Shape: Circle'; }
-                else { shapeBtn.innerText = '🔄 Shape: Original'; }
+                if(currentListData.shape === 'square') { editorScreen.classList.add('shape-square'); }
+                else if(currentListData.shape === 'circle') { editorScreen.classList.add('shape-circle'); }
 
                 const fIdx = currentListData.fontIndex || 0;
                 const currentFontFamily = fontsArr[fIdx];
-                document.getElementById('btn-font-toggle').innerText = '🔤 Font: ' + fontNamesArr[fIdx];
 
                 const board = document.getElementById('tier-board'); board.innerHTML = '';
                 const hEl = document.getElementById('tier-header'); hEl.innerText = currentListData.name; hEl.style.display = currentListData.headerVisible === false ? 'none' : 'block';
@@ -1215,7 +1217,6 @@
                     document.getElementById('size-slider').value = data.h; 
                     document.getElementById('size-val').innerText = data.h + 'px'; 
                     
-                    // ================= TÍNH TOÁN ĐIỂM AUTO-RANK HIỆN TẠI =================
                     let initialScore = 5; 
                     if (type === 'tier' && currentListData.tiers.length > 1) {
                         let maxIndex = currentListData.tiers.length - 1;
@@ -1224,7 +1225,6 @@
                     }
                     document.getElementById('score-slider').value = initialScore;
                     updateScorePreview(initialScore);
-                    // =====================================================================
 
                 } else if (selectedImgObj.dom === wrap) { 
                     deselectImg(); 
@@ -1288,7 +1288,6 @@
             commitChange(); 
         }
 
-        // TẢI ẢNH LẺ
         function downloadSelectedImage() {
             if (!selectedImgObj) return;
             const data = selectedImgObj.data;
@@ -1302,7 +1301,6 @@
             deselectImg(); 
         }
 
-        // ĐỔI TÊN ẢNH
         function openRenameModal() {
             if (!selectedImgObj) return;
             let currentRawName = selectedImgObj.dom.getAttribute('data-raw-name') || '';
@@ -1320,7 +1318,6 @@
             commitChange(); 
         }
 
-        // COPY TÊN ẢNH
         async function copyImageName() {
             if (!selectedImgObj) return;
             let currentRawName = selectedImgObj.dom.getAttribute('data-raw-name') || '';
@@ -1336,7 +1333,6 @@
             }
         }
 
-        // XÓA TÊN ẢNH
         function clearImageName() {
             if (!selectedImgObj) return;
             selectedImgObj.data.name = ""; 
@@ -1446,7 +1442,6 @@
         function moveTierDown() { if (editingTierIndex < currentListData.tiers.length - 1) { const tmp = currentListData.tiers[editingTierIndex]; currentListData.tiers[editingTierIndex] = currentListData.tiers[editingTierIndex + 1]; currentListData.tiers[editingTierIndex + 1] = tmp; editingTierIndex++; commitChange(); } }
         
         function addNewTier() { currentListData.tiers.push({name:'NEW', color:'#1a1a1a', items:[]}); commitChange(); }
-        function toggleHeader() { currentListData.headerVisible = currentListData.headerVisible === false ? true : false; commitChange(); }
         function resetBoard() { openConfirm("Reset", "Return all images to the Dock?", () => { currentListData.tiers.forEach(t => { currentListData.dock.push(...t.items); t.items = []; }); commitChange(); }); }
         
         function openCaptionModal() { 
