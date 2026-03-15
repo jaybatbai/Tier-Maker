@@ -296,21 +296,26 @@
 
             <div style="margin: 15px 0; border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); padding: 15px 0;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                    <span style="font-weight: 600; font-size: 0.9rem; color: var(--text-main);">⭐ Quick Auto-Rank:</span>
+                    <span style="font-weight: 600; font-size: 0.9rem; color: var(--text-main);">⭐ Auto-Rank:</span>
                     <span id="score-val" style="font-weight: bold; font-size: 0.9rem; padding: 4px 10px; border-radius: 6px; background: var(--bg-elevated);">--</span>
                 </div>
                 <div style="display: flex; align-items: center; gap: 10px;">
                     <span style="font-size: 0.8rem; color: var(--danger); font-weight: bold;">1</span>
-                    <input type="range" id="score-slider" min="1" max="10" step="1" value="5" oninput="updateScorePreview(this.value)" onchange="applyScoreMove(this.value)" class="resize-slider">
+                    <input type="range" id="score-slider" min="1" max="10" step="0.1" value="5.0" oninput="updateScorePreview(this.value)" onchange="applyScoreMove(this.value)" class="resize-slider">
                     <span style="font-size: 0.8rem; color: var(--primary); font-weight: bold;">10</span>
                 </div>
             </div>
             
-            <div class="control-actions">
+            <div class="control-actions" id="main-control-actions">
                 <button class="btn-pill" onclick="moveToDock()">↓ To Dock</button>
-                <button class="btn-pill" onclick="openRenameModal()">✏️ Rename</button>
-                <button class="btn-pill" onclick="copyImageName()">📋 Copy Name</button>
-                <button class="btn-pill" onclick="clearImageName()">🚫 Clear Name</button>
+                <button class="btn-pill" id="btn-toggle-name" onclick="toggleNameMenu()">🏷️ Name Options ▼</button>
+                
+                <div id="sub-name-menu" style="display:none; grid-column: 1 / -1; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 5px; background: var(--bg-surface); padding: 10px; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+                    <button class="btn-pill" onclick="openRenameModal()" style="font-size: 0.8rem; background: var(--bg-elevated);">✏️ Rename</button>
+                    <button class="btn-pill" onclick="copyImageName()" style="font-size: 0.8rem; background: var(--bg-elevated);">📋 Copy</button>
+                    <button class="btn-pill" onclick="clearImageName()" style="font-size: 0.8rem; background: var(--bg-elevated);">🚫 Clear</button>
+                </div>
+
                 <button class="btn-pill" onclick="openCaptionModal()">✍️ Text</button>
                 <button class="btn-pill" onclick="applyToAll()" style="background:var(--text-main); color:var(--bg-base);">✦ Match Size</button>
                 <button class="btn-pill" onclick="downloadSelectedImage()" style="background:var(--primary); color:white; border:none;">📥 Download</button>
@@ -455,11 +460,11 @@
             <div style="margin-bottom: 20px; display:flex; gap:10px; background: var(--bg-elevated); padding: 15px; border-radius: 8px; border: 1px solid var(--border-color);">
                 <div style="flex:1;">
                     <label style="display:block; margin-bottom:8px; font-weight:bold; color:var(--text-main); font-size: 0.85rem;">Min Score (1-10):</label>
-                    <input type="number" id="edit-min-score" min="1" max="10" style="padding: 10px; width: 100%; background: var(--bg-base); border: 1px solid var(--border-color); color: var(--text-main); border-radius: 6px;">
+                    <input type="number" id="edit-min-score" min="1" max="10" step="0.1" style="padding: 10px; width: 100%; background: var(--bg-base); border: 1px solid var(--border-color); color: var(--text-main); border-radius: 6px;">
                 </div>
                 <div style="flex:1;">
                     <label style="display:block; margin-bottom:8px; font-weight:bold; color:var(--text-main); font-size: 0.85rem;">Max Score (1-10):</label>
-                    <input type="number" id="edit-max-score" min="1" max="10" style="padding: 10px; width: 100%; background: var(--bg-base); border: 1px solid var(--border-color); color: var(--text-main); border-radius: 6px;">
+                    <input type="number" id="edit-max-score" min="1" max="10" step="0.1" style="padding: 10px; width: 100%; background: var(--bg-base); border: 1px solid var(--border-color); color: var(--text-main); border-radius: 6px;">
                 </div>
             </div>
 
@@ -749,31 +754,27 @@
             });
         }
 
-        // ======================= THUẬT TOÁN AUTO-RANK TÙY CHỈNH ĐIỂM =======================
+        // ======================= THUẬT TOÁN TÍNH ĐIỂM AUTO-RANK =======================
         function getTierIndexByScore(score) {
             if (!currentListData || currentListData.tiers.length === 0) return 0;
-            score = parseInt(score);
+            score = parseFloat(score);
             
-            // 1. Kiểm tra xem điểm số có nằm lọt thỏm trong khoảng Min-Max của Tier nào không
             for (let i = 0; i < currentListData.tiers.length; i++) {
                 let t = currentListData.tiers[i];
                 if (t.minScore !== undefined && t.maxScore !== undefined) {
                     if (score >= t.minScore && score <= t.maxScore) {
-                        return i; // Trúng phóc khoảng điểm
+                        return i; 
                     }
                 }
             }
             
-            // 2. Nếu người dùng nhập thiếu/thủng lỗ khoảng điểm, tự động tìm Tier gần nhất
             let hasCustomScores = currentListData.tiers.some(t => t.minScore !== undefined);
             if (!hasCustomScores) {
-                // Nếu chưa cài điểm cho Tier nào, dùng công thức chia đều mặc định
                 let maxIndex = currentListData.tiers.length - 1;
                 let targetIndex = Math.round((10 - score) / 9 * maxIndex);
                 return Math.max(0, Math.min(maxIndex, targetIndex));
             }
 
-            // Nếu bị thủng lỗ (VD có Tier 1-2, 5-6 nhưng thiếu 3-4), tự map vào Tier có khoảng cách gần nhất
             let closestIndex = 0;
             let minDiff = 999;
             for (let i = 0; i < currentListData.tiers.length; i++) {
@@ -792,13 +793,14 @@
 
         function updateScorePreview(score) {
             if (!currentListData || currentListData.tiers.length === 0) return;
-            let targetIndex = getTierIndexByScore(score);
+            let parsedScore = parseFloat(score);
+            let targetIndex = getTierIndexByScore(parsedScore);
             
             let tierName = currentListData.tiers[targetIndex].name;
             let tierColor = currentListData.tiers[targetIndex].color;
             
             const scoreValEl = document.getElementById('score-val');
-            scoreValEl.innerText = `${score}/10 ➔ [ ${tierName} ]`;
+            scoreValEl.innerText = `${parsedScore.toFixed(1)}/10 ➔ [ ${tierName} ]`;
             scoreValEl.style.color = tierColor;
         }
 
@@ -806,19 +808,48 @@
             if (!selectedImgObj) return;
             if (!currentListData || currentListData.tiers.length === 0) return;
 
-            let targetIndex = getTierIndexByScore(score);
+            let parsedScore = parseFloat(score);
+            let targetIndex = getTierIndexByScore(parsedScore);
             let sourceArray = (selectedImgObj.type === 'tier') ? currentListData.tiers[selectedImgObj.r].items : currentListData.dock;
             let data = selectedImgObj.data;
 
+            // Xóa ảnh khỏi vị trí cũ
             sourceArray.splice(selectedImgObj.i, 1);
+            
+            // Ghi nhận điểm số vào ảnh
+            data.score = parsedScore;
+            
+            // Thêm vào Hàng mới
             currentListData.tiers[targetIndex].items.push(data);
+            
+            // SẮP XẾP LẠI ẢNH TRONG HÀNG THEO ĐIỂM (TỪ CAO XUỐNG THẤP)
+            currentListData.tiers[targetIndex].items.sort((a, b) => {
+                let scoreA = a.score !== undefined ? a.score : -1;
+                let scoreB = b.score !== undefined ? b.score : -1;
+                return scoreB - scoreA; 
+            });
 
-            showToast(`Moved to ${currentListData.tiers[targetIndex].name}`);
+            showToast(`Moved to ${currentListData.tiers[targetIndex].name} (${parsedScore.toFixed(1)} pts)`);
 
             deselectImg(); 
             commitChange(); 
         }
-        // ===================================================================================
+        
+        // ======================= MENU CON GỘP CHỨC NĂNG TÊN =======================
+        function toggleNameMenu() {
+            const menu = document.getElementById('sub-name-menu');
+            const btn = document.getElementById('btn-toggle-name');
+            if (menu.style.display === 'none' || menu.style.display === '') {
+                menu.style.display = 'grid';
+                btn.style.background = 'var(--bg-surface)';
+                btn.innerHTML = '🏷️ Name Options ▲';
+            } else {
+                menu.style.display = 'none';
+                btn.style.background = 'var(--bg-elevated)';
+                btn.innerHTML = '🏷️ Name Options ▼';
+            }
+        }
+        // ==============================================================================
 
         function initGlobalClickAndDrop() {
             const handleOutsideClick = (e) => { 
@@ -1259,18 +1290,19 @@
                     document.getElementById('size-slider').value = data.h; 
                     document.getElementById('size-val').innerText = data.h + 'px'; 
                     
-                    let initialScore = 5; 
-                    if (type === 'tier' && currentListData.tiers.length > 1) {
-                        // Tính toán thử xem ảnh đang ở Tier nào để set thanh điểm cho phù hợp
+                    let initialScore = 5.0; 
+                    if (data.score !== undefined) {
+                        initialScore = data.score;
+                    } else if (type === 'tier' && currentListData.tiers.length > 1) {
                         let t = currentListData.tiers[r];
                         if (t.minScore !== undefined && t.maxScore !== undefined) {
-                            initialScore = Math.floor((t.minScore + t.maxScore) / 2);
+                            initialScore = (t.minScore + t.maxScore) / 2;
                         } else {
                             let maxIndex = currentListData.tiers.length - 1;
-                            initialScore = Math.round(10 - (r / maxIndex) * 9);
+                            initialScore = 10 - (r / maxIndex) * 9;
                         }
-                        initialScore = Math.max(1, Math.min(10, initialScore));
                     }
+                    initialScore = Math.max(1, Math.min(10, initialScore));
                     document.getElementById('score-slider').value = initialScore;
                     updateScorePreview(initialScore);
 
@@ -1324,7 +1356,19 @@
         tz.ondrop = () => { if (isDragMode && draggedItem) { let oldArray = (draggedItem.type === 'tier') ? currentListData.tiers[draggedItem.r].items : currentListData.dock; oldArray.splice(draggedItem.i, 1); commitChange(); tz.classList.remove('hover'); } };
 
         function clickImg(dom, data, type, r, i) { if (!selectedImgObj) { selectedImgObj = {dom, data, type, r, i}; dom.classList.add('selected'); document.getElementById('resize-control').classList.remove('hidden'); document.getElementById('size-slider').value = data.h; document.getElementById('size-val').innerText = data.h + 'px'; } else if (selectedImgObj.dom === dom) { deselectImg(); } }
-        function deselectImg() { if (selectedImgObj) { selectedImgObj.dom.classList.remove('selected'); selectedImgObj = null; document.getElementById('resize-control').classList.add('hidden'); } }
+        
+        // CẬP NHẬT HÀM BỎ CHỌN: Đóng luôn cả menu con
+        function deselectImg() { 
+            if (selectedImgObj) { 
+                selectedImgObj.dom.classList.remove('selected'); 
+                selectedImgObj = null; 
+                document.getElementById('resize-control').classList.add('hidden'); 
+                document.getElementById('sub-name-menu').style.display = 'none';
+                document.getElementById('btn-toggle-name').innerHTML = '🏷️ Name Options ▼';
+                document.getElementById('btn-toggle-name').style.background = 'var(--bg-elevated)';
+            } 
+        }
+
         function resizeSelectedImg(h) { if (selectedImgObj) { h = parseInt(h); selectedImgObj.data.h = h; selectedImgObj.dom.style.height = h+'px'; document.getElementById('size-val').innerText = h+'px'; document.getElementById('size-slider').value = h; } }
         function adjustSize(d) { if (selectedImgObj) { let newH = parseInt(document.getElementById('size-slider').value) + d; newH = Math.max(40, Math.min(300, newH)); resizeSelectedImg(newH); } }
         function applyToAll() { 
@@ -1449,7 +1493,6 @@
         }
 
         function openHeaderModal() { const inputName = document.getElementById('list-name'); inputName.focus(); inputName.select(); }
-        
         function openCreateModal() { document.getElementById('create-modal-overlay').style.display='flex'; document.getElementById('new-template-name').focus(); }
         function openHelpModal() { document.getElementById('help-modal').style.display='flex'; }
         
@@ -1461,7 +1504,6 @@
                     if (list.some(l => l.name.toLowerCase() === name.toLowerCase())) { alert('⚠️ Board name already exists! Please choose another name.'); return; } 
                     showLoading("Creating..."); 
                     setTimeout(() => { 
-                        // THÊM MIN/MAX SCORE MẶC ĐỊNH CHO CÁC TIER TẠO MỚI
                         const newList = { 
                             id: 'list_'+Date.now(), 
                             name: name, 
@@ -1491,7 +1533,6 @@
             document.getElementById('edit-name').value = t.name; 
             document.getElementById('edit-color-picker').value = t.color; 
             
-            // LOAD MIN/MAX SCORE LÊN BẢNG EDIT
             document.getElementById('edit-min-score').value = t.minScore !== undefined ? t.minScore : 1;
             document.getElementById('edit-max-score').value = t.maxScore !== undefined ? t.maxScore : 10;
             
@@ -1505,9 +1546,8 @@
             currentListData.tiers[editingTierIndex].name = document.getElementById('edit-name').value; 
             currentListData.tiers[editingTierIndex].color = document.getElementById('edit-color-picker').value; 
             
-            // LƯU LẠI MIN/MAX SCORE VÀO DỮ LIỆU
-            currentListData.tiers[editingTierIndex].minScore = parseInt(document.getElementById('edit-min-score').value) || 1;
-            currentListData.tiers[editingTierIndex].maxScore = parseInt(document.getElementById('edit-max-score').value) || 10;
+            currentListData.tiers[editingTierIndex].minScore = parseFloat(document.getElementById('edit-min-score').value) || 1;
+            currentListData.tiers[editingTierIndex].maxScore = parseFloat(document.getElementById('edit-max-score').value) || 10;
             
             closeModal('modal-overlay'); 
             commitChange(); 
